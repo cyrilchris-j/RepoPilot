@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    border-color: #242A35;
+  }
+  
+  html {
+    background-color: #08090B;
+    color: #F4F7FA;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #08090B;
+    color: #F4F7FA;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: rgba(103, 232, 249, 0.2);
+    color: #67E8F9;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0E1116;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #242A35;
+    border-radius: 2px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #8B95A7;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-accent-cyan text-bg font-semibold px-5 py-2.5 rounded text-sm transition-all duration-200 hover:bg-opacity-90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-bg;
+  }
+
+  .btn-secondary {
+    @apply border border-border text-text-primary font-medium px-5 py-2.5 rounded text-sm transition-all duration-200 hover:border-text-secondary hover:bg-surface active:scale-95 focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-2 focus:ring-offset-bg;
+  }
+
+  .btn-ghost {
+    @apply text-text-secondary font-medium px-4 py-2 rounded text-sm transition-all duration-150 hover:text-text-primary hover:bg-elevated active:scale-95;
+  }
+
+  .card {
+    @apply bg-surface border border-border rounded-lg;
+  }
+
+  .card-elevated {
+    @apply bg-elevated border border-border rounded-lg;
+  }
+
+  .tag {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono font-medium;
+  }
+
+  .status-dot {
+    @apply w-1.5 h-1.5 rounded-full;
+  }
+
+  .section-label {
+    @apply text-xs font-mono font-medium tracking-widest uppercase text-text-secondary;
+  }
+
+  .mono {
+    @apply font-mono;
+  }
+
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-1 focus:ring-offset-bg;
+  }
+}
+
+@layer utilities {
+  .text-gradient-cyan {
+    @apply bg-gradient-to-r from-accent-cyan to-accent-violet bg-clip-text text-transparent;
+  }
+
+  .border-glow-cyan {
+    box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.3), 0 0 12px rgba(103, 232, 249, 0.1);
+  }
+
+  .bg-grid {
+    background-image: 
+      linear-gradient(rgba(36, 42, 53, 0.4) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(36, 42, 53, 0.4) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}
