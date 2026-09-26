@@ -1,6 +1,6 @@
 
-import { useState, useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Compass, Clock, ArrowRight, Tag } from 'lucide-react';
 import { FilePath } from '../components/ui/CodeBlock';
 import { DEMO_STARTER_TASKS } from '../lib/demo-data';
@@ -105,8 +105,6 @@ function TaskCard({ task, expanded, onToggle }: {
 }
 
 export function StarterTasksPage() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(containerRef, { once: true });
   const [expanded, setExpanded] = useState<string | null>(DEMO_STARTER_TASKS[0]?.id);
   const [filter, setFilter] = useState<StarterTask['difficulty'] | 'all'>('all');
 
@@ -121,7 +119,7 @@ export function StarterTasksPage() {
   };
 
   return (
-    <div ref={containerRef} className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -137,7 +135,7 @@ export function StarterTasksPage() {
       {/* Stats row */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="grid grid-cols-3 gap-3"
       >
@@ -154,7 +152,7 @@ export function StarterTasksPage() {
       {/* Filter */}
       <motion.div
         initial={{ opacity: 0 }}
-        animate={inView ? { opacity: 1 } : {}}
+        animate={{ opacity: 1 }}
         transition={{ delay: 0.15 }}
         className="flex items-center gap-2"
       >
@@ -182,7 +180,7 @@ export function StarterTasksPage() {
           <motion.div
             key={task.id}
             initial={{ opacity: 0, y: 12 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 + i * 0.06 }}
           >
             <TaskCard

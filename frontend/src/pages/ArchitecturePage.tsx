@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Info, ChevronDown } from 'lucide-react';
 import { FilePath } from '../components/ui/CodeBlock';
 import { DEMO_ARCHITECTURE_NODES } from '../lib/demo-data';
@@ -26,8 +26,6 @@ const typeLabels: Record<ArchitectureNode['type'], string> = {
 };
 
 export function ArchitecturePage() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(containerRef, { once: true });
   const [selected, setSelected] = useState<ArchitectureNode | null>(null);
   const [filter, setFilter] = useState<ArchitectureNode['type'] | 'all'>('all');
 
@@ -44,7 +42,7 @@ export function ArchitecturePage() {
   ];
 
   return (
-    <div ref={containerRef} className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-6 max-w-6xl mx-auto space-y-6">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -60,7 +58,7 @@ export function ArchitecturePage() {
       {/* Type filter */}
       <motion.div
         initial={{ opacity: 0 }}
-        animate={inView ? { opacity: 1 } : {}}
+        animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
         className="flex flex-wrap gap-2"
       >
@@ -85,7 +83,7 @@ export function ArchitecturePage() {
         {/* Architecture diagram */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
           className="md:col-span-2 card p-6"
         >
@@ -100,7 +98,7 @@ export function ArchitecturePage() {
                   {rowIdx > 0 && (
                     <motion.div
                       initial={{ scaleY: 0 }}
-                      animate={inView ? { scaleY: 1 } : {}}
+                      animate={{ scaleY: 1 }}
                       transition={{ delay: 0.2 + rowIdx * 0.08 }}
                       className="w-px h-6 bg-border origin-top"
                     />
@@ -112,7 +110,7 @@ export function ArchitecturePage() {
                         <motion.button
                           key={node.id}
                           initial={{ opacity: 0, scale: 0.9 }}
-                          animate={inView ? { opacity: isFiltered ? 0.3 : 1, scale: 1 } : {}}
+                          animate={{ opacity: isFiltered ? 0.3 : 1, scale: 1 }}
                           transition={{ delay: 0.25 + rowIdx * 0.08 }}
                           onClick={() => setSelected(selected?.id === node.id ? null : node)}
                           className={`relative px-5 py-3 rounded border text-left transition-all cursor-pointer min-w-[140px] max-w-[180px] ${
@@ -148,7 +146,7 @@ export function ArchitecturePage() {
         {/* Node detail */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="space-y-4"
         >

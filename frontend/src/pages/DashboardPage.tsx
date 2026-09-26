@@ -41,15 +41,12 @@ function MetricCard({ label, value, sub, accent = false }: {
 }
 
 export function DashboardPage() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(containerRef, { once: true });
-
   const issues = DEMO_SETUP_STEPS.filter(s => s.status !== 'ok' && s.status !== 'pending');
   const warnings = issues.filter(s => s.status === 'warning');
   const errors = issues.filter(s => s.status === 'error');
 
   return (
-    <div ref={containerRef} className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-6 max-w-6xl mx-auto space-y-6">
       {/* Repository identity */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -80,7 +77,7 @@ export function DashboardPage() {
       {/* Metrics row */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.4 }}
         className="grid grid-cols-2 md:grid-cols-4 gap-3"
       >
@@ -95,7 +92,7 @@ export function DashboardPage() {
         {/* Architecture */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
           className="md:col-span-3 card p-5"
         >
@@ -121,7 +118,7 @@ export function DashboardPage() {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.95 }}
-                animate={inView ? { opacity: 1, scale: 1 } : {}}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 + i * 0.07 }}
                 className="w-full max-w-xs"
               >
@@ -142,7 +139,7 @@ export function DashboardPage() {
         {/* Issues */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.4 }}
           className="md:col-span-2 space-y-3"
         >
@@ -194,7 +191,7 @@ export function DashboardPage() {
       {/* Starter tasks preview */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, duration: 0.4 }}
         className="card p-5"
       >
@@ -238,7 +235,7 @@ export function DashboardPage() {
       {/* Activity log */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.4 }}
         className="card p-5"
       >

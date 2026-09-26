@@ -1,5 +1,4 @@
-import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { AlertTriangle, ShieldAlert, Trash2, CheckCircle } from 'lucide-react';
 import { DEMO_DEPENDENCIES } from '../lib/demo-data';
 
@@ -11,8 +10,6 @@ const statusConfig = {
 };
 
 export function DependenciesPage() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(containerRef, { once: true });
 
   const production = DEMO_DEPENDENCIES.filter(d => d.type === 'production');
   const development = DEMO_DEPENDENCIES.filter(d => d.type === 'development');
@@ -25,7 +22,7 @@ export function DependenciesPage() {
   };
 
   return (
-    <div ref={containerRef} className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-6 max-w-5xl mx-auto space-y-6">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -41,7 +38,7 @@ export function DependenciesPage() {
       {/* Summary */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="grid grid-cols-2 md:grid-cols-4 gap-3"
       >
@@ -62,7 +59,7 @@ export function DependenciesPage() {
       {(counts.vulnerable > 0 || counts.outdated > 0) && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
           className="card p-5 border-error/30"
         >
@@ -97,7 +94,7 @@ export function DependenciesPage() {
       {/* Production deps */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="card p-5"
       >
@@ -107,7 +104,7 @@ export function DependenciesPage() {
             <motion.div
               key={dep.name}
               initial={{ opacity: 0 }}
-              animate={inView ? { opacity: 1 } : {}}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.25 + i * 0.04 }}
               className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0"
             >
@@ -136,7 +133,7 @@ export function DependenciesPage() {
       {/* Dev deps */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         className="card p-5"
       >
@@ -146,7 +143,7 @@ export function DependenciesPage() {
             <motion.div
               key={dep.name}
               initial={{ opacity: 0 }}
-              animate={inView ? { opacity: 1 } : {}}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.35 + i * 0.04 }}
               className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0"
             >

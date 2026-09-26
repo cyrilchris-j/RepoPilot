@@ -1,5 +1,4 @@
-import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { CheckCircle, AlertTriangle, XCircle, Circle, Terminal } from 'lucide-react';
 import { CodeBlock } from '../components/ui/CodeBlock';
 import { DEMO_SETUP_STEPS, DEMO_ENV_VARIABLES } from '../lib/demo-data';
@@ -13,15 +12,12 @@ function StepIcon({ status }: { status: SetupStep['status'] }) {
 }
 
 export function SetupPage() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(containerRef, { once: true });
-
   const okCount = DEMO_SETUP_STEPS.filter(s => s.status === 'ok').length;
   const warnCount = DEMO_SETUP_STEPS.filter(s => s.status === 'warning').length;
   const errCount = DEMO_SETUP_STEPS.filter(s => s.status === 'error').length;
 
   return (
-    <div ref={containerRef} className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -37,7 +33,7 @@ export function SetupPage() {
       {/* Status summary */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="grid grid-cols-3 gap-3"
       >
@@ -58,7 +54,7 @@ export function SetupPage() {
       {/* Prerequisites */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
         className="card p-5"
       >
@@ -68,7 +64,7 @@ export function SetupPage() {
             <motion.div
               key={step.id}
               initial={{ opacity: 0, x: -8 }}
-              animate={inView ? { opacity: 1, x: 0 } : {}}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 + i * 0.06 }}
               className={`flex flex-col sm:flex-row sm:items-start gap-3 py-4 border-b border-border/50 last:border-0 ${
                 step.status === 'error' ? 'bg-error/5 -mx-5 px-5 rounded' :
@@ -110,7 +106,7 @@ export function SetupPage() {
       {/* Environment variables */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
         className="card p-5"
       >
@@ -125,7 +121,7 @@ export function SetupPage() {
             <motion.div
               key={envVar.name}
               initial={{ opacity: 0, y: 4 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 + i * 0.04 }}
               className="flex flex-col sm:flex-row sm:items-start gap-3 py-3.5 border-b border-border/50 last:border-0"
             >
@@ -162,7 +158,7 @@ export function SetupPage() {
       {/* Quick start commands */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.45 }}
         className="card p-5"
       >

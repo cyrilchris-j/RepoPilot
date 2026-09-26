@@ -60,34 +60,34 @@ function ArchNode({ label, sub, delay, type = 'default' }: {
 }
 
 // ── Hero product preview ────────────────────────────────────────────────────
+const HERO_LOG_LINES = [
+  '> Connecting to github.com/vercel/next.js...',
+  '> Cloning repository index...',
+  '> Scanning 3,842 source files...',
+  '> Resolving dependency graph...',
+  '> Building architecture map...',
+  '> Analyzing environment configuration...',
+  '> Generating developer workspace...',
+  '> Analysis complete.',
+];
+
 function HeroPreview() {
   const [phase, setPhase] = useState<'scanning' | 'analyzing' | 'complete'>('scanning');
   const [log, setLog] = useState<string[]>([]);
   const [metrics, setMetrics] = useState({ files: 0, deps: 0, routes: 0, config: 0 });
 
-  const logLines = [
-    '> Connecting to github.com/vercel/next.js...',
-    '> Cloning repository index...',
-    '> Scanning 3,842 source files...',
-    '> Resolving dependency graph...',
-    '> Building architecture map...',
-    '> Analyzing environment configuration...',
-    '> Generating developer workspace...',
-    '> Analysis complete.',
-  ];
-
   useEffect(() => {
     let i = 0;
     const addLog = setInterval(() => {
-      if (i < logLines.length) {
-        setLog(prev => [...prev, logLines[i]]);
-        i++;
-        if (i === 3) setPhase('analyzing');
-        if (i === logLines.length) {
-          setPhase('complete');
-          setMetrics({ files: 3842, deps: 147, routes: 89, config: 6 });
-          clearInterval(addLog);
-        }
+      if (i >= HERO_LOG_LINES.length) { clearInterval(addLog); return; }
+      const line = HERO_LOG_LINES[i];
+      setLog(prev => [...prev, line]);
+      i++;
+      if (i === 3) setPhase('analyzing');
+      if (i === HERO_LOG_LINES.length) {
+        setPhase('complete');
+        setMetrics({ files: 3842, deps: 147, routes: 89, config: 6 });
+        clearInterval(addLog);
       }
     }, 500);
     return () => clearInterval(addLog);
@@ -171,7 +171,7 @@ function HeroPreview() {
 
       {/* Terminal log */}
       <div className="px-4 py-3 max-h-28 overflow-hidden">
-        {log.map((line, i) => (
+        {log.filter(Boolean).map((line, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, x: -4 }}
@@ -198,7 +198,7 @@ function HeroPreview() {
 // ── Section: Problem ────────────────────────────────────────────────────────
 function ProblemSection() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-100px' });
+  useInView(ref, { once: true });
 
   const steps = [
     { label: 'Clone Repository', status: 'ok' },
@@ -216,7 +216,7 @@ function ProblemSection() {
   ];
 
   return (
-    <section ref={ref} className="py-24 px-6 border-t border-border">
+    <section id="workflow" ref={ref} className="py-24 px-6 border-t border-border">
       <div className="max-w-5xl mx-auto">
         <div className="mb-3">
           <span className="section-label">01 — The Problem</span>
@@ -235,7 +235,7 @@ function ProblemSection() {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, x: -12 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
+                animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.3 }}
                 className="flex items-center gap-3"
               >
@@ -261,13 +261,13 @@ function ProblemSection() {
           {/* Stats */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
             className="space-y-6"
           >
             <div className="card p-6">
               <div className="text-4xl font-mono font-semibold text-text-primary mb-2">
-                {inView && <Counter target={2} />}–<Counter target={8} />h
+                <Counter target={2} />–<Counter target={8} />h
               </div>
               <div className="text-sm text-text-secondary">
                 average developer onboarding time for a new repository
@@ -275,7 +275,7 @@ function ProblemSection() {
             </div>
             <div className="card p-6">
               <div className="text-4xl font-mono font-semibold text-error mb-2">
-                {inView && <Counter target={60} />}%
+                <Counter target={60} />%
               </div>
               <div className="text-sm text-text-secondary">
                 of that time spent understanding structure rather than writing code
@@ -283,7 +283,7 @@ function ProblemSection() {
             </div>
             <div className="card p-6">
               <div className="text-4xl font-mono font-semibold text-warning mb-2">
-                {inView && <Counter target={3} />}×
+                <Counter target={3} />×
               </div>
               <div className="text-sm text-text-secondary">
                 more likely to introduce bugs in unfamiliar codebases
@@ -298,9 +298,6 @@ function ProblemSection() {
 
 // ── Section: Solution ───────────────────────────────────────────────────────
 function SolutionSection() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-100px' });
-
   const features = [
     { id: '01', label: 'Architecture Map', desc: 'Visualize how components, services, and data flow connect', accent: 'text-accent-cyan', border: 'border-accent-cyan/20' },
     { id: '02', label: 'Setup Assistant', desc: 'Step-by-step environment validation and configuration guidance', accent: 'text-accent-violet', border: 'border-accent-violet/20' },
@@ -311,7 +308,7 @@ function SolutionSection() {
   ];
 
   return (
-    <section ref={ref} className="py-24 px-6 border-t border-border bg-surface">
+    <section id="architecture" className="py-24 px-6 border-t border-border bg-surface">
       <div className="max-w-5xl mx-auto">
         <div className="mb-3">
           <span className="section-label">02 — The Solution</span>
@@ -336,7 +333,7 @@ function SolutionSection() {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scaleX: 0 }}
-                animate={inView ? { opacity: 1, scaleX: 1 } : {}}
+                animate={{ opacity: 1, scaleX: 1 }}
                 transition={{ delay: i * 0.15, duration: 0.4 }}
                 className="hidden md:block text-text-secondary"
               >
@@ -346,7 +343,7 @@ function SolutionSection() {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 12 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1, duration: 0.4 }}
                 className={`card px-6 py-4 text-center ${item.color === 'text-accent-cyan' ? 'border-accent-cyan/30 bg-accent-cyan/5' : ''}`}
               >
@@ -363,7 +360,7 @@ function SolutionSection() {
             <motion.div
               key={f.id}
               initial={{ opacity: 0, y: 16 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + i * 0.07, duration: 0.4 }}
               className={`card-elevated p-5 border ${f.border}`}
             >
@@ -412,9 +409,9 @@ export function LandingPage() {
               <span className="text-sm font-semibold tracking-tight">RepoPilot</span>
             </Link>
             <nav className="hidden md:flex items-center gap-1">
-              {['Product', 'Workflow', 'Architecture'].map(label => (
-                <a key={label} href="#" className="btn-ghost text-xs">{label}</a>
-              ))}
+              <a href="#product" className="btn-ghost text-xs">Product</a>
+              <a href="#workflow" className="btn-ghost text-xs">Workflow</a>
+              <a href="#architecture" className="btn-ghost text-xs">Architecture</a>
             </nav>
           </div>
           <div className="flex items-center gap-3">
@@ -430,7 +427,7 @@ export function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="pt-16 md:pt-24 pb-20 px-6 relative overflow-hidden">
+      <section id="product" className="pt-16 md:pt-24 pb-20 px-6 relative overflow-hidden">
         {/* Grid background */}
         <div className="absolute inset-0 bg-grid opacity-40 pointer-events-none" />
         {/* Accent glow */}

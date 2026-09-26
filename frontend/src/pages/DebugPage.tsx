@@ -78,28 +78,48 @@ export function DebugPage() {
     setAnalysis(null);
     setAnalysisLog([]);
 
-    for (let i = 0; i < logSteps.length; i++) {
-      await new Promise(r => setTimeout(r, 400 + Math.random() * 300));
-      setAnalysisLog(prev => [...prev, logSteps[i]]);
-    }
+    // Show log steps while waiting for API
+    const logPromise = (async () => {
+      for (let i = 0; i < logSteps.length; i++) {
+        await new Promise(r => setTimeout(r, 400 + Math.random() * 300));
+        setAnalysisLog(prev => [...prev, logSteps[i]]);
+      }
+    })();
 
-    await new Promise(r => setTimeout(r, 300));
-
-    // Match to demo analysis
     let result: DebugAnalysis | null = null;
-    if (errorText.toLowerCase().includes('mongo')) result = DEMO_ANALYSES.mongo;
-    else if (errorText.toLowerCase().includes('jwt') || errorText.toLowerCase().includes('token')) result = DEMO_ANALYSES.jwt;
-    else if (errorText.toLowerCase().includes('module') || errorText.toLowerCase().includes('cannot find')) result = DEMO_ANALYSES.module;
-    else result = {
-      error: errorText.slice(0, 100),
-      errorType: 'RuntimeError',
-      likelyCause: 'Error context analyzed using repository structure.',
-      relevantFile: 'src/index.ts',
-      whyItHappens: 'Based on the error message and repository context, this appears to be a configuration or runtime issue. RepoPilot has identified the most likely affected module.',
-      suggestedFix: 'Review the file indicated, check environment configuration, and ensure all dependencies are correctly installed. Run the verification command to confirm the fix.',
-      verifyCommand: 'npm run dev',
-      confidence: 'medium',
-    };
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const [res] = await Promise.all([
+        fetch(`${apiUrl}/api/debug`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ errorMessage: errorText }),
+        }),
+        logPromise,
+      ]);
+      if (res.ok) {
+        const data = await res.json();
+        result = { error: errorText.slice(0, 100), ...data.analysis };
+      } else {
+        throw new Error('API error');
+      }
+    } catch {
+      await logPromise;
+      // Fall back to demo analysis
+      if (errorText.toLowerCase().includes('mongo')) result = DEMO_ANALYSES.mongo;
+      else if (errorText.toLowerCase().includes('jwt') || errorText.toLowerCase().includes('token')) result = DEMO_ANALYSES.jwt;
+      else if (errorText.toLowerCase().includes('module') || errorText.toLowerCase().includes('cannot find')) result = DEMO_ANALYSES.module;
+      else result = {
+        error: errorText.slice(0, 100),
+        errorType: 'RuntimeError',
+        likelyCause: 'Error context analyzed using repository structure.',
+        relevantFile: 'src/index.ts',
+        whyItHappens: 'Based on the error message and repository context, this appears to be a configuration or runtime issue. RepoPilot has identified the most likely affected module.',
+        suggestedFix: 'Review the file indicated, check environment configuration, and ensure all dependencies are correctly installed. Run the verification command to confirm the fix.',
+        verifyCommand: 'npm run dev',
+        confidence: 'medium',
+      };
+    }
 
     setAnalysis(result);
     setAnalyzing(false);

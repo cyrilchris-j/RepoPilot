@@ -113,16 +113,34 @@ export function AskPage() {
     if (!question.trim()) return;
     setLoading(true);
     setAnswer(null);
-    await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
 
-    const match = DEMO_QA.find(q =>
-      question.toLowerCase().includes(q.question.toLowerCase().split(' ').slice(2).join(' ').toLowerCase()) ||
-      q.question.toLowerCase().includes(question.toLowerCase().split(' ').slice(1, 4).join(' ').toLowerCase())
-    ) || DEMO_QA[Math.floor(Math.random() * DEMO_QA.length)];
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const res = await fetch(`${apiUrl}/api/ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const result: QAAnswer = data.answer;
+        setAnswer(result);
+        setHistory(prev => [result, ...prev.slice(0, 4)]);
+      } else {
+        throw new Error('API error');
+      }
+    } catch {
+      // Fall back to demo data
+      await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+      const match = DEMO_QA.find(q =>
+        question.toLowerCase().includes(q.question.toLowerCase().split(' ').slice(2).join(' ').toLowerCase()) ||
+        q.question.toLowerCase().includes(question.toLowerCase().split(' ').slice(1, 4).join(' ').toLowerCase())
+      ) || DEMO_QA[Math.floor(Math.random() * DEMO_QA.length)];
+      const result = { ...match.answer, question };
+      setAnswer(result);
+      setHistory(prev => [result, ...prev.slice(0, 4)]);
+    }
 
-    const result = { ...match.answer, question };
-    setAnswer(result);
-    setHistory(prev => [result, ...prev.slice(0, 4)]);
     setLoading(false);
     setInput('');
   };
