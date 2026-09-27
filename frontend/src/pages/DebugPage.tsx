@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useRepo } from '../lib/RepoContext';
+import { getApiUrl } from '../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bug, Send, RotateCcw, Zap, FileCode, HelpCircle, CheckSquare, AlertOctagon } from 'lucide-react';
 import { FilePath, CodeBlock } from '../components/ui/CodeBlock';
@@ -58,7 +59,7 @@ export function DebugPage() {
 
     let result: DebugAnalysis | null = null;
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const [res] = await Promise.all([
         fetch(`${apiUrl}/api/debug`, {
           method: 'POST',

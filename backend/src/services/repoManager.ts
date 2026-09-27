@@ -328,27 +328,88 @@ function analyzeDirectory(
     }
   }
 
-  // Detect environment variables
+  // Detect environment variables thoroughly
   const envVariables: AnalyzedRepoData['envVariables'] = [];
-  const envExample = files.find(f => path.basename(f.relativePath).includes('.env.example') || path.basename(f.relativePath).includes('.env.sample'));
-  if (envExample) {
+  const envNamesSeen = new Set<string>();
+
+  // 1. Check all .env.example, .env.sample, .env.template files anywhere in repo
+  const envExampleFiles = files.filter(f =>
+    f.relativePath.includes('.env.example') ||
+    f.relativePath.includes('.env.sample') ||
+    f.relativePath.includes('.env.template') ||
+    f.relativePath.includes('.env.local.example')
+  );
+
+  for (const ef of envExampleFiles) {
     try {
-      const envContent = fs.readFileSync(path.join(dir, envExample.relativePath), 'utf8');
+      const envContent = fs.readFileSync(path.join(dir, ef.relativePath), 'utf8');
       envContent.split('\n').forEach(line => {
         const trimmed = line.trim();
         if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
-          const [key, val] = trimmed.split('=');
-          envVariables.push({
-            name: key.trim(),
-            required: true,
-            detected: true,
-            example: val ? val.trim() : undefined,
-            description: `Environment variable for ${key.trim()}`,
-          });
+          const [key, ...rest] = trimmed.split('=');
+          const varName = key.trim();
+          if (varName && !envNamesSeen.has(varName)) {
+            envNamesSeen.add(varName);
+            envVariables.push({
+              name: varName,
+              required: true,
+              detected: true,
+              example: rest.join('=').trim() || undefined,
+              description: `Configured in ${ef.relativePath}`,
+            });
+          }
         }
       });
     } catch {
       // Ignore
+    }
+  }
+
+  // 2. Scan README.md for env blocks
+  if (readmeContent) {
+    const envBlockRegex = /```(?:env|bash)?([\s\S]*?)```/g;
+    let match;
+    while ((match = envBlockRegex.exec(readmeContent)) !== null) {
+      const block = match[1];
+      if (block.includes('=')) {
+        block.split('\n').forEach(line => {
+          const trimmed = line.trim();
+          if (trimmed && !trimmed.startsWith('#') && /^[A-Z0-9_]{3,}=/.test(trimmed)) {
+            const [key, ...rest] = trimmed.split('=');
+            const varName = key.trim();
+            if (varName && !envNamesSeen.has(varName)) {
+              envNamesSeen.add(varName);
+              envVariables.push({
+                name: varName,
+                required: true,
+                detected: true,
+                example: rest.join('=').trim() || undefined,
+                description: 'Detected from README environment setup',
+              });
+            }
+          }
+        });
+      }
+    }
+  }
+
+  // 3. Scan code files for process.env.XYZ or import.meta.env.XYZ
+  for (const file of files.slice(0, 80)) {
+    if (file.contentSnippet && (file.extension === '.ts' || file.extension === '.tsx' || file.extension === '.js')) {
+      const regex = /(?:process\.env|import\.meta\.env)\.([A-Z0-9_]{3,})/g;
+      let m;
+      while ((m = regex.exec(file.contentSnippet)) !== null) {
+        const varName = m[1];
+        if (varName && !['NODE_ENV', 'PORT'].includes(varName) && !envNamesSeen.has(varName) && envVariables.length < 25) {
+          envNamesSeen.add(varName);
+          envVariables.push({
+            name: varName,
+            required: !varName.startsWith('OPTIONAL_'),
+            detected: true,
+            description: `Referenced in ${file.relativePath}`,
+          });
+        }
+      }
     }
   }
 
@@ -363,38 +424,40 @@ function analyzeDirectory(
   // Detect architecture nodes
   const architectureNodes: AnalyzedRepoData['architectureNodes'] = [];
 
-  const hasFrontend = files.some(f => f.relativePath.startsWith('frontend') || f.relativePath.includes('src/pages') || f.relativePath.includes('src/components'));
+  const hasFrontend = files.some(f => f.relativePath.startsWith('frontend') || f.relativePath.includes('src/pages') || f.relativePath.includes('src/components') || f.relativePath.includes('app/'));
   const hasBackend = files.some(f => f.relativePath.startsWith('backend') || f.relativePath.includes('src/controllers') || f.relativePath.includes('src/routes') || f.relativePath.includes('server'));
-  const hasDatabase = dependenciesList.some(d => ['prisma', 'mongoose', 'pg', 'mysql2', 'sqlite3', 'typeorm'].includes(d.name.toLowerCase()));
-  const hasAuth = files.some(f => f.relativePath.toLowerCase().includes('auth')) || dependenciesList.some(d => d.name.toLowerCase().includes('auth') || d.name.toLowerCase().includes('jwt') || d.name.toLowerCase().includes('passport'));
+  const hasFirebase = files.some(f => f.relativePath.includes('firebase.json') || f.relativePath.includes('firestore.rules')) || dependenciesList.some(d => d.name.includes('firebase'));
+  const hasDatabase = hasFirebase || dependenciesList.some(d => ['prisma', 'mongoose', 'pg', 'mysql2', 'sqlite3', 'typeorm'].includes(d.name.toLowerCase()));
+  const hasAuth = files.some(f => f.relativePath.toLowerCase().includes('auth')) || dependenciesList.some(d => d.name.toLowerCase().includes('auth') || d.name.toLowerCase().includes('jwt') || d.name.toLowerCase().includes('passport') || d.name.includes('firebase'));
 
   architectureNodes.push({
     id: 'client',
-    label: 'Client / User',
+    label: 'Client Browser',
     type: 'external',
     description: 'Incoming user requests and browser interface',
   });
 
   if (hasFrontend) {
+    const isNext = dependenciesList.some(d => d.name === 'next');
     architectureNodes.push({
       id: 'frontend',
-      label: 'Frontend UI',
+      label: isNext ? 'Next.js Frontend' : 'Frontend UI',
       type: 'frontend',
-      technology: dependenciesList.some(d => d.name === 'react') ? 'React + TypeScript' : mainLanguage,
+      technology: isNext ? 'Next.js + TypeScript' : (dependenciesList.some(d => d.name === 'react') ? 'React + TypeScript' : mainLanguage),
       filePath: files.find(f => f.relativePath.startsWith('frontend') || f.relativePath.startsWith('src'))?.relativePath || 'src',
-      description: 'User interface components, pages, and client state',
-      children: hasBackend ? ['backend'] : [],
+      description: 'Client-side rendering, UI components, and state management',
+      children: hasBackend ? ['backend'] : (hasDatabase ? ['database'] : []),
     });
   }
 
   if (hasBackend) {
     architectureNodes.push({
       id: 'backend',
-      label: 'Backend API Service',
+      label: 'REST API Backend',
       type: 'backend',
-      technology: dependenciesList.some(d => d.name === 'express') ? 'Express.js + Node' : mainLanguage,
+      technology: dependenciesList.some(d => d.name === 'express') ? 'Express.js + TypeScript' : mainLanguage,
       filePath: files.find(f => f.relativePath.includes('routes') || f.relativePath.includes('controllers') || f.relativePath.startsWith('backend'))?.relativePath || 'backend',
-      description: 'API controllers, request routing, and business logic',
+      description: 'Business logic, request handling, and API endpoints',
       children: hasDatabase ? ['database'] : (hasAuth ? ['auth'] : []),
     });
   }
@@ -404,53 +467,113 @@ function analyzeDirectory(
       id: 'auth',
       label: 'Authentication & Security',
       type: 'auth',
-      technology: 'JWT / Session Auth',
+      technology: hasFirebase ? 'Firebase Auth + JWT' : 'JWT / Session Auth',
       filePath: files.find(f => f.relativePath.toLowerCase().includes('auth'))?.relativePath || 'auth',
-      description: 'User identity, tokens, and authorization guards',
+      description: 'User authentication, tokens, and authorization guards',
     });
   }
 
   if (hasDatabase) {
     architectureNodes.push({
       id: 'database',
-      label: 'Data Persistence',
+      label: hasFirebase ? 'Cloud Firestore' : 'Data Store',
       type: 'database',
-      technology: dependenciesList.find(d => ['prisma', 'mongoose', 'pg', 'mysql2'].includes(d.name))?.name || 'Database',
-      description: 'Primary database models, migrations, and queries',
+      technology: hasFirebase ? 'Cloud Firestore NoSQL' : (dependenciesList.find(d => ['prisma', 'mongoose', 'pg', 'mysql2'].includes(d.name))?.name || 'Database'),
+      filePath: files.find(f => f.relativePath.includes('firestore') || f.relativePath.includes('schema') || f.relativePath.includes('database'))?.relativePath,
+      description: hasFirebase ? 'Realtime document storage & security rules' : 'Relational / document database',
     });
   }
 
-  // Setup Steps
+  // Detect monorepo structure
+  const hasFrontendPkg = files.some(f => f.relativePath === 'frontend/package.json');
+  const hasBackendPkg = files.some(f => f.relativePath === 'backend/package.json');
+  const isMonorepo = hasFrontendPkg && hasBackendPkg;
+
+  // Setup Steps — completely customized to the specific repository
   const setupSteps: AnalyzedRepoData['setupSteps'] = [
     {
       id: 'step-clone',
       label: 'Clone & Navigate',
       command: `git clone ${url} && cd ${name}`,
       status: 'ok',
-      description: 'Repository cloned and workspace ready',
+      description: 'Clone the repository and enter the project root directory',
+      details: `Repository ${name} cloned from ${url}`,
     },
     {
       id: 'step-install',
       label: 'Install Dependencies',
-      command: files.some(f => f.relativePath === 'package.json') ? 'npm install' : (files.some(f => f.relativePath === 'requirements.txt') ? 'pip install -r requirements.txt' : 'make install'),
-      status: dependenciesList.length > 0 ? 'ok' : 'pending',
-      description: `Install ${dependenciesList.length} detected package dependencies`,
+      command: isMonorepo
+        ? 'cd frontend && npm install && cd ../backend && npm install'
+        : (files.some(f => f.relativePath === 'package.json') ? 'npm install' : (files.some(f => f.relativePath === 'requirements.txt') ? 'pip install -r requirements.txt' : 'make install')),
+      status: 'ok',
+      description: isMonorepo
+        ? `Install dependencies for both frontend and backend modules (${dependenciesList.length} packages total)`
+        : `Install ${dependenciesList.length} detected package dependencies`,
+      details: isMonorepo ? 'Dual-package installation required' : `${dependenciesList.length} packages resolved`,
     },
     {
       id: 'step-env',
-      label: 'Configure Environment',
-      command: envExample ? `cp ${path.basename(envExample.relativePath)} .env` : 'touch .env',
+      label: 'Configure Environment Variables',
+      command: isMonorepo
+        ? 'touch frontend/.env.local backend/.env'
+        : (envExampleFiles.length > 0 ? `cp ${envExampleFiles[0].relativePath} .env` : 'touch .env'),
       status: envVariables.length > 0 ? 'warning' : 'ok',
-      description: envVariables.length > 0 ? `${envVariables.length} environment variables detected in template` : 'No complex env configuration required',
-    },
-    {
-      id: 'step-run',
-      label: 'Start Development Server',
-      command: files.some(f => f.relativePath === 'package.json') ? 'npm run dev' : (files.some(f => f.relativePath.includes('manage.py')) ? 'python manage.py runserver' : 'npm start'),
-      status: 'pending',
-      description: 'Launch the local development environment',
+      description: envVariables.length > 0
+        ? `Configure ${envVariables.length} required environment variables`
+        : 'Verify and populate required environment configuration',
+      details: envVariables.length > 0 ? `${envVariables.length} variables detected across project` : 'Default environment configuration',
     },
   ];
+
+  // If Firebase exists
+  if (hasFirebase) {
+    setupSteps.push({
+      id: 'step-firebase',
+      label: 'Deploy Firestore Rules & Security',
+      command: 'firebase deploy --only firestore:rules,firestore:indexes',
+      status: 'ok',
+      description: 'Deploy Firestore security rules and composite index specifications',
+      details: 'Firebase project configuration detected',
+    });
+  }
+
+  // If Prisma exists
+  if (dependenciesList.some(d => d.name === 'prisma')) {
+    setupSteps.push({
+      id: 'step-prisma',
+      label: 'Synchronize Database Schema',
+      command: 'npx prisma generate && npx prisma db push',
+      status: 'ok',
+      description: 'Generate Prisma client and push schema changes to database',
+      details: 'Prisma ORM schema synchronization',
+    });
+  }
+
+  // Check for seed scripts
+  const hasSeedScript = files.some(f => f.relativePath.includes('seedOwner.js') || f.relativePath.includes('seed.ts') || f.relativePath.includes('seed.js'));
+  if (hasSeedScript) {
+    setupSteps.push({
+      id: 'step-seed',
+      label: 'Initialize & Seed Database',
+      command: isMonorepo ? 'cd backend && npm run seed' : 'npm run seed',
+      status: 'ok',
+      description: 'Seed initial database records and administrative credentials',
+      details: 'Database seeding script detected',
+    });
+  }
+
+  // Start development server step
+  setupSteps.push({
+    id: 'step-run',
+    label: 'Start Development Environment',
+    command: isMonorepo
+      ? 'cd backend && npm run dev # in Terminal 1\ncd frontend && npm run dev # in Terminal 2'
+      : (files.some(f => f.relativePath === 'package.json') ? 'npm run dev' : 'npm start'),
+    status: 'pending',
+    description: 'Launch the application development servers locally',
+    details: isMonorepo ? 'Run backend and frontend concurrently' : 'Ready to run',
+  });
+
 
   // Starter tasks
   const starterTasks: AnalyzedRepoData['starterTasks'] = [
@@ -470,7 +593,7 @@ function analyzeDirectory(
       title: 'Verify Environment & Configuration',
       difficulty: 'beginner',
       description: 'Validate that all necessary environment variables and configuration files exist for local development.',
-      relevantFiles: envExample ? [envExample.relativePath] : files.filter(f => f.relativePath.includes('config')).slice(0, 2).map(f => f.relativePath),
+      relevantFiles: envExampleFiles.length > 0 ? [envExampleFiles[0].relativePath] : files.filter(f => f.relativePath.includes('config')).slice(0, 2).map(f => f.relativePath),
       whyItMatters: 'Missing configuration is the #1 cause of runtime startup failures for new contributors.',
       nextStep: 'Check the .env file against .env.example templates.',
       estimatedTime: '10 mins',

@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScanningLine } from '../components/ui/CodeBlock';
 import { useRepo } from '../lib/RepoContext';
+import { getApiUrl } from '../lib/api';
+
 
 const ANALYSIS_STEPS = [
   'Connecting to repository...',
@@ -35,7 +37,7 @@ export function AnalyzingPage() {
   }, [urlFromState, repoUrl, setRepoUrl]);
 
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const apiUrl = getApiUrl();
 
     // Fire the backend analysis call
     fetch(`${apiUrl}/api/analyze`, {

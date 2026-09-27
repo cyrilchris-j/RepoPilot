@@ -5,16 +5,19 @@ import { useRepo } from '../lib/RepoContext';
 import { DEMO_REPO } from '../lib/demo-data';
 
 export function AppLayout() {
-  const { repoUrl } = useRepo();
+  const { repoUrl, repoData } = useRepo();
 
-  // Parse "github.com/owner/repo" or "https://github.com/owner/repo"
+  // Parse repo name from live analysis or repoUrl
   const displayName = (() => {
+    if (repoData?.repository) {
+      return `${repoData.repository.owner}/${repoData.repository.name}`;
+    }
     if (!repoUrl) return `${DEMO_REPO.owner}/${DEMO_REPO.name}`;
-    const clean = repoUrl.replace(/^https?:\/\//, '').replace(/^github\.com\//, '');
+    const clean = repoUrl.replace(/^https?:\/\//, '').replace(/^github\.com\//, '').replace(/\.git$/, '');
     return clean || `${DEMO_REPO.owner}/${DEMO_REPO.name}`;
   })();
 
-  const branch = DEMO_REPO.branch;
+  const branch = repoData?.repository?.branch || 'main';
 
   return (
     <div className="flex h-screen bg-bg overflow-hidden">

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRepo } from '../lib/RepoContext';
+import { getApiUrl } from '../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, Send, FileText, BarChart2, RotateCcw } from 'lucide-react';
 import { FilePath } from '../components/ui/CodeBlock';
@@ -47,7 +48,7 @@ export function AskPage() {
     setAnswer(null);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -70,7 +70,7 @@ export function SetupPage() {
       >
         <div className="section-label mb-4">Prerequisites & Steps</div>
         <div className="space-y-0">
-          {DEMO_SETUP_STEPS.map((step, i) => (
+          {setupSteps.map((step, i) => (
             <motion.div
               key={step.id}
               initial={{ opacity: 0, x: -8 }}
@@ -111,6 +111,7 @@ export function SetupPage() {
             </motion.div>
           ))}
         </div>
+
       </motion.div>
 
       {/* Environment variables */}
@@ -177,20 +178,15 @@ export function SetupPage() {
           <div className="section-label">Quick Start</div>
         </div>
         <div className="space-y-3">
-          <div>
-            <div className="text-xs text-text-secondary mb-2">Install dependencies</div>
-            <CodeBlock code="pnpm install" language="bash" />
-          </div>
-          <div>
-            <div className="text-xs text-text-secondary mb-2">Push database schema</div>
-            <CodeBlock code="pnpm prisma db push" language="bash" />
-          </div>
-          <div>
-            <div className="text-xs text-text-secondary mb-2">Start development server</div>
-            <CodeBlock code="pnpm dev" language="bash" />
-          </div>
+          {setupSteps.filter(s => s.command).slice(0, 5).map((s) => (
+            <div key={s.id}>
+              <div className="text-xs text-text-secondary mb-2">{s.label}</div>
+              <CodeBlock code={s.command!} language="bash" showCopy />
+            </div>
+          ))}
         </div>
       </motion.div>
+
     </div>
   );
 }
