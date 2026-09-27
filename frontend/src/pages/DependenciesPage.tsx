@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { AlertTriangle, ShieldAlert, Trash2, CheckCircle } from 'lucide-react';
+import { useRepo } from '../lib/RepoContext';
 import { DEMO_DEPENDENCIES } from '../lib/demo-data';
 
 const statusConfig = {
@@ -10,15 +11,19 @@ const statusConfig = {
 };
 
 export function DependenciesPage() {
+  const { repoData } = useRepo();
+  const dependencies = (repoData?.dependenciesList && repoData.dependenciesList.length > 0)
+    ? repoData.dependenciesList
+    : DEMO_DEPENDENCIES;
 
-  const production = DEMO_DEPENDENCIES.filter(d => d.type === 'production');
-  const development = DEMO_DEPENDENCIES.filter(d => d.type === 'development');
+  const production = dependencies.filter(d => d.type === 'production');
+  const development = dependencies.filter(d => d.type === 'development');
 
   const counts = {
-    ok: DEMO_DEPENDENCIES.filter(d => d.status === 'ok').length,
-    outdated: DEMO_DEPENDENCIES.filter(d => d.status === 'outdated').length,
-    vulnerable: DEMO_DEPENDENCIES.filter(d => d.status === 'vulnerable').length,
-    unused: DEMO_DEPENDENCIES.filter(d => d.status === 'unused').length,
+    ok: dependencies.filter(d => d.status === 'ok').length,
+    outdated: dependencies.filter(d => d.status === 'outdated').length,
+    vulnerable: dependencies.filter(d => d.status === 'vulnerable').length,
+    unused: dependencies.filter(d => d.status === 'unused').length,
   };
 
   return (
@@ -31,7 +36,7 @@ export function DependenciesPage() {
         <div className="section-label mb-1">Dependencies</div>
         <h1 className="text-xl font-semibold text-text-primary">Package Analysis</h1>
         <p className="text-sm text-text-secondary mt-1">
-          {DEMO_DEPENDENCIES.length} packages audited. Outdated, vulnerable, and unused packages highlighted.
+          {dependencies.length} packages audited from {repoData ? 'analyzed repository' : 'demo data'}. Outdated, vulnerable, and unused packages highlighted.
         </p>
       </motion.div>
 

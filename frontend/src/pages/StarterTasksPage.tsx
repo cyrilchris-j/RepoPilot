@@ -1,8 +1,8 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Compass, Clock, ArrowRight, Tag } from 'lucide-react';
 import { FilePath } from '../components/ui/CodeBlock';
+import { useRepo } from '../lib/RepoContext';
 import { DEMO_STARTER_TASKS } from '../lib/demo-data';
 import type { StarterTask } from '../types';
 
@@ -105,17 +105,22 @@ function TaskCard({ task, expanded, onToggle }: {
 }
 
 export function StarterTasksPage() {
-  const [expanded, setExpanded] = useState<string | null>(DEMO_STARTER_TASKS[0]?.id);
+  const { repoData } = useRepo();
+  const tasks = (repoData?.starterTasks && repoData.starterTasks.length > 0)
+    ? repoData.starterTasks
+    : DEMO_STARTER_TASKS;
+
+  const [expanded, setExpanded] = useState<string | null>(tasks[0]?.id || null);
   const [filter, setFilter] = useState<StarterTask['difficulty'] | 'all'>('all');
 
   const filtered = filter === 'all'
-    ? DEMO_STARTER_TASKS
-    : DEMO_STARTER_TASKS.filter(t => t.difficulty === filter);
+    ? tasks
+    : tasks.filter(t => t.difficulty === filter);
 
   const grouped: Record<StarterTask['difficulty'], StarterTask[]> = {
-    beginner:     DEMO_STARTER_TASKS.filter(t => t.difficulty === 'beginner'),
-    intermediate: DEMO_STARTER_TASKS.filter(t => t.difficulty === 'intermediate'),
-    advanced:     DEMO_STARTER_TASKS.filter(t => t.difficulty === 'advanced'),
+    beginner:     tasks.filter(t => t.difficulty === 'beginner'),
+    intermediate: tasks.filter(t => t.difficulty === 'intermediate'),
+    advanced:     tasks.filter(t => t.difficulty === 'advanced'),
   };
 
   return (

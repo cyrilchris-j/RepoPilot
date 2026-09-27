@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { CheckCircle, AlertTriangle, XCircle, Circle, Terminal } from 'lucide-react';
 import { CodeBlock } from '../components/ui/CodeBlock';
+import { useRepo } from '../lib/RepoContext';
 import { DEMO_SETUP_STEPS, DEMO_ENV_VARIABLES } from '../lib/demo-data';
 import type { SetupStep } from '../types';
 
@@ -12,9 +13,18 @@ function StepIcon({ status }: { status: SetupStep['status'] }) {
 }
 
 export function SetupPage() {
-  const okCount = DEMO_SETUP_STEPS.filter(s => s.status === 'ok').length;
-  const warnCount = DEMO_SETUP_STEPS.filter(s => s.status === 'warning').length;
-  const errCount = DEMO_SETUP_STEPS.filter(s => s.status === 'error').length;
+  const { repoData } = useRepo();
+  const setupSteps = (repoData?.setupSteps && repoData.setupSteps.length > 0)
+    ? repoData.setupSteps
+    : DEMO_SETUP_STEPS;
+  const envVariables = (repoData?.envVariables && repoData.envVariables.length > 0)
+    ? repoData.envVariables
+    : DEMO_ENV_VARIABLES;
+
+  const okCount = setupSteps.filter(s => s.status === 'ok').length;
+  const warnCount = setupSteps.filter(s => s.status === 'warning').length;
+  const errCount = setupSteps.filter(s => s.status === 'error').length;
+
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
@@ -113,11 +123,11 @@ export function SetupPage() {
         <div className="flex items-center gap-2 mb-4">
           <div className="section-label">Environment Variables</div>
           <span className="tag bg-warning/10 text-warning text-[10px]">
-            {DEMO_ENV_VARIABLES.filter(v => v.required && !v.detected).length} missing
+            {envVariables.filter(v => v.required && !v.detected).length} missing
           </span>
         </div>
         <div className="space-y-0">
-          {DEMO_ENV_VARIABLES.map((envVar, i) => (
+          {envVariables.map((envVar, i) => (
             <motion.div
               key={envVar.name}
               initial={{ opacity: 0, y: 4 }}

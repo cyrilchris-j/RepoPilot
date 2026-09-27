@@ -6,81 +6,11 @@ import { FilePath } from '../components/ui/CodeBlock';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import type { QAAnswer } from '../types';
 
-const DEMO_QA: Array<{ question: string; answer: QAAnswer }> = [
-  {
-    question: 'Where is authentication handled?',
-    answer: {
-      question: 'Where is authentication handled?',
-      explanation: 'Authentication in this repository is handled by NextAuth.js, integrated at the Next.js middleware level. Incoming requests are intercepted before reaching route handlers. Session validation, JWT signing/verification, and OAuth provider configuration all live in the auth module. The middleware applies authentication guards globally, with per-route exceptions configured via matcher patterns.',
-      relevantFiles: [
-        { path: 'packages/next-auth/src/core/index.ts', description: 'Core auth engine — session creation, token signing, provider resolution' },
-        { path: 'packages/next/src/server/middleware-routine.ts', description: 'Edge middleware — applies auth checks to incoming requests' },
-        { path: 'packages/next-auth/src/providers/', description: 'OAuth provider configurations (GitHub, Google, credentials)' },
-        { path: 'apps/docs/middleware.ts', description: 'Example: route-level matcher configuration' },
-      ],
-      relevantFunctions: [
-        { name: 'NextAuth()', file: 'packages/next-auth/src/core/index.ts' },
-        { name: 'getServerSession()', file: 'packages/next-auth/src/next/index.ts' },
-        { name: 'withAuth()', file: 'packages/next-auth/src/next/middleware.ts' },
-      ],
-      confidence: 'high',
-    },
-  },
-  {
-    question: 'How does user registration work?',
-    answer: {
-      question: 'How does user registration work?',
-      explanation: 'User registration depends on the authentication provider. For OAuth providers (GitHub, Google), registration is implicit — users are created on first login via the signIn callback. For credentials-based auth, the `authorize()` function in the credentials provider handles validation. User records are persisted to the database through Prisma in the `createUser` adapter method.',
-      relevantFiles: [
-        { path: 'packages/next-auth/src/providers/credentials.ts', description: 'Credentials provider — defines authorize() callback' },
-        { path: 'packages/next-auth/src/core/callbacks.ts', description: 'signIn, session, and jwt callbacks' },
-        { path: 'packages/adapter-prisma/src/index.ts', description: 'Prisma adapter — createUser, linkAccount methods' },
-        { path: 'prisma/schema.prisma', description: 'User, Account, Session data models' },
-      ],
-      relevantFunctions: [
-        { name: 'authorize()', file: 'packages/next-auth/src/providers/credentials.ts' },
-        { name: 'createUser()', file: 'packages/adapter-prisma/src/index.ts' },
-        { name: 'signIn callback', file: 'packages/next-auth/src/core/callbacks.ts' },
-      ],
-      confidence: 'high',
-    },
-  },
-  {
-    question: 'Which API handles payments?',
-    answer: {
-      question: 'Which API handles payments?',
-      explanation: 'No payment processing logic was detected in this repository. This is the Next.js framework repository itself, which does not include application-specific payment routes. If you are working on an application built with Next.js, payment handling would typically be implemented in your own API routes under `app/api/` or `pages/api/`. Look for Stripe, Paddle, or similar integrations in your own application layer.',
-      relevantFiles: [
-        { path: 'packages/next/src/server/route-modules/app-route/', description: 'App Router route module — where custom API routes are served from' },
-      ],
-      relevantFunctions: [],
-      confidence: 'high',
-    },
-  },
-  {
-    question: 'Where is the database connected?',
-    answer: {
-      question: 'Where is the database connected?',
-      explanation: 'Database connectivity is managed through Prisma ORM. The Prisma client is initialized as a singleton to avoid exhausting database connections in development (due to hot module reloading). The connection string is read from the DATABASE_URL environment variable. The adapter-prisma package provides the NextAuth.js adapter that bridges session storage to the database.',
-      relevantFiles: [
-        { path: 'prisma/schema.prisma', description: 'Data model definitions and database provider configuration' },
-        { path: 'packages/adapter-prisma/src/index.ts', description: 'NextAuth Prisma adapter — session, user, account operations' },
-        { path: 'apps/dev/lib/prisma.ts', description: 'Prisma client singleton (prevents hot-reload connection exhaustion)' },
-      ],
-      relevantFunctions: [
-        { name: 'PrismaClient()', file: 'apps/dev/lib/prisma.ts' },
-        { name: 'PrismaAdapter()', file: 'packages/adapter-prisma/src/index.ts' },
-      ],
-      confidence: 'high',
-    },
-  },
-];
-
 const EXAMPLE_QUESTIONS = [
-  'Where is authentication handled?',
-  'How does user registration work?',
-  'Where is the database connected?',
-  'Which API handles payments?',
+  'Where is the main entry point and how does it start?',
+  'Where is authentication or authorization handled?',
+  'What database or data persistence is used?',
+  'What are the primary API routes or services?',
 ];
 
 function ConfidenceBar({ confidence }: { confidence: QAAnswer['confidence'] }) {
@@ -129,23 +59,25 @@ export function AskPage() {
         setAnswer(result);
         setHistory(prev => [result, ...prev.slice(0, 4)]);
       } else {
-        throw new Error('API error');
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || errJson.details || `Server responded with status ${res.status}`);
       }
-    } catch {
-      // Fall back to demo data
-      await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
-      const match = DEMO_QA.find(q =>
-        question.toLowerCase().includes(q.question.toLowerCase().split(' ').slice(2).join(' ').toLowerCase()) ||
-        q.question.toLowerCase().includes(question.toLowerCase().split(' ').slice(1, 4).join(' ').toLowerCase())
-      ) || DEMO_QA[Math.floor(Math.random() * DEMO_QA.length)];
-      const result = { ...match.answer, question };
-      setAnswer(result);
-      setHistory(prev => [result, ...prev.slice(0, 4)]);
+    } catch (err: any) {
+      console.error('[AskPage] Error querying backend:', err);
+      const errorResult: QAAnswer = {
+        question,
+        explanation: `Analysis failed: ${err.message || 'Unable to connect to backend'}. Please make sure the backend is running at http://localhost:3001 and your repository URL is accessible.`,
+        relevantFiles: [],
+        confidence: 'low',
+      };
+      setAnswer(errorResult);
+      setHistory(prev => [errorResult, ...prev.slice(0, 4)]);
     }
 
     setLoading(false);
     setInput('');
   };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Info, ChevronDown } from 'lucide-react';
 import { FilePath } from '../components/ui/CodeBlock';
+import { useRepo } from '../lib/RepoContext';
 import { DEMO_ARCHITECTURE_NODES } from '../lib/demo-data';
 import type { ArchitectureNode } from '../types';
 
@@ -26,20 +27,28 @@ const typeLabels: Record<ArchitectureNode['type'], string> = {
 };
 
 export function ArchitecturePage() {
+  const { repoData } = useRepo();
+  const architectureNodes = (repoData?.architectureNodes && repoData.architectureNodes.length > 0)
+    ? repoData.architectureNodes
+    : DEMO_ARCHITECTURE_NODES;
+
   const [selected, setSelected] = useState<ArchitectureNode | null>(null);
   const [filter, setFilter] = useState<ArchitectureNode['type'] | 'all'>('all');
 
-  const types = Array.from(new Set(DEMO_ARCHITECTURE_NODES.map(n => n.type)));
-  const filtered = filter === 'all' ? DEMO_ARCHITECTURE_NODES : DEMO_ARCHITECTURE_NODES.filter(n => n.type === filter);
+  const types = Array.from(new Set(architectureNodes.map(n => n.type)));
+  const filtered = filter === 'all' ? architectureNodes : architectureNodes.filter(n => n.type === filter);
 
   // Vertical flow layout
-  const flow = [
-    ['client'],
-    ['nextjs-frontend'],
-    ['middleware', 'build'],
-    ['api-routes', 'cdn'],
-    ['auth', 'database'],
-  ];
+  const flow = architectureNodes.length > 0
+    ? [architectureNodes.map(n => n.id)]
+    : [
+        ['client'],
+        ['nextjs-frontend'],
+        ['middleware', 'build'],
+        ['api-routes', 'cdn'],
+        ['auth', 'database'],
+      ];
+
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">

@@ -6,38 +6,6 @@ import { FilePath, CodeBlock } from '../components/ui/CodeBlock';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import type { DebugAnalysis } from '../types';
 
-const DEMO_ANALYSES: Record<string, DebugAnalysis> = {
-  mongo: {
-    error: 'MongoServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017',
-    errorType: 'MongoServerSelectionError',
-    likelyCause: 'Database connection could not be established. MongoDB is either not running locally or the connection string is misconfigured.',
-    relevantFile: 'server/config/database.ts',
-    whyItHappens: 'Next.js attempted to connect to MongoDB using the MONGODB_URI environment variable on startup. The connection was refused, which means either the MongoDB process is not running on the expected host/port, or the URI in .env.local is incorrect or missing entirely.',
-    suggestedFix: 'Verify your MONGODB_URI environment variable is set and correct in .env.local. If running locally, ensure MongoDB is running with `mongod --dbpath ~/data/db`. If using MongoDB Atlas, check that your IP is whitelisted in the Atlas network access settings.',
-    verifyCommand: 'npm run dev',
-    confidence: 'high',
-  },
-  jwt: {
-    error: 'JsonWebTokenError: invalid signature',
-    errorType: 'JsonWebTokenError',
-    likelyCause: 'JWT token verification failed. The signature does not match, indicating the token was signed with a different secret or has been tampered with.',
-    relevantFile: 'src/middleware/auth.ts',
-    whyItHappens: 'The JWT_SECRET used to verify the incoming token does not match the secret that was used to sign it originally. This often occurs after rotating secrets, changing environment configuration, or when tokens issued in one environment are used in another.',
-    suggestedFix: 'Ensure JWT_SECRET is consistent across your environment. Check .env.local and verify no trailing whitespace. If you recently changed the secret, existing tokens are invalid — users will need to re-authenticate.',
-    verifyCommand: 'node -e "require(\'jsonwebtoken\').verify(token, process.env.JWT_SECRET)"',
-    confidence: 'high',
-  },
-  module: {
-    error: "Cannot find module '@/components/ui/Button' from 'src/pages/index.tsx'",
-    errorType: 'ModuleNotFoundError',
-    likelyCause: 'The import path alias @/ is not configured or the target file does not exist at the expected location.',
-    relevantFile: 'tsconfig.json',
-    whyItHappens: 'TypeScript path aliases like @/ must be configured in both tsconfig.json (paths) and your bundler config (vite.config.ts or next.config.js). If only one is configured, the IDE resolves the import but the bundler fails at runtime.',
-    suggestedFix: 'Check tsconfig.json for `"paths": { "@/*": ["./src/*"] }` and ensure your vite.config.ts includes the corresponding alias. Also verify the file src/components/ui/Button.tsx actually exists.',
-    verifyCommand: 'npx tsc --noEmit',
-    confidence: 'medium',
-  },
-};
 
 const EXAMPLE_ERRORS = [
   { label: 'MongoDB connection refused', key: 'mongo' },
@@ -103,23 +71,20 @@ export function DebugPage() {
         const data = await res.json();
         result = { error: errorText.slice(0, 100), ...data.analysis };
       } else {
-        throw new Error('API error');
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || errJson.details || `API error ${res.status}`);
       }
-    } catch {
+    } catch (err: any) {
       await logPromise;
-      // Fall back to demo analysis
-      if (errorText.toLowerCase().includes('mongo')) result = DEMO_ANALYSES.mongo;
-      else if (errorText.toLowerCase().includes('jwt') || errorText.toLowerCase().includes('token')) result = DEMO_ANALYSES.jwt;
-      else if (errorText.toLowerCase().includes('module') || errorText.toLowerCase().includes('cannot find')) result = DEMO_ANALYSES.module;
-      else result = {
+      result = {
         error: errorText.slice(0, 100),
-        errorType: 'RuntimeError',
-        likelyCause: 'Error context analyzed using repository structure.',
-        relevantFile: 'src/index.ts',
-        whyItHappens: 'Based on the error message and repository context, this appears to be a configuration or runtime issue. RepoPilot has identified the most likely affected module.',
-        suggestedFix: 'Review the file indicated, check environment configuration, and ensure all dependencies are correctly installed. Run the verification command to confirm the fix.',
+        errorType: 'AnalysisFailed',
+        likelyCause: err.message || 'Unable to connect to debug service',
+        relevantFile: 'backend',
+        whyItHappens: 'The backend debugging service could not complete the analysis. Make sure the backend server is running at http://localhost:3001.',
+        suggestedFix: 'Check backend server logs and ensure your repository has been analyzed.',
         verifyCommand: 'npm run dev',
-        confidence: 'medium',
+        confidence: 'low',
       };
     }
 

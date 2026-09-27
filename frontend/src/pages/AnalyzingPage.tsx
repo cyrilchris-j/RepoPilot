@@ -21,7 +21,7 @@ const ANALYSIS_STEPS = [
 export function AnalyzingPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { repoUrl, setRepoUrl } = useRepo();
+  const { repoUrl, setRepoUrl, setRepoData } = useRepo();
   const [stepIndex, setStepIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
 
@@ -37,12 +37,22 @@ export function AnalyzingPage() {
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-    // Fire the backend analysis call (don't block the animation on it)
+    // Fire the backend analysis call
     fetch(`${apiUrl}/api/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ repositoryUrl: activeRepo }),
-    }).catch(() => {/* backend unavailable — still proceed */});
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.repository) {
+          setRepoData(data);
+        }
+      })
+      .catch(err => {
+        console.warn('[AnalyzingPage] backend analysis error:', err);
+      });
+
 
     // Step animation
     let idx = 0;

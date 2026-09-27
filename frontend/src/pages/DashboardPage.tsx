@@ -10,6 +10,7 @@ import {
   XCircle,
   ArrowRight,
 } from 'lucide-react';
+import { useRepo } from '../lib/RepoContext';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import {
   DEMO_REPO, DEMO_METRICS, DEMO_ACTIVITY,
@@ -41,7 +42,20 @@ function MetricCard({ label, value, sub, accent = false }: {
 }
 
 export function DashboardPage() {
-  const issues = DEMO_SETUP_STEPS.filter(s => s.status !== 'ok' && s.status !== 'pending');
+  const { repoData, repoUrl } = useRepo();
+  const repo = repoData?.repository || (repoUrl ? {
+    url: repoUrl,
+    name: repoUrl.split('/').pop()?.replace(/\.git$/, '') || 'repository',
+    owner: repoUrl.split('/').slice(-2)[0] || 'owner',
+    branch: 'main',
+    description: repoData?.repository?.description || 'Repository workspace analyzed by RepoPilot',
+    status: 'complete' as const,
+  } : DEMO_REPO);
+  const metrics = repoData?.metrics || DEMO_METRICS;
+  const setupSteps = repoData?.setupSteps || DEMO_SETUP_STEPS;
+  const starterTasks = repoData?.starterTasks || DEMO_STARTER_TASKS;
+
+  const issues = setupSteps.filter(s => s.status !== 'ok' && s.status !== 'pending');
   const warnings = issues.filter(s => s.status === 'warning');
   const errors = issues.filter(s => s.status === 'error');
 
@@ -57,18 +71,18 @@ export function DashboardPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <GitBranch size={14} className="text-text-secondary" />
-            <span className="font-mono text-sm text-text-secondary">{DEMO_REPO.owner}/</span>
-            <span className="font-mono text-sm font-semibold text-text-primary">{DEMO_REPO.name}</span>
+            <span className="font-mono text-sm text-text-secondary">{repo.owner}/</span>
+            <span className="font-mono text-sm font-semibold text-text-primary">{repo.name}</span>
             <span className="font-mono text-xs text-text-secondary border border-border px-1.5 py-0.5 rounded">
-              {DEMO_REPO.branch}
+              {repo.branch}
             </span>
           </div>
-          <p className="text-sm text-text-secondary">{DEMO_REPO.description}</p>
+          <p className="text-sm text-text-secondary">{repo.description}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-xs font-mono text-text-secondary flex items-center gap-1">
             <Clock size={11} />
-            Analyzed just now
+            Analyzed {repoData ? 'from live repository' : 'demo mode'}
           </div>
           <StatusBadge status="complete" />
         </div>
@@ -81,11 +95,12 @@ export function DashboardPage() {
         transition={{ delay: 0.1, duration: 0.4 }}
         className="grid grid-cols-2 md:grid-cols-4 gap-3"
       >
-        <MetricCard label="Source Files" value={DEMO_METRICS.totalFiles} accent />
-        <MetricCard label="Dependencies" value={DEMO_METRICS.dependencies} />
-        <MetricCard label="API Routes" value={DEMO_METRICS.routes} />
-        <MetricCard label="Modules" value={DEMO_METRICS.modules} />
+        <MetricCard label="Source Files" value={metrics.totalFiles} accent />
+        <MetricCard label="Dependencies" value={metrics.dependencies} />
+        <MetricCard label="API Routes" value={metrics.routes} />
+        <MetricCard label="Modules" value={metrics.modules} />
       </motion.div>
+
 
       {/* Architecture preview + issues */}
       <div className="grid md:grid-cols-5 gap-4">
@@ -205,7 +220,7 @@ export function DashboardPage() {
           </Link>
         </div>
         <div className="grid md:grid-cols-3 gap-3">
-          {DEMO_STARTER_TASKS.slice(0, 3).map((task) => (
+          {starterTasks.slice(0, 3).map((task) => (
             <Link to="/app/tasks" key={task.id} className="card-elevated p-4 block hover:border-accent-cyan/30 transition-colors group">
               <div className="flex items-center gap-2 mb-2">
                 <span className={`tag ${
