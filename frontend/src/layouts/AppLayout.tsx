@@ -1,16 +1,28 @@
 import { Outlet } from 'react-router-dom';
 import { AppSidebar } from '../components/AppSidebar';
 import { MobileNav } from '../components/MobileNav';
+import { useRepo } from '../lib/RepoContext';
 import { DEMO_REPO } from '../lib/demo-data';
 
 export function AppLayout() {
+  const { repoUrl } = useRepo();
+
+  // Parse "github.com/owner/repo" or "https://github.com/owner/repo"
+  const displayName = (() => {
+    if (!repoUrl) return `${DEMO_REPO.owner}/${DEMO_REPO.name}`;
+    const clean = repoUrl.replace(/^https?:\/\//, '').replace(/^github\.com\//, '');
+    return clean || `${DEMO_REPO.owner}/${DEMO_REPO.name}`;
+  })();
+
+  const branch = DEMO_REPO.branch;
+
   return (
     <div className="flex h-screen bg-bg overflow-hidden">
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:shrink-0">
         <AppSidebar
-          repoName={`${DEMO_REPO.owner}/${DEMO_REPO.name}`}
-          repoBranch={DEMO_REPO.branch}
+          repoName={displayName}
+          repoBranch={branch}
           analysisStatus="complete"
         />
       </div>
@@ -20,7 +32,7 @@ export function AppLayout() {
         {/* Mobile nav */}
         <div className="md:hidden">
           <MobileNav
-            repoName={`${DEMO_REPO.owner}/${DEMO_REPO.name}`}
+            repoName={displayName}
             analysisStatus="complete"
           />
         </div>

@@ -1,29 +1,52 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScanningLine } from '../components/ui/CodeBlock';
+import { useRepo } from '../lib/RepoContext';
 
 const ANALYSIS_STEPS = [
-  { step: 'Connecting to repository...', duration: 600 },
-  { step: 'Cloning repository index...', duration: 700 },
-  { step: 'Scanning source files...', duration: 900 },
-  { step: 'Resolving dependency graph...', duration: 800 },
-  { step: 'Building architecture map...', duration: 900 },
-  { step: 'Detecting environment configuration...', duration: 700 },
-  { step: 'Analyzing authentication patterns...', duration: 600 },
-  { step: 'Indexing API routes...', duration: 500 },
-  { step: 'Running security audit...', duration: 700 },
-  { step: 'Generating developer workspace...', duration: 800 },
-  { step: 'WORKSPACE READY', duration: 500 },
+  'Connecting to repository...',
+  'Cloning repository index...',
+  'Scanning source files...',
+  'Resolving dependency graph...',
+  'Building architecture map...',
+  'Detecting environment configuration...',
+  'Analyzing authentication patterns...',
+  'Indexing API routes...',
+  'Running security audit...',
+  'Generating developer workspace...',
+  'WORKSPACE READY',
 ];
 
 export function AnalyzingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { repoUrl, setRepoUrl } = useRepo();
   const [stepIndex, setStepIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
 
+  // Support direct navigation with state (e.g. from LandingPage)
+  const urlFromState = (location.state as { repoUrl?: string } | null)?.repoUrl || '';
+  const activeRepo = urlFromState || repoUrl || 'github.com/vercel/next.js';
+
   useEffect(() => {
+    // Save to context if arriving via state
+    if (urlFromState && !repoUrl) setRepoUrl(urlFromState);
+  }, [urlFromState, repoUrl, setRepoUrl]);
+
+  useEffect(() => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+    // Fire the backend analysis call (don't block the animation on it)
+    fetch(`${apiUrl}/api/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ repositoryUrl: activeRepo }),
+    }).catch(() => {/* backend unavailable — still proceed */});
+
+    // Step animation
     let idx = 0;
+    const durations = [600, 700, 900, 800, 900, 700, 600, 500, 700, 800, 500];
     const run = () => {
       if (idx >= ANALYSIS_STEPS.length - 1) {
         setStepIndex(idx);
@@ -32,14 +55,12 @@ export function AnalyzingPage() {
         return;
       }
       setStepIndex(idx);
-      setTimeout(() => {
-        idx++;
-        run();
-      }, ANALYSIS_STEPS[idx].duration);
+      const d = durations[idx] ?? 700;
+      setTimeout(() => { idx++; run(); }, d);
     };
     const t = setTimeout(run, 200);
     return () => clearTimeout(t);
-  }, [navigate]);
+  }, [activeRepo, navigate]);
 
   const progress = Math.round((stepIndex / (ANALYSIS_STEPS.length - 1)) * 100);
 
@@ -57,7 +78,9 @@ export function AnalyzingPage() {
               <div className="text-[10px] font-mono text-text-secondary tracking-widest mb-1">
                 INDEXING REPOSITORY
               </div>
-              <div className="font-mono text-sm text-accent-cyan">github.com/vercel/next.js</div>
+              <div className="font-mono text-sm text-accent-cyan truncate max-w-xs">
+                {activeRepo}
+              </div>
             </div>
             <div className={`text-sm font-mono font-semibold ${completed ? 'text-success' : 'text-accent-cyan'}`}>
               {progress}%
@@ -87,7 +110,7 @@ export function AnalyzingPage() {
                   animate={{ opacity: i === stepIndex ? 1 : 0.35, x: 0 }}
                   className={`flex items-center gap-3 font-mono text-xs ${
                     i === stepIndex && !completed ? 'text-accent-cyan' :
-                    s.step === 'WORKSPACE READY' ? 'text-success font-semibold' :
+                    s === 'WORKSPACE READY' ? 'text-success font-semibold' :
                     'text-text-secondary'
                   }`}
                 >
@@ -97,7 +120,7 @@ export function AnalyzingPage() {
                   }`}>
                     {i < stepIndex ? '✓' : i === stepIndex && !completed ? '›' : ' '}
                   </span>
-                  {s.step}
+                  {s}
                   {i === stepIndex && !completed && (
                     <span className="inline-block w-1.5 h-3 bg-accent-cyan animate-blink ml-0.5" />
                   )}

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useRepo } from '../lib/RepoContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bug, Send, RotateCcw, Zap, FileCode, HelpCircle, CheckSquare, AlertOctagon } from 'lucide-react';
 import { FilePath, CodeBlock } from '../components/ui/CodeBlock';
@@ -58,6 +59,7 @@ function ConfidenceBadge({ confidence }: { confidence: DebugAnalysis['confidence
 }
 
 export function DebugPage() {
+  const { repoUrl } = useRepo();
   const [input, setInput] = useState('');
   const [analysis, setAnalysis] = useState<DebugAnalysis | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -93,7 +95,7 @@ export function DebugPage() {
         fetch(`${apiUrl}/api/debug`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ errorMessage: errorText }),
+          body: JSON.stringify({ errorMessage: errorText, repositoryContext: repoUrl || undefined }),
         }),
         logPromise,
       ]);

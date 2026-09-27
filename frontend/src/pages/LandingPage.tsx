@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useRepo } from '../lib/RepoContext';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
@@ -378,6 +379,7 @@ function SolutionSection() {
 // ── Landing page ─────────────────────────────────────────────────────────────
 export function LandingPage() {
   const navigate = useNavigate();
+  const { setRepoUrl } = useRepo();
   const [repoInput, setRepoInput] = useState('');
   const [navScrolled, setNavScrolled] = useState(false);
 
@@ -389,7 +391,9 @@ export function LandingPage() {
 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/app');
+    const url = repoInput.trim() || 'github.com/vercel/next.js';
+    setRepoUrl(url);
+    navigate('/analyzing', { state: { repoUrl: url } });
   };
 
   return (

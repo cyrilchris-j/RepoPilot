@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { RepoProvider } from './lib/RepoContext';
 import { AppLayout } from './layouts/AppLayout';
 import { LandingPage } from './pages/LandingPage';
 import { AnalyzingPage } from './pages/AnalyzingPage';
@@ -12,6 +13,7 @@ import { StarterTasksPage } from './pages/StarterTasksPage';
 
 export default function App() {
   return (
+    <RepoProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -27,5 +29,6 @@ export default function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </RepoProvider>
   );
 }

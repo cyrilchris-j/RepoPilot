@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useRepo } from '../lib/RepoContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, Send, FileText, BarChart2, RotateCcw } from 'lucide-react';
 import { FilePath } from '../components/ui/CodeBlock';
@@ -104,6 +105,7 @@ function ConfidenceBar({ confidence }: { confidence: QAAnswer['confidence'] }) {
 }
 
 export function AskPage() {
+  const { repoUrl } = useRepo();
   const [input, setInput] = useState('');
   const [answer, setAnswer] = useState<QAAnswer | null>(null);
   const [loading, setLoading] = useState(false);
@@ -119,7 +121,7 @@ export function AskPage() {
       const res = await fetch(`${apiUrl}/api/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, repositoryContext: repoUrl || undefined }),
       });
       if (res.ok) {
         const data = await res.json();
