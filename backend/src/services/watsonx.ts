@@ -1,28 +1,17 @@
 import axios from 'axios';
 
-interface WatsonxMessage {
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-}
-
-interface WatsonxResponse {
-  results: Array<{
-    generated_text: string;
+interface WatsonxChatResponse {
+  choices: Array<{
+    message: { content: string };
   }>;
-  model_id?: string;
 }
 
-const WATSONX_API_URL = process.env.WATSONX_API_URL || 'https://us-south.ml.cloud.ibm.com';
-const WATSONX_PROJECT_ID = process.env.WATSONX_PROJECT_ID || '';
-const WATSONX_API_KEY = process.env.WATSONX_API_KEY || '';
-const WATSONX_MODEL = process.env.WATSONX_MODEL || 'meta-llama/llama-3-70b-instruct';
-
-async function getIAMToken(): Promise<string> {
+async function getIAMToken(apiKey: string): Promise<string> {
   const response = await axios.post(
     'https://iam.cloud.ibm.com/identity/token',
     new URLSearchParams({
       grant_type: 'urn:ibm:params:oauth:grant-type:apikey',
-      apikey: WATSONX_API_KEY,
+      apikey: apiKey,
     }),
     { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
   );
@@ -33,26 +22,29 @@ export async function generateWithWatsonx(
   systemPrompt: string,
   userMessage: string
 ): Promise<string> {
-  if (!WATSONX_API_KEY || !WATSONX_PROJECT_ID) {
-    // Return a structured demo response when AI is not configured
+  const apiKey    = process.env.WATSONX_API_KEY    || '';
+  const projectId = process.env.WATSONX_PROJECT_ID || '';
+  const apiUrl    = process.env.WATSONX_API_URL     || 'https://eu-de.ml.cloud.ibm.com';
+  const model     = process.env.WATSONX_MODEL       || 'meta-llama/llama-3-3-70b-instruct';
+
+  if (!apiKey || !projectId) {
     return generateDemoResponse(systemPrompt, userMessage);
   }
 
-  const token = await getIAMToken();
-  const prompt = `<|system|>\n${systemPrompt}\n<|user|>\n${userMessage}\n<|assistant|>`;
+  const token = await getIAMToken(apiKey);
 
-  const response = await axios.post<WatsonxResponse>(
-    `${WATSONX_API_URL}/ml/v1/text/generation?version=2023-05-29`,
+  const response = await axios.post<WatsonxChatResponse>(
+    `${apiUrl}/ml/v1/text/chat?version=2024-05-01`,
     {
-      model_id: WATSONX_MODEL,
-      input: prompt,
-      parameters: {
-        max_new_tokens: 1024,
-        temperature: 0.3,
-        top_p: 0.9,
-        stop_sequences: ['<|user|>', '<|system|>'],
-      },
-      project_id: WATSONX_PROJECT_ID,
+      model_id: model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user',   content: userMessage  },
+      ],
+      max_tokens: 1024,
+      temperature: 0.3,
+      top_p: 0.9,
+      project_id: projectId,
     },
     {
       headers: {
@@ -62,7 +54,7 @@ export async function generateWithWatsonx(
     }
   );
 
-  return response.data.results[0]?.generated_text?.trim() || '';
+  return response.data.choices[0]?.message?.content?.trim() || '';
 }
 
 // Demo response generator when watsonx is not configured
