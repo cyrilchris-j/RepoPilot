@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Compass, Clock, ArrowRight, Tag } from 'lucide-react';
-import { FilePath } from '../components/ui/CodeBlock';
+import { ClickableFilePath } from '../components/ui/CodeBlock';
 import { useRepo } from '../lib/RepoContext';
 import { DEMO_STARTER_TASKS } from '../lib/demo-data';
 import type { StarterTask } from '../types';
@@ -71,7 +71,7 @@ function TaskCard({ task, expanded, onToggle }: {
               <div className="space-y-1">
                 {task.relevantFiles.map(f => (
                   <div key={f} className="py-1">
-                    <FilePath path={f} />
+                    <ClickableFilePath path={f} />
                   </div>
                 ))}
               </div>

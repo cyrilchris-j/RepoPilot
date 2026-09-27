@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Info, ChevronDown } from 'lucide-react';
-import { FilePath } from '../components/ui/CodeBlock';
+import { FilePath, ClickableFilePath } from '../components/ui/CodeBlock';
 import { useRepo } from '../lib/RepoContext';
 import { DEMO_ARCHITECTURE_NODES } from '../lib/demo-data';
 import type { ArchitectureNode } from '../types';
@@ -193,7 +193,8 @@ export function ArchitecturePage() {
               {selected.filePath && (
                 <div className="mb-3">
                   <div className="text-[10px] font-mono text-text-secondary tracking-widest mb-1">FILE PATH</div>
-                  <FilePath path={selected.filePath} />
+                  <ClickableFilePath path={selected.filePath} />
+                  <div className="text-[10px] font-mono text-text-secondary mt-1 opacity-60">Click to open in code viewer</div>
                 </div>
               )}
 

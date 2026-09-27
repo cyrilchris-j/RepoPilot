@@ -3,7 +3,8 @@ import { useRepo } from '../lib/RepoContext';
 import { getApiUrl } from '../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bug, Send, RotateCcw, Zap, FileCode, HelpCircle, CheckSquare, AlertOctagon } from 'lucide-react';
-import { FilePath, CodeBlock } from '../components/ui/CodeBlock';
+import { FilePath, ClickableFilePath } from '../components/ui/CodeBlock';
+import { CodeBlock } from '../components/ui/CodeBlock';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import type { DebugAnalysis } from '../types';
 
@@ -269,7 +270,7 @@ export function DebugPage() {
                       <FileCode size={13} className="text-accent-cyan" />
                       <span className="text-[10px] font-mono tracking-widest text-accent-cyan">RELEVANT FILE</span>
                     </div>
-                    <FilePath path={analysis.relevantFile} />
+                    <ClickableFilePath path={analysis.relevantFile} />
                     <p className="text-xs text-text-secondary mt-2 leading-relaxed">{analysis.whyItHappens}</p>
                   </div>
                 )}

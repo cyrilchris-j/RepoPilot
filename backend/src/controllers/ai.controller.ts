@@ -1,10 +1,82 @@
 import { Request, Response } from 'express';
+import fs from 'fs';
+import path from 'path';
 import { generateWithWatsonx } from '../services/watsonx';
 import {
   getOrCloneRepository,
   getCachedRepo,
   searchRepositoryCode,
 } from '../services/repoManager';
+
+const LANGUAGE_MAP: Record<string, string> = {
+  '.ts': 'typescript', '.tsx': 'tsx', '.js': 'javascript', '.jsx': 'jsx',
+  '.json': 'json', '.md': 'markdown', '.py': 'python', '.go': 'go',
+  '.rs': 'rust', '.java': 'java', '.html': 'html', '.css': 'css',
+  '.scss': 'scss', '.yaml': 'yaml', '.yml': 'yaml', '.toml': 'toml',
+  '.sh': 'bash', '.bash': 'bash', '.sql': 'sql', '.env': 'bash',
+  '.graphql': 'graphql', '.prisma': 'prisma', '.c': 'c', '.cpp': 'cpp',
+  '.h': 'c', '.rb': 'ruby',
+};
+
+export async function getFileContent(req: Request, res: Response): Promise<void> {
+  const { repo, path: filePath } = req.query as { repo?: string; path?: string };
+
+  if (!filePath) {
+    res.status(400).json({ error: 'path query param is required' });
+    return;
+  }
+
+  try {
+    // Find the cached repo
+    const repoData = getCachedRepo(repo) || getCachedRepo();
+    if (!repoData) {
+      res.status(404).json({ error: 'Repository not found in cache. Analyze a repository first.' });
+      return;
+    }
+
+    // Sanitize path — prevent directory traversal
+    const normalizedPath = path.normalize(filePath).replace(/^(\.\.(\/|\\|$))+/, '');
+    const fullPath = path.join(repoData.localPath, normalizedPath);
+
+    // Ensure the resolved path is within the repo directory
+    if (!fullPath.startsWith(path.resolve(repoData.localPath))) {
+      res.status(403).json({ error: 'Access denied: path traversal detected' });
+      return;
+    }
+
+    if (!fs.existsSync(fullPath)) {
+      res.status(404).json({ error: `File not found: ${normalizedPath}` });
+      return;
+    }
+
+    const stat = fs.statSync(fullPath);
+    if (!stat.isFile()) {
+      res.status(400).json({ error: 'Path is not a file' });
+      return;
+    }
+    if (stat.size > 500 * 1024) {
+      res.status(413).json({ error: 'File too large to display (>500KB)' });
+      return;
+    }
+
+    const content = fs.readFileSync(fullPath, 'utf8');
+    const ext = path.extname(normalizedPath).toLowerCase();
+    const language = LANGUAGE_MAP[ext] || 'text';
+    const lines = content.split('\n');
+
+    res.json({
+      path: normalizedPath,
+      content,
+      language,
+      lineCount: lines.length,
+      sizeBytes: stat.size,
+      repoName: repoData.name,
+    });
+  } catch (err) {
+    console.error('[ai.controller] getFileContent error:', err);
+    res.status(500).json({ error: 'Failed to read file', details: (err as Error).message });
+  }
+}
 
 function cleanJsonResponse(raw: string): any {
   let cleaned = raw.trim();
