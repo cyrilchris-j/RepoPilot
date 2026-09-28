@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
 import { StatusBadge } from '../components/ui/StatusBadge';
+import { OnboardingExportButton } from '../components/OnboardingExportButton';
 import {
   DEMO_REPO, DEMO_METRICS, DEMO_ACTIVITY,
   DEMO_SETUP_STEPS, DEMO_STARTER_TASKS,
@@ -85,6 +86,7 @@ export function DashboardPage() {
             Analyzed {repoData ? 'from live repository' : 'demo mode'}
           </div>
           <StatusBadge status="complete" />
+          <OnboardingExportButton variant="header" />
         </div>
       </motion.div>
 

@@ -27,6 +27,7 @@ export function AppLayout() {
           repoName={displayName}
           repoBranch={branch}
           analysisStatus="complete"
+          repoUrl={repoUrl}
         />
       </div>
 
@@ -36,6 +37,7 @@ export function AppLayout() {
         <div className="md:hidden">
           <MobileNav
             repoName={displayName}
+            repoUrl={repoUrl}
             analysisStatus="complete"
           />
         </div>

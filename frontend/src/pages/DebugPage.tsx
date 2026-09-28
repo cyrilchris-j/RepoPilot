@@ -3,7 +3,7 @@ import { useRepo } from '../lib/RepoContext';
 import { getApiUrl } from '../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bug, Send, RotateCcw, Zap, FileCode, HelpCircle, CheckSquare, AlertOctagon } from 'lucide-react';
-import { FilePath, ClickableFilePath } from '../components/ui/CodeBlock';
+import { ClickableFilePath } from '../components/ui/CodeBlock';
 import { CodeBlock } from '../components/ui/CodeBlock';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import type { DebugAnalysis } from '../types';

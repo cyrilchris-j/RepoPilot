@@ -12,6 +12,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { StatusBadge } from './ui/StatusBadge';
+import { RepoSwitcher } from './RepoSwitcher';
+import { OnboardingExportButton } from './OnboardingExportButton';
 
 interface NavItem {
   id: string;
@@ -21,22 +23,23 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={15} />, path: '/app' },
-  { id: 'architecture', label: 'Architecture', icon: <GitBranch size={15} />, path: '/app/architecture' },
-  { id: 'setup', label: 'Setup', icon: <Settings size={15} />, path: '/app/setup' },
-  { id: 'dependencies', label: 'Dependencies', icon: <Package size={15} />, path: '/app/dependencies' },
-  { id: 'debug', label: 'Debug Agent', icon: <Bug size={15} />, path: '/app/debug' },
-  { id: 'ask', label: 'Ask Codebase', icon: <MessageCircle size={15} />, path: '/app/ask' },
-  { id: 'tasks', label: 'Starter Tasks', icon: <Compass size={15} />, path: '/app/tasks' },
+  { id: 'overview',      label: 'Overview',      icon: <LayoutDashboard size={15} />, path: '/app' },
+  { id: 'architecture',  label: 'Architecture',  icon: <GitBranch size={15} />,       path: '/app/architecture' },
+  { id: 'setup',         label: 'Setup',          icon: <Settings size={15} />,        path: '/app/setup' },
+  { id: 'dependencies',  label: 'Dependencies',  icon: <Package size={15} />,         path: '/app/dependencies' },
+  { id: 'debug',         label: 'Debug Agent',   icon: <Bug size={15} />,             path: '/app/debug' },
+  { id: 'ask',           label: 'Ask Codebase',  icon: <MessageCircle size={15} />,   path: '/app/ask' },
+  { id: 'tasks',         label: 'Starter Tasks', icon: <Compass size={15} />,         path: '/app/tasks' },
 ];
 
 interface AppSidebarProps {
   repoName: string;
   repoBranch: string;
   analysisStatus: 'analyzing' | 'complete' | 'error';
+  repoUrl?: string;
 }
 
-export function AppSidebar({ repoName, repoBranch, analysisStatus }: AppSidebarProps) {
+export function AppSidebar({ repoName, repoBranch, analysisStatus, repoUrl = '' }: AppSidebarProps) {
   const location = useLocation();
 
   return (
@@ -55,14 +58,11 @@ export function AppSidebar({ repoName, repoBranch, analysisStatus }: AppSidebarP
         </Link>
       </div>
 
-      {/* Repository identity */}
+      {/* Repository identity + switcher */}
       <div className="px-4 py-3 border-b border-border">
         <div className="text-[10px] font-mono text-text-secondary tracking-widest uppercase mb-1.5">Repository</div>
-        <div className="font-mono text-xs text-text-primary truncate">{repoName}</div>
-        <div className="flex items-center gap-1.5 mt-1">
-          <GitBranch size={10} className="text-text-secondary" />
-          <span className="font-mono text-[10px] text-text-secondary">{repoBranch}</span>
-        </div>
+        <div className="font-mono text-xs text-text-primary truncate mb-2">{repoName}</div>
+        <RepoSwitcher currentRepo={repoUrl || repoName} branch={repoBranch} />
         <div className="mt-2">
           <StatusBadge status={analysisStatus === 'complete' ? 'complete' : analysisStatus} size="sm" />
         </div>
@@ -103,6 +103,12 @@ export function AppSidebar({ repoName, repoBranch, analysisStatus }: AppSidebarP
             );
           })}
         </ul>
+
+        {/* Export section */}
+        <div className="mt-4 pt-3 border-t border-border/50 px-0">
+          <div className="text-[10px] font-mono text-text-secondary tracking-widest uppercase px-2 mb-1.5">Export</div>
+          <OnboardingExportButton variant="sidebar" />
+        </div>
       </nav>
 
       {/* System status */}

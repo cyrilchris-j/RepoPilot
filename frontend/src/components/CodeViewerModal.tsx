@@ -14,29 +14,6 @@ interface FileData {
   repoName: string;
 }
 
-const TOKEN_PATTERNS: Array<{ pattern: RegExp; className: string }> = [
-  // Strings
-  { pattern: /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/g, className: 'text-[#a8ff78]' },
-  // Comments
-  { pattern: /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|#[^\n]*)/g, className: 'text-[#6b7280] italic' },
-  // Keywords
-  { pattern: /\b(import|export|default|from|const|let|var|function|class|interface|type|enum|return|if|else|for|while|do|switch|case|break|continue|try|catch|finally|throw|new|this|super|extends|implements|async|await|void|null|undefined|true|false|typeof|instanceof|in|of|delete|yield|static|public|private|protected|readonly|abstract|declare)\b/g, className: 'text-[#c084fc]' },
-  // Built-in types
-  { pattern: /\b(string|number|boolean|object|Array|Promise|Record|Partial|Required|Pick|Omit|any|never|unknown)\b/g, className: 'text-[#67e8f9]' },
-  // Numbers
-  { pattern: /\b(\d+(?:\.\d+)?)\b/g, className: 'text-[#fb923c]' },
-  // Decorators
-  { pattern: /(@\w+)/g, className: 'text-[#fbbf24]' },
-];
-
-function highlightLine(line: string): string {
-  // Simple HTML escape first
-  let escaped = line
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-  return escaped;
-}
 
 function CodeLine({ lineNumber, content, highlight }: { lineNumber: number; content: string; highlight: boolean }) {
   return (

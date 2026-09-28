@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Info, ChevronDown } from 'lucide-react';
-import { FilePath, ClickableFilePath } from '../components/ui/CodeBlock';
+import { ClickableFilePath } from '../components/ui/CodeBlock';
 import { useRepo } from '../lib/RepoContext';
 import { DEMO_ARCHITECTURE_NODES } from '../lib/demo-data';
 import type { ArchitectureNode } from '../types';
