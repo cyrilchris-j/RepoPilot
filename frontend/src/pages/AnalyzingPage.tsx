@@ -63,6 +63,15 @@ export function AnalyzingPage() {
       if (idx >= ANALYSIS_STEPS.length - 1) {
         setStepIndex(idx);
         setCompleted(true);
+        try {
+          const key = 'repopilot_recent_repos';
+          const recents: string[] = JSON.parse(localStorage.getItem(key) || '[]');
+          const filtered = recents.filter(u => u !== activeRepo);
+          filtered.unshift(activeRepo);
+          localStorage.setItem(key, JSON.stringify(filtered.slice(0, 5)));
+        } catch {
+          // ignore
+        }
         setTimeout(() => navigate('/app'), 1200);
         return;
       }

@@ -13,6 +13,7 @@ import {
 import { useRepo } from '../lib/RepoContext';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { OnboardingExportButton } from '../components/OnboardingExportButton';
+import { QuickActionsBar } from '../components/QuickActionsBar';
 import {
   DEMO_REPO, DEMO_METRICS, DEMO_ACTIVITY,
   DEMO_SETUP_STEPS, DEMO_STARTER_TASKS,
@@ -103,6 +104,8 @@ export function DashboardPage() {
         <MetricCard label="Modules" value={metrics.modules} />
       </motion.div>
 
+      {/* Quick Actions Bar */}
+      <QuickActionsBar />
 
       {/* Architecture preview + issues */}
       <div className="grid md:grid-cols-5 gap-4">

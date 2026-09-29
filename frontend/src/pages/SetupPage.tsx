@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, AlertTriangle, XCircle, Circle, Terminal, Download, Copy, Check, Eye, EyeOff, Key } from 'lucide-react';
 import { CodeBlock } from '../components/ui/CodeBlock';
+import { EnvironmentDiagnostics } from '../components/EnvironmentDiagnostics';
 import { useRepo } from '../lib/RepoContext';
 import { DEMO_SETUP_STEPS, DEMO_ENV_VARIABLES } from '../lib/demo-data';
 import type { SetupStep, EnvVariable } from '../types';
@@ -156,6 +157,9 @@ export function SetupPage() {
           Prerequisites, commands, and configuration required to run this repository.
         </p>
       </motion.div>
+
+      {/* Live Prerequisite Diagnostics */}
+      <EnvironmentDiagnostics />
 
       {/* Status summary */}
       <motion.div

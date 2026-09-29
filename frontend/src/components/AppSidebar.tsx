@@ -10,6 +10,7 @@ import {
   MessageCircle,
   Compass,
   ChevronRight,
+  Search,
 } from 'lucide-react';
 import { StatusBadge } from './ui/StatusBadge';
 import { RepoSwitcher } from './RepoSwitcher';
@@ -37,9 +38,16 @@ interface AppSidebarProps {
   repoBranch: string;
   analysisStatus: 'analyzing' | 'complete' | 'error';
   repoUrl?: string;
+  onOpenCommandPalette?: () => void;
 }
 
-export function AppSidebar({ repoName, repoBranch, analysisStatus, repoUrl = '' }: AppSidebarProps) {
+export function AppSidebar({
+  repoName,
+  repoBranch,
+  analysisStatus,
+  repoUrl = '',
+  onOpenCommandPalette,
+}: AppSidebarProps) {
   const location = useLocation();
 
   return (
@@ -56,6 +64,24 @@ export function AppSidebar({ repoName, repoBranch, analysisStatus, repoUrl = '' 
           </div>
           <span className="text-sm font-semibold text-text-primary tracking-tight">RepoPilot</span>
         </Link>
+      </div>
+
+      {/* Quick Search / Command Palette Trigger */}
+      <div className="px-3 py-2 border-b border-border/60">
+        <button
+          type="button"
+          onClick={onOpenCommandPalette}
+          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md bg-elevated/70 hover:bg-elevated border border-border/80 hover:border-accent-cyan/40 text-text-secondary hover:text-text-primary text-xs transition-colors group"
+          title="Open Command Palette (⌘K)"
+        >
+          <div className="flex items-center gap-2">
+            <Search size={13} className="text-text-secondary group-hover:text-accent-cyan transition-colors" />
+            <span className="text-[12px]">Jump to...</span>
+          </div>
+          <kbd className="text-[10px] font-mono px-1 py-0.2 rounded bg-surface border border-border text-text-secondary">
+            ⌘K
+          </kbd>
+        </button>
       </div>
 
       {/* Repository identity + switcher */}
