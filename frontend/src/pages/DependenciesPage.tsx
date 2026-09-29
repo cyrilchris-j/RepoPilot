@@ -1,6 +1,8 @@
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, ShieldAlert, Trash2, CheckCircle } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, Trash2, CheckCircle, FileCode, Search } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
+import { useCodeViewer } from '../lib/CodeViewerContext';
 import { DEMO_DEPENDENCIES } from '../lib/demo-data';
 
 const statusConfig = {
@@ -12,12 +14,27 @@ const statusConfig = {
 
 export function DependenciesPage() {
   const { repoData } = useRepo();
+  const { openFile } = useCodeViewer();
+  const [filterQuery, setFilterQuery] = useState('');
+
   const dependencies = (repoData?.dependenciesList && repoData.dependenciesList.length > 0)
     ? repoData.dependenciesList
     : DEMO_DEPENDENCIES;
 
   const production = dependencies.filter(d => d.type === 'production');
   const development = dependencies.filter(d => d.type === 'development');
+
+  const filteredProduction = useMemo(() => {
+    const q = filterQuery.trim().toLowerCase();
+    if (!q) return production;
+    return production.filter(d => d.name.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q));
+  }, [production, filterQuery]);
+
+  const filteredDevelopment = useMemo(() => {
+    const q = filterQuery.trim().toLowerCase();
+    if (!q) return development;
+    return development.filter(d => d.name.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q));
+  }, [development, filterQuery]);
 
   const counts = {
     ok: dependencies.filter(d => d.status === 'ok').length,
@@ -32,12 +49,25 @@ export function DependenciesPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
-        <div className="section-label mb-1">Dependencies</div>
-        <h1 className="text-xl font-semibold text-text-primary">Package Analysis</h1>
-        <p className="text-sm text-text-secondary mt-1">
-          {dependencies.length} packages audited from {repoData ? 'analyzed repository' : 'demo data'}. Outdated, vulnerable, and unused packages highlighted.
-        </p>
+        <div>
+          <div className="section-label mb-1">Dependencies</div>
+          <h1 className="text-xl font-semibold text-text-primary">Package Analysis</h1>
+          <p className="text-sm text-text-secondary mt-1">
+            {dependencies.length} packages audited from {repoData ? 'analyzed repository' : 'demo data'}. Outdated, vulnerable, and unused packages highlighted.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => openFile('package.json')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-elevated/80 hover:bg-elevated text-xs font-mono text-text-primary border border-border/80 hover:border-accent-cyan/40 transition-colors shadow-sm"
+          >
+            <FileCode size={13} className="text-accent-cyan" />
+            <span>View package.json</span>
+          </button>
+        </div>
       </motion.div>
 
       {/* Summary */}
@@ -96,6 +126,27 @@ export function DependenciesPage() {
         </motion.div>
       )}
 
+      {/* Filter search bar */}
+      <div className="flex items-center px-3.5 py-2.5 rounded-lg bg-surface border border-border/80 gap-2.5 shadow-xs">
+        <Search size={14} className="text-accent-cyan shrink-0" />
+        <input
+          type="text"
+          value={filterQuery}
+          onChange={e => setFilterQuery(e.target.value)}
+          placeholder="Filter packages by name or description..."
+          className="flex-1 bg-transparent text-xs text-text-primary placeholder:text-text-secondary focus:outline-none font-mono"
+        />
+        {filterQuery && (
+          <button
+            type="button"
+            onClick={() => setFilterQuery('')}
+            className="text-[11px] font-mono text-text-secondary hover:text-text-primary px-1.5 py-0.5 rounded bg-elevated"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
       {/* Production deps */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -103,9 +154,19 @@ export function DependenciesPage() {
         transition={{ delay: 0.2 }}
         className="card p-5"
       >
-        <div className="section-label mb-4">Production Dependencies ({production.length})</div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="section-label">Production Dependencies ({filteredProduction.length})</div>
+          {filterQuery && (
+            <span className="text-[11px] font-mono text-accent-cyan">Filtered</span>
+          )}
+        </div>
         <div className="space-y-0">
-          {production.map((dep, i) => (
+          {filteredProduction.length === 0 ? (
+            <div className="py-6 text-center text-xs text-text-secondary font-mono">
+              No production dependencies match &ldquo;{filterQuery}&rdquo;
+            </div>
+          ) : (
+            filteredProduction.map((dep, i) => (
             <motion.div
               key={dep.name}
               initial={{ opacity: 0 }}
@@ -131,7 +192,7 @@ export function DependenciesPage() {
                 </span>
               </div>
             </motion.div>
-          ))}
+          )))}
         </div>
       </motion.div>
 
@@ -142,9 +203,19 @@ export function DependenciesPage() {
         transition={{ delay: 0.3 }}
         className="card p-5"
       >
-        <div className="section-label mb-4">Development Dependencies ({development.length})</div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="section-label">Development Dependencies ({filteredDevelopment.length})</div>
+          {filterQuery && (
+            <span className="text-[11px] font-mono text-accent-cyan">Filtered</span>
+          )}
+        </div>
         <div className="space-y-0">
-          {development.map((dep, i) => (
+          {filteredDevelopment.length === 0 ? (
+            <div className="py-6 text-center text-xs text-text-secondary font-mono">
+              No development dependencies match &ldquo;{filterQuery}&rdquo;
+            </div>
+          ) : (
+            filteredDevelopment.map((dep, i) => (
             <motion.div
               key={dep.name}
               initial={{ opacity: 0 }}
@@ -167,7 +238,7 @@ export function DependenciesPage() {
                 </span>
               </div>
             </motion.div>
-          ))}
+          )))}
         </div>
       </motion.div>
     </div>
