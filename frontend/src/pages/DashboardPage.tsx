@@ -9,6 +9,9 @@ import {
   CheckCircle,
   XCircle,
   ArrowRight,
+  Flame,
+  Users,
+  GitCommit,
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
 import { StatusBadge } from '../components/ui/StatusBadge';
@@ -17,6 +20,7 @@ import { QuickActionsBar } from '../components/QuickActionsBar';
 import {
   DEMO_REPO, DEMO_METRICS, DEMO_ACTIVITY,
   DEMO_SETUP_STEPS, DEMO_STARTER_TASKS,
+  DEMO_GIT_INSIGHTS,
 } from '../lib/demo-data';
 
 function Counter({ target }: { target: number }) {
@@ -56,6 +60,32 @@ export function DashboardPage() {
   const metrics = repoData?.metrics || DEMO_METRICS;
   const setupSteps = repoData?.setupSteps || DEMO_SETUP_STEPS;
   const starterTasks = repoData?.starterTasks || DEMO_STARTER_TASKS;
+  const gitInsights = repoData?.gitInsights || DEMO_GIT_INSIGHTS;
+
+  const miniArchNodes = (repoData?.architectureNodes && repoData.architectureNodes.length > 0)
+    ? repoData.architectureNodes.slice(0, 5).map(node => {
+        const color = node.type === 'frontend'
+          ? 'border-accent-cyan/40 text-accent-cyan bg-accent-cyan/5'
+          : node.type === 'backend'
+          ? 'border-accent-violet/40 text-accent-violet bg-accent-violet/5'
+          : node.type === 'database'
+          ? 'border-success/40 text-success bg-success/5'
+          : node.type === 'auth'
+          ? 'border-warning/40 text-warning bg-warning/5'
+          : 'border-border text-text-secondary';
+        return {
+          label: node.label,
+          sub: node.technology || node.type.toUpperCase(),
+          color,
+        };
+      })
+    : [
+        { label: 'Client Browser', sub: 'End user', color: 'border-border text-text-secondary' },
+        { label: 'Next.js App Router', sub: 'React + TypeScript', color: 'border-accent-cyan/40 text-accent-cyan bg-accent-cyan/5' },
+        { label: 'Edge Middleware', sub: 'Edge Runtime', color: 'border-accent-violet/40 text-accent-violet bg-accent-violet/5' },
+        { label: 'API Routes + Auth', sub: 'Node.js / NextAuth', color: 'border-warning/40 text-warning bg-warning/5' },
+        { label: 'PostgreSQL Database', sub: 'via Prisma ORM', color: 'border-success/40 text-success bg-success/5' },
+      ];
 
   const issues = setupSteps.filter(s => s.status !== 'ok' && s.status !== 'pending');
   const warnings = issues.filter(s => s.status === 'warning');
@@ -128,13 +158,7 @@ export function DashboardPage() {
 
           {/* Mini architecture */}
           <div className="flex flex-col items-center gap-2 py-2">
-            {[
-              { label: 'Client Browser', sub: 'End user', color: 'border-border text-text-secondary' },
-              { label: 'Next.js App Router', sub: 'React + TypeScript', color: 'border-accent-cyan/40 text-accent-cyan bg-accent-cyan/5' },
-              { label: 'Edge Middleware', sub: 'Edge Runtime', color: 'border-accent-violet/40 text-accent-violet bg-accent-violet/5' },
-              { label: 'API Routes + Auth', sub: 'Node.js / NextAuth', color: 'border-warning/40 text-warning bg-warning/5' },
-              { label: 'PostgreSQL Database', sub: 'via Prisma ORM', color: 'border-success/40 text-success bg-success/5' },
-            ].map((node, i) => (
+            {miniArchNodes.map((node, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -146,7 +170,7 @@ export function DashboardPage() {
                   <div className="text-xs font-semibold">{node.label}</div>
                   <div className="text-[10px] opacity-60 font-mono mt-0.5">{node.sub}</div>
                 </div>
-                {i < 4 && (
+                {i < miniArchNodes.length - 1 && (
                   <div className="flex justify-center">
                     <div className="w-px h-3 bg-border" />
                   </div>
@@ -166,7 +190,7 @@ export function DashboardPage() {
           {/* Setup health */}
           <div className="card p-5">
             <div className="section-label mb-3">Setup Health</div>
-            {DEMO_SETUP_STEPS.slice(0, 4).map((step) => (
+            {setupSteps.slice(0, 4).map((step) => (
               <div key={step.id} className="flex items-center gap-2.5 py-1.5 border-b border-border/50 last:border-0">
                 {step.status === 'ok' && <CheckCircle size={13} className="text-success shrink-0" />}
                 {step.status === 'warning' && <AlertTriangle size={13} className="text-warning shrink-0" />}
@@ -207,6 +231,100 @@ export function DashboardPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Git Hotspots & Contributor Activity */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.4 }}
+        className="grid md:grid-cols-2 gap-4"
+      >
+        {/* Hotspots Card */}
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Flame size={16} className="text-warning shrink-0" />
+              <div>
+                <div className="section-label mb-0.5">Code Hotspots</div>
+                <div className="text-xs text-text-secondary">High-churn files with frequent modifications</div>
+              </div>
+            </div>
+            <span className="text-[10px] font-mono text-text-secondary border border-border px-2 py-0.5 rounded">
+              {gitInsights.totalCommits} commits analyzed
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {gitInsights.hotspots.slice(0, 4).map((spot, i) => (
+              <div key={i} className="flex items-center justify-between p-2 rounded bg-elevated/40 border border-border/50 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                    spot.churnScore === 'high' ? 'bg-error' : spot.churnScore === 'medium' ? 'bg-warning' : 'bg-success'
+                  }`} />
+                  <span className="font-mono text-text-primary truncate">{spot.path}</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-2">
+                  <span className="text-[10px] font-mono text-text-secondary">{spot.commits} edits</span>
+                  <span className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded border ${
+                    spot.churnScore === 'high' ? 'text-error border-error/30 bg-error/10' :
+                    spot.churnScore === 'medium' ? 'text-warning border-warning/30 bg-warning/10' :
+                    'text-success border-success/30 bg-success/10'
+                  }`}>
+                    {spot.churnScore}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Contributors & Recent Commits */}
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-accent-cyan shrink-0" />
+              <div>
+                <div className="section-label mb-0.5">Key Contributors</div>
+                <div className="text-xs text-text-secondary">Primary maintainers & commit velocity</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 mb-4">
+            {gitInsights.contributors.slice(0, 3).map((contrib, i) => (
+              <div key={i} className="space-y-1">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-text-primary font-medium">{contrib.name}</span>
+                  <span className="text-text-secondary text-[11px]">{contrib.commits} commits ({contrib.percentage}%)</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-elevated overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-accent-cyan"
+                    style={{ width: `${contrib.percentage}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {gitInsights.recentCommits.length > 0 && (
+            <div className="pt-3 border-t border-border/50">
+              <div className="text-[10px] font-mono text-text-secondary tracking-widest mb-2 flex items-center gap-1.5">
+                <GitCommit size={11} className="text-accent-violet" />
+                RECENT REPOSITORY ACTIVITY
+              </div>
+              <div className="space-y-1.5">
+                {gitInsights.recentCommits.slice(0, 2).map((c, i) => (
+                  <div key={i} className="flex items-baseline justify-between text-xs font-mono text-text-secondary gap-2">
+                    <span className="text-text-primary truncate">{c.message}</span>
+                    <span className="text-[10px] shrink-0 text-[#6b7280]">{c.date}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
 
       {/* Starter tasks preview */}
       <motion.div

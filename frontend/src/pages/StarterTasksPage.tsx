@@ -1,10 +1,23 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Compass, Clock, ArrowRight, Tag } from 'lucide-react';
+import {
+  Compass,
+  Clock,
+  ArrowRight,
+  Tag,
+  Sparkles,
+  CheckSquare,
+  Square,
+  Copy,
+  Check,
+  Loader2,
+  GitPullRequest,
+} from 'lucide-react';
 import { ClickableFilePath } from '../components/ui/CodeBlock';
 import { useRepo } from '../lib/RepoContext';
+import { getApiUrl } from '../lib/api';
 import { DEMO_STARTER_TASKS } from '../lib/demo-data';
-import type { StarterTask } from '../types';
+import type { StarterTask, TaskPlan } from '../types';
 
 const difficultyConfig = {
   beginner:     { label: 'BEGINNER',     color: 'text-success', bg: 'bg-success/10 border-success/30' },
@@ -17,7 +30,67 @@ function TaskCard({ task, expanded, onToggle }: {
   expanded: boolean;
   onToggle: () => void;
 }) {
+  const { repoUrl } = useRepo();
+  const [plan, setPlan] = useState<TaskPlan | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedPR, setCopiedPR] = useState(false);
+  const [activeTab, setActiveTab] = useState<'plan' | 'code' | 'test' | 'pr'>('plan');
+
   const cfg = difficultyConfig[task.difficulty];
+
+  const handleGeneratePlan = async () => {
+    if (plan) return;
+    setGenerating(true);
+    try {
+      const apiUrl = getApiUrl();
+      const res = await fetch(`${apiUrl}/api/task-plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskId: task.id,
+          title: task.title,
+          description: task.description,
+          relevantFiles: task.relevantFiles,
+          repoContext: repoUrl,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPlan(data.plan);
+      }
+    } catch (err) {
+      console.error('Plan generation failed:', err);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const toggleStep = (stepNum: number) => {
+    setCompletedSteps(prev => {
+      const next = new Set(prev);
+      if (next.has(stepNum)) next.delete(stepNum);
+      else next.add(stepNum);
+      return next;
+    });
+  };
+
+  const handleCopyCode = async () => {
+    if (!plan) return;
+    await navigator.clipboard.writeText(plan.codeSnippet);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  const handleCopyPR = async () => {
+    if (!plan) return;
+    const text = `# ${plan.prDraft.title}\n\n${plan.prDraft.body}`;
+    await navigator.clipboard.writeText(text);
+    setCopiedPR(true);
+    setTimeout(() => setCopiedPR(false), 2000);
+  };
+
   return (
     <motion.div
       layout
@@ -86,9 +159,138 @@ function TaskCard({ task, expanded, onToggle }: {
               </div>
             </div>
 
+            {/* AI Implementation Plan & PR Scaffolding */}
+            <div className="pt-2">
+              {!plan ? (
+                <button
+                  type="button"
+                  onClick={handleGeneratePlan}
+                  disabled={generating}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-gradient-to-r from-accent-cyan/15 to-accent-violet/15 hover:from-accent-cyan/25 hover:to-accent-violet/25 border border-accent-cyan/30 text-accent-cyan text-xs font-mono font-medium transition-all shadow-sm"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin text-accent-cyan" />
+                      <span>Generating PR Plan with watsonx...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={13} className="text-accent-cyan" />
+                      <span>Generate Implementation Plan & PR Scaffold</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <div className="rounded-lg border border-accent-cyan/25 bg-surface/80 p-3.5 space-y-3">
+                  <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles size={13} className="text-accent-cyan" />
+                      <span className="text-xs font-mono font-semibold text-text-primary">Implementation Workspace</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('plan')}
+                        className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${activeTab === 'plan' ? 'bg-accent-cyan/20 text-accent-cyan font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
+                      >
+                        Checklist ({completedSteps.size}/{plan.steps.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('code')}
+                        className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${activeTab === 'code' ? 'bg-accent-cyan/20 text-accent-cyan font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
+                      >
+                        Code Diff
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('pr')}
+                        className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${activeTab === 'pr' ? 'bg-accent-cyan/20 text-accent-cyan font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
+                      >
+                        PR Draft
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Checklist tab */}
+                  {activeTab === 'plan' && (
+                    <div className="space-y-2">
+                      <p className="text-xs text-text-secondary leading-snug">{plan.summary}</p>
+                      <div className="space-y-1.5 pt-1">
+                        {plan.steps.map((s) => {
+                          const done = completedSteps.has(s.step);
+                          return (
+                            <div
+                              key={s.step}
+                              onClick={() => toggleStep(s.step)}
+                              className={`flex items-start gap-2.5 p-2 rounded cursor-pointer transition-colors border ${done ? 'bg-success/5 border-success/20 text-text-secondary line-through' : 'bg-elevated/40 border-border/50 text-text-primary hover:border-border'}`}
+                            >
+                              <div className="mt-0.5 shrink-0 text-accent-cyan">
+                                {done ? <CheckSquare size={13} className="text-success" /> : <Square size={13} className="text-text-secondary" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-medium">{s.title}</div>
+                                <div className="text-[11px] text-text-secondary leading-relaxed mt-0.5">{s.description}</div>
+                                {s.targetFile && (
+                                  <div className="mt-1 text-[10px] font-mono text-accent-cyan/80">File: {s.targetFile}</div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Code Diff tab */}
+                  {activeTab === 'code' && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono text-text-secondary">PROPOSED CODE SCAFFOLD</span>
+                        <button
+                          type="button"
+                          onClick={handleCopyCode}
+                          className="flex items-center gap-1 text-[11px] font-mono text-accent-cyan hover:underline"
+                        >
+                          {copiedCode ? <Check size={11} className="text-success" /> : <Copy size={11} />}
+                          <span>{copiedCode ? 'Copied!' : 'Copy Code'}</span>
+                        </button>
+                      </div>
+                      <pre className="p-3 rounded bg-black/60 border border-border/70 text-xs font-mono text-[#e2e8f0] overflow-x-auto whitespace-pre">
+                        {plan.codeSnippet}
+                      </pre>
+                    </div>
+                  )}
+
+                  {/* PR Draft tab */}
+                  {activeTab === 'pr' && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-mono font-medium text-text-primary">
+                          <GitPullRequest size={12} className="text-accent-violet" />
+                          <span>{plan.prDraft.title}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCopyPR}
+                          className="flex items-center gap-1 text-[11px] font-mono text-accent-cyan hover:underline"
+                        >
+                          {copiedPR ? <Check size={11} className="text-success" /> : <Copy size={11} />}
+                          <span>{copiedPR ? 'Copied PR Markdown!' : 'Copy PR'}</span>
+                        </button>
+                      </div>
+                      <pre className="p-3 rounded bg-black/60 border border-border/70 text-xs font-mono text-[#94a3b8] overflow-x-auto whitespace-pre leading-relaxed">
+                        {plan.prDraft.body}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Tags */}
             {task.tags && task.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 pt-1">
                 {task.tags.map(tag => (
                   <span key={tag} className="flex items-center gap-1 text-[10px] font-mono text-text-secondary bg-elevated border border-border px-2 py-0.5 rounded">
                     <Tag size={8} />

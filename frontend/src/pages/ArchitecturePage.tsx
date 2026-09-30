@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Info, ChevronDown } from 'lucide-react';
 import { ClickableFilePath } from '../components/ui/CodeBlock';
@@ -38,16 +38,34 @@ export function ArchitecturePage() {
   const types = Array.from(new Set(architectureNodes.map(n => n.type)));
   const filtered = filter === 'all' ? architectureNodes : architectureNodes.filter(n => n.type === filter);
 
-  // Vertical flow layout
-  const flow = architectureNodes.length > 0
-    ? [architectureNodes.map(n => n.id)]
-    : [
+  // Compute hierarchical flow based on node types
+  const flow = useMemo(() => {
+    if (architectureNodes === DEMO_ARCHITECTURE_NODES) {
+      return [
         ['client'],
         ['nextjs-frontend'],
         ['middleware', 'build'],
         ['api-routes', 'cdn'],
         ['auth', 'database'],
       ];
+    }
+    const clientTier = architectureNodes.filter(n => n.type === 'external').map(n => n.id);
+    const frontendTier = architectureNodes.filter(n => n.type === 'frontend').map(n => n.id);
+    const backendTier = architectureNodes.filter(n => n.type === 'backend' || n.type === 'service').map(n => n.id);
+    const dataTier = architectureNodes.filter(n => n.type === 'database' || n.type === 'auth' || n.type === 'config').map(n => n.id);
+
+    const rows: string[][] = [];
+    if (clientTier.length > 0) rows.push(clientTier);
+    if (frontendTier.length > 0) rows.push(frontendTier);
+    if (backendTier.length > 0) rows.push(backendTier);
+    if (dataTier.length > 0) rows.push(dataTier);
+
+    const assignedIds = new Set(rows.flat());
+    const remaining = architectureNodes.filter(n => !assignedIds.has(n.id)).map(n => n.id);
+    if (remaining.length > 0) rows.push(remaining);
+
+    return rows.length > 0 ? rows : [architectureNodes.map(n => n.id)];
+  }, [architectureNodes]);
 
 
   return (
@@ -99,7 +117,7 @@ export function ArchitecturePage() {
           <div className="section-label mb-6">SYSTEM TOPOLOGY</div>
           <div className="flex flex-col items-center gap-0 overflow-x-auto pb-2">
             {flow.map((row, rowIdx) => {
-              const nodes = row.map(id => DEMO_ARCHITECTURE_NODES.find(n => n.id === id)).filter(Boolean) as ArchitectureNode[];
+              const nodes = row.map(id => architectureNodes.find(n => n.id === id)).filter(Boolean) as ArchitectureNode[];
               const visibleNodes = filter === 'all' ? nodes : nodes.filter(n => n.type === filter);
               if (visibleNodes.length === 0 && filter !== 'all') return null;
               return (

@@ -100,7 +100,7 @@ export function DependenciesPage() {
         >
           <div className="section-label mb-3 text-error">Attention Required</div>
           <div className="space-y-2">
-            {DEMO_DEPENDENCIES.filter(d => d.status === 'vulnerable' || d.status === 'unused').map(dep => (
+            {dependencies.filter(d => d.status === 'vulnerable' || d.status === 'unused' || d.auditAdvisory).map(dep => (
               <div key={dep.name} className={`flex items-start gap-3 p-3 rounded border ${statusConfig[dep.status].border} ${statusConfig[dep.status].bg}`}>
                 {statusConfig[dep.status].icon}
                 <div className="flex-1 min-w-0">
@@ -110,13 +110,23 @@ export function DependenciesPage() {
                     <span className={`tag text-[10px] ${statusConfig[dep.status].bg} ${statusConfig[dep.status].color} ${statusConfig[dep.status].border}`}>
                       {statusConfig[dep.status].label}
                     </span>
+                    {dep.license && (
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface border border-border text-text-secondary">
+                        {dep.license}
+                      </span>
+                    )}
                   </div>
                   {dep.description && (
                     <div className="text-xs text-text-secondary mt-0.5">{dep.description}</div>
                   )}
+                  {dep.auditAdvisory && (
+                    <div className="text-xs text-error font-mono mt-1 bg-error/5 p-1.5 rounded border border-error/20">
+                      🚨 {dep.auditAdvisory}
+                    </div>
+                  )}
                   {dep.latestVersion && (
                     <div className="text-xs font-mono text-text-secondary mt-0.5">
-                      Latest: <span className="text-success">{dep.latestVersion}</span>
+                      Latest recommended: <span className="text-success">{dep.latestVersion}</span>
                     </div>
                   )}
                 </div>
@@ -180,8 +190,13 @@ export function DependenciesPage() {
               <div className="w-16 shrink-0">
                 <span className="font-mono text-xs text-text-secondary">{dep.version}</span>
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 flex items-center gap-2">
                 <span className="text-xs text-text-secondary truncate">{dep.description}</span>
+                {dep.license && (
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-surface border border-border text-text-secondary shrink-0">
+                    {dep.license}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {dep.latestVersion && dep.status !== 'ok' && (
@@ -229,8 +244,13 @@ export function DependenciesPage() {
               <div className="w-16 shrink-0">
                 <span className="font-mono text-xs text-text-secondary">{dep.version}</span>
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 flex items-center gap-2">
                 <span className="text-xs text-text-secondary truncate">{dep.description}</span>
+                {dep.license && (
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-surface border border-border text-text-secondary shrink-0">
+                    {dep.license}
+                  </span>
+                )}
               </div>
               <div className="shrink-0">
                 <span className={`tag text-[10px] ${statusConfig[dep.status].bg} ${statusConfig[dep.status].color}`}>
