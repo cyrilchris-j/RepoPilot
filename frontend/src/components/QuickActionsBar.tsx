@@ -12,12 +12,20 @@ import {
 
 const ACTIONS = [
   {
+    title: 'Ask Codebase',
+    subtitle: 'Ask questions about routes, logic & design patterns',
+    to: '/app/ask',
+    icon: MessageSquareCode,
+    badge: 'AI Assistant',
+    color: 'from-accent-cyan/25 to-blue-500/10 border-accent-cyan/40 text-accent-cyan',
+  },
+  {
     title: 'Environment & .env',
     subtitle: 'Live toolchain diagnostics & interactive .env generator',
     to: '/app/setup',
     icon: Sliders,
     badge: 'Prerequisites',
-    color: 'from-accent-cyan/20 to-emerald-500/10 border-accent-cyan/30 text-accent-cyan',
+    color: 'from-emerald-500/20 to-teal-500/10 border-emerald-500/30 text-emerald-400',
   },
   {
     title: 'System Architecture',
@@ -34,14 +42,6 @@ const ACTIONS = [
     icon: CheckSquare,
     badge: 'Onboarding',
     color: 'from-amber-500/20 to-yellow-500/10 border-amber-500/30 text-warning',
-  },
-  {
-    title: 'Codebase Q&A',
-    subtitle: 'Ask questions about routes, logic & design patterns',
-    to: '/app/ask',
-    icon: MessageSquareCode,
-    badge: 'AI Assistant',
-    color: 'from-blue-500/20 to-cyan-500/10 border-blue-500/30 text-blue-400',
   },
   {
     title: 'Error Debugger',

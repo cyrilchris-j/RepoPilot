@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, Link } from 'react-router-dom';
 import { AppSidebar } from '../components/AppSidebar';
 import { MobileNav } from '../components/MobileNav';
 import { CommandPalette } from '../components/CommandPalette';
 import { OnboardingExportModal } from '../components/OnboardingExportButton';
 import { useRepo } from '../lib/RepoContext';
 import { DEMO_REPO } from '../lib/demo-data';
-import { Search, ExternalLink, BookOpen } from 'lucide-react';
+import { Search, ExternalLink, BookOpen, MessageCircle } from 'lucide-react';
 
 export function AppLayout() {
   const { repoUrl, repoData } = useRepo();
@@ -89,6 +89,16 @@ export function AppLayout() {
                 ⌘K
               </kbd>
             </button>
+
+            {/* Quick Ask AI button */}
+            <Link
+              to="/app/ask"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent-cyan/10 hover:bg-accent-cyan/20 border border-accent-cyan/30 hover:border-accent-cyan/50 text-accent-cyan text-xs transition-colors"
+              title="Ask Codebase AI"
+            >
+              <MessageCircle size={13} />
+              <span className="hidden lg:inline text-[11px] font-mono font-medium">Ask AI</span>
+            </Link>
 
             {/* Quick Export Handbook */}
             <button

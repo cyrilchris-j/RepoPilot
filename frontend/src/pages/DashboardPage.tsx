@@ -1,6 +1,6 @@
-import { useRef } from 'react';
+import { useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   GitBranch,
   Clock,
@@ -12,6 +12,10 @@ import {
   Flame,
   Users,
   GitCommit,
+  MessageSquareCode,
+  Search,
+  Send,
+  Sparkles,
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
 import { StatusBadge } from '../components/ui/StatusBadge';
@@ -48,6 +52,8 @@ function MetricCard({ label, value, sub, accent = false }: {
 }
 
 export function DashboardPage() {
+  const navigate = useNavigate();
+  const [askInput, setAskInput] = useState('');
   const { repoData, repoUrl } = useRepo();
   const repo = repoData?.repository || (repoUrl ? {
     url: repoUrl,
@@ -61,6 +67,16 @@ export function DashboardPage() {
   const setupSteps = repoData?.setupSteps || DEMO_SETUP_STEPS;
   const starterTasks = repoData?.starterTasks || DEMO_STARTER_TASKS;
   const gitInsights = repoData?.gitInsights || DEMO_GIT_INSIGHTS;
+
+  const handleAskSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!askInput.trim()) return;
+    navigate(`/app/ask?q=${encodeURIComponent(askInput.trim())}`);
+  };
+
+  const handleAskPrompt = (prompt: string) => {
+    navigate(`/app/ask?q=${encodeURIComponent(prompt)}`);
+  };
 
   const miniArchNodes = (repoData?.architectureNodes && repoData.architectureNodes.length > 0)
     ? repoData.architectureNodes.slice(0, 5).map(node => {
@@ -118,6 +134,85 @@ export function DashboardPage() {
           </div>
           <StatusBadge status="complete" />
           <OnboardingExportButton variant="header" />
+        </div>
+      </motion.div>
+
+      {/* Ask Codebase Session (Hero Prompt Bar - Primary Interactive Action) */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.08, duration: 0.35 }}
+        className="card p-4 sm:p-5 border-accent-cyan/35 bg-gradient-to-r from-accent-cyan/10 via-surface to-accent-violet/10 relative overflow-hidden shadow-lg shadow-black/20"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-accent-cyan/15 border border-accent-cyan/30 flex items-center justify-center text-accent-cyan shadow-sm shrink-0">
+              <MessageSquareCode size={18} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-text-primary tracking-tight">ASK YOUR CODEBASE</h2>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30 font-medium">
+                  AI ASSISTANT
+                </span>
+              </div>
+              <p className="text-xs text-text-secondary">
+                Ask natural language questions about architecture, files, logic, or dependencies.
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to="/app/ask"
+            className="inline-flex items-center gap-1.5 text-xs font-mono text-accent-cyan hover:underline shrink-0"
+          >
+            <span>Open full chat</span>
+            <ArrowRight size={12} />
+          </Link>
+        </div>
+
+        {/* Input form */}
+        <form onSubmit={handleAskSubmit} className="flex gap-2 mb-3">
+          <div className="flex-1 flex items-center gap-2.5 bg-bg/90 border border-border/80 focus-within:border-accent-cyan/70 rounded-lg px-3.5 py-2.5 shadow-inner transition-colors">
+            <Search size={15} className="text-accent-cyan shrink-0" />
+            <input
+              type="text"
+              value={askInput}
+              onChange={e => setAskInput(e.target.value)}
+              placeholder="Ask anything (e.g., 'How does authentication work?', 'Where are database models defined?')"
+              className="flex-1 bg-transparent text-xs sm:text-sm font-mono text-text-primary placeholder:text-text-secondary/70 focus:outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={!askInput.trim()}
+            className="btn-primary px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-medium flex items-center gap-1.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md"
+          >
+            <Send size={13} />
+            <span>Ask</span>
+          </button>
+        </form>
+
+        {/* Quick prompt suggestions */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[11px] font-mono text-text-secondary flex items-center gap-1">
+            <Sparkles size={11} className="text-accent-cyan" /> Try asking:
+          </span>
+          {[
+            'How is authentication handled?',
+            'Explain the component architecture',
+            'Where are the main API routes?',
+            'How do I run and test locally?',
+          ].map((prompt, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => handleAskPrompt(prompt)}
+              className="text-[11px] font-mono px-2.5 py-1 rounded-md bg-elevated/70 hover:bg-elevated border border-border/80 hover:border-accent-cyan/50 text-text-secondary hover:text-accent-cyan transition-colors cursor-pointer text-left truncate max-w-[260px] sm:max-w-none"
+            >
+              {prompt}
+            </button>
+          ))}
         </div>
       </motion.div>
 

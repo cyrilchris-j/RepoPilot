@@ -25,11 +25,11 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'overview',      label: 'Overview',      icon: <LayoutDashboard size={15} />, path: '/app' },
+  { id: 'ask',           label: 'Ask Codebase',  icon: <MessageCircle size={15} />,   path: '/app/ask' },
   { id: 'architecture',  label: 'Architecture',  icon: <GitBranch size={15} />,       path: '/app/architecture' },
   { id: 'setup',         label: 'Setup',          icon: <Settings size={15} />,        path: '/app/setup' },
   { id: 'dependencies',  label: 'Dependencies',  icon: <Package size={15} />,         path: '/app/dependencies' },
   { id: 'debug',         label: 'Debug Agent',   icon: <Bug size={15} />,             path: '/app/debug' },
-  { id: 'ask',           label: 'Ask Codebase',  icon: <MessageCircle size={15} />,   path: '/app/ask' },
   { id: 'tasks',         label: 'Starter Tasks', icon: <Compass size={15} />,         path: '/app/tasks' },
 ];
 
@@ -114,7 +114,14 @@ export function AppSidebar({
                   <span className={`shrink-0 ${isActive ? 'text-accent-cyan' : 'text-text-secondary group-hover:text-text-primary'}`}>
                     {item.icon}
                   </span>
-                  <span className="flex-1 text-[13px] font-medium">{item.label}</span>
+                  <span className="flex-1 text-[13px] font-medium flex items-center justify-between">
+                    <span>{item.label}</span>
+                    {item.id === 'ask' && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30 uppercase font-semibold">
+                        AI
+                      </span>
+                    )}
+                  </span>
                   {isActive && (
                     <motion.span
                       initial={{ opacity: 0, x: -4 }}
