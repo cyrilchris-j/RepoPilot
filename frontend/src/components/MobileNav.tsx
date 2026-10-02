@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   ChevronLeft,
+  Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusBadge } from './ui/StatusBadge';
@@ -19,6 +20,7 @@ import { OnboardingExportButton } from './OnboardingExportButton';
 
 const navItems = [
   { id: 'overview',      label: 'Overview',       icon: <LayoutDashboard size={18} />, path: '/app' },
+  { id: 'improvements',  label: 'Improvements',  icon: <Sparkles size={18} />,        path: '/app/improvements' },
   { id: 'ask',           label: 'Ask Codebase',   icon: <MessageCircle size={18} />,   path: '/app/ask' },
   { id: 'architecture',  label: 'Architecture',   icon: <GitBranch size={18} />,       path: '/app/architecture' },
   { id: 'setup',         label: 'Setup',           icon: <Settings size={18} />,        path: '/app/setup' },

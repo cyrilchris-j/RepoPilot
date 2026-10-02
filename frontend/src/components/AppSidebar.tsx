@@ -11,6 +11,7 @@ import {
   Compass,
   ChevronRight,
   Search,
+  Sparkles,
 } from 'lucide-react';
 import { StatusBadge } from './ui/StatusBadge';
 import { RepoSwitcher } from './RepoSwitcher';
@@ -25,6 +26,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'overview',      label: 'Overview',      icon: <LayoutDashboard size={15} />, path: '/app' },
+  { id: 'improvements',  label: 'Improvements', icon: <Sparkles size={15} />,        path: '/app/improvements' },
   { id: 'ask',           label: 'Ask Codebase',  icon: <MessageCircle size={15} />,   path: '/app/ask' },
   { id: 'architecture',  label: 'Architecture',  icon: <GitBranch size={15} />,       path: '/app/architecture' },
   { id: 'setup',         label: 'Setup',          icon: <Settings size={15} />,        path: '/app/setup' },
@@ -119,6 +121,11 @@ export function AppSidebar({
                     {item.id === 'ask' && (
                       <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30 uppercase font-semibold">
                         AI
+                      </span>
+                    )}
+                    {item.id === 'improvements' && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accent-violet/20 text-accent-violet border border-accent-violet/40 uppercase font-semibold">
+                        LAB
                       </span>
                     )}
                   </span>

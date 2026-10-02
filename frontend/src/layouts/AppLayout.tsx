@@ -41,6 +41,7 @@ export function AppLayout() {
   // Current page breadcrumb title
   const pageTitle = (() => {
     const p = location.pathname;
+    if (p.includes('/improvements')) return 'Improvement Lab & Recipes';
     if (p.includes('/architecture')) return 'Architecture';
     if (p.includes('/setup')) return 'Environment & Setup';
     if (p.includes('/dependencies')) return 'Dependencies';

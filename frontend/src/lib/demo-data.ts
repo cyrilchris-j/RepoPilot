@@ -139,6 +139,8 @@ export const DEMO_ENV_VARIABLES: EnvVariable[] = [
 ];
 
 export const DEMO_SETUP_STEPS: SetupStep[] = [
+  { id: 'git', label: 'Git Version Control', command: 'git --version', status: 'ok', description: 'Version control system', details: 'v2.42.0 detected' },
+  { id: 'clone', label: 'Clone repository', command: 'git clone https://github.com/cyrilchris-j/RepoPilot.git', status: 'ok', description: 'Repository checkout', details: 'main branch active' },
   { id: 'node', label: 'Node.js ≥ 18.17', status: 'ok', description: 'Runtime environment', details: 'v20.11.0 detected' },
   { id: 'pnpm', label: 'pnpm package manager', status: 'ok', description: 'Dependency manager', details: 'v8.14.0 detected' },
   { id: 'install', label: 'Install dependencies', command: 'pnpm install', status: 'ok', description: '147 packages resolved' },

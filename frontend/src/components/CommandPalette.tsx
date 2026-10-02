@@ -14,6 +14,12 @@ import {
   Copy,
   Check,
   CornerDownLeft,
+  Terminal,
+  GitBranch,
+  GitCommit,
+  GitPullRequest,
+  FolderGit2,
+  Sparkles,
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
 import { useCodeViewer } from '../lib/CodeViewerContext';
@@ -21,7 +27,7 @@ import { DEMO_ARCHITECTURE_NODES, DEMO_STARTER_TASKS } from '../lib/demo-data';
 
 interface CommandItem {
   id: string;
-  category: 'Navigation' | 'Actions' | 'Files' | 'Tasks';
+  category: 'Navigation' | 'Actions' | 'Git Commands' | 'Files' | 'Tasks';
   title: string;
   subtitle?: string;
   icon: React.ElementType;
@@ -44,8 +50,18 @@ export function CommandPalette({
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [copiedClone, setCopiedClone] = useState(false);
+  const [copiedCmdId, setCopiedCmdId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  const copyCmd = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedCmdId(id);
+    setTimeout(() => {
+      setCopiedCmdId(null);
+      onClose();
+    }, 700);
+  };
 
   // Focus input when modal opens
   useEffect(() => {
@@ -68,6 +84,18 @@ export function CommandPalette({
         badge: 'Page',
         action: () => {
           navigate('/app/dashboard');
+          onClose();
+        },
+      },
+      {
+        id: 'nav-improvements',
+        category: 'Navigation',
+        title: 'Improvement Lab & Component Ideas',
+        subtitle: 'Architectural optimizations, drop-in recipes & CLI merger',
+        icon: Sparkles,
+        badge: 'New',
+        action: () => {
+          navigate('/app/improvements');
           onClose();
         },
       },
@@ -148,6 +176,18 @@ export function CommandPalette({
         },
       },
       {
+        id: 'act-repopilot-improve',
+        category: 'Actions',
+        title: 'Run RepoPilot Improvement CLI',
+        subtitle: `npx repopilot@latest improve ${repoUrl || 'https://github.com/cyrilchris-j/RepoPilot.git'}`,
+        icon: copiedCmdId === 'act-repopilot-improve' ? Check : Sparkles,
+        badge: copiedCmdId === 'act-repopilot-improve' ? 'Copied!' : 'CLI',
+        action: () => {
+          const url = repoUrl || 'https://github.com/cyrilchris-j/RepoPilot.git';
+          copyCmd('act-repopilot-improve', `npx repopilot@latest improve ${url}`);
+        },
+      },
+      {
         id: 'act-clone',
         category: 'Actions',
         title: 'Copy Git Clone Command',
@@ -162,6 +202,109 @@ export function CommandPalette({
             setCopiedClone(false);
             onClose();
           }, 800);
+        },
+      },
+
+      // Git Commands
+      {
+        id: 'git-cmd-clone',
+        category: 'Git Commands',
+        title: 'git clone <url>',
+        subtitle: `Clone ${repoUrl || 'https://github.com/cyrilchris-j/RepoPilot.git'}`,
+        icon: copiedCmdId === 'git-cmd-clone' ? Check : FolderGit2,
+        badge: copiedCmdId === 'git-cmd-clone' ? 'Copied!' : 'Git',
+        action: () => {
+          const url = repoUrl || 'https://github.com/cyrilchris-j/RepoPilot.git';
+          copyCmd('git-cmd-clone', `git clone ${url}`);
+        },
+      },
+      {
+        id: 'git-cmd-branch',
+        category: 'Git Commands',
+        title: 'git checkout -b feature/<name>',
+        subtitle: 'Create and switch to a new feature branch',
+        icon: copiedCmdId === 'git-cmd-branch' ? Check : GitBranch,
+        badge: copiedCmdId === 'git-cmd-branch' ? 'Copied!' : 'Git',
+        action: () => {
+          copyCmd('git-cmd-branch', 'git checkout -b feature/your-feature-name');
+        },
+      },
+      {
+        id: 'git-cmd-pull',
+        category: 'Git Commands',
+        title: `git pull origin ${repoData?.repository?.branch || 'main'} --rebase`,
+        subtitle: `Pull latest upstream commits on ${repoData?.repository?.branch || 'main'} with rebase`,
+        icon: copiedCmdId === 'git-cmd-pull' ? Check : GitPullRequest,
+        badge: copiedCmdId === 'git-cmd-pull' ? 'Copied!' : 'Git',
+        action: () => {
+          const branch = repoData?.repository?.branch || 'main';
+          copyCmd('git-cmd-pull', `git pull origin ${branch} --rebase`);
+        },
+      },
+      {
+        id: 'git-cmd-status',
+        category: 'Git Commands',
+        title: 'git status -sb',
+        subtitle: 'Short status showing current branch and modified files',
+        icon: copiedCmdId === 'git-cmd-status' ? Check : Terminal,
+        badge: copiedCmdId === 'git-cmd-status' ? 'Copied!' : 'Git',
+        action: () => {
+          copyCmd('git-cmd-status', 'git status -sb');
+        },
+      },
+      {
+        id: 'git-cmd-log',
+        category: 'Git Commands',
+        title: 'git log --graph --oneline --decorate -n 10',
+        subtitle: 'Visual ASCII commit graph for recent repository history',
+        icon: copiedCmdId === 'git-cmd-log' ? Check : GitCommit,
+        badge: copiedCmdId === 'git-cmd-log' ? 'Copied!' : 'Git',
+        action: () => {
+          copyCmd('git-cmd-log', 'git log --graph --oneline --decorate -n 10');
+        },
+      },
+      {
+        id: 'git-cmd-diff',
+        category: 'Git Commands',
+        title: 'git diff --stat',
+        subtitle: 'Summary of modified files and inserted/deleted line counts',
+        icon: copiedCmdId === 'git-cmd-diff' ? Check : Terminal,
+        badge: copiedCmdId === 'git-cmd-diff' ? 'Copied!' : 'Git',
+        action: () => {
+          copyCmd('git-cmd-diff', 'git diff --stat');
+        },
+      },
+      {
+        id: 'git-cmd-stash',
+        category: 'Git Commands',
+        title: 'git stash push -m "WIP"',
+        subtitle: 'Safely stash working changes before switching branches',
+        icon: copiedCmdId === 'git-cmd-stash' ? Check : Terminal,
+        badge: copiedCmdId === 'git-cmd-stash' ? 'Copied!' : 'Git',
+        action: () => {
+          copyCmd('git-cmd-stash', 'git stash push -m "WIP: save local changes"');
+        },
+      },
+      {
+        id: 'git-cmd-stash-pop',
+        category: 'Git Commands',
+        title: 'git stash pop',
+        subtitle: 'Reapply the most recently stashed uncommitted changes',
+        icon: copiedCmdId === 'git-cmd-stash-pop' ? Check : Terminal,
+        badge: copiedCmdId === 'git-cmd-stash-pop' ? 'Copied!' : 'Git',
+        action: () => {
+          copyCmd('git-cmd-stash-pop', 'git stash pop');
+        },
+      },
+      {
+        id: 'git-cmd-fetch-prune',
+        category: 'Git Commands',
+        title: 'git fetch origin --prune',
+        subtitle: 'Fetch remote updates and clean up deleted remote branches',
+        icon: copiedCmdId === 'git-cmd-fetch-prune' ? Check : Terminal,
+        badge: copiedCmdId === 'git-cmd-fetch-prune' ? 'Copied!' : 'Git',
+        action: () => {
+          copyCmd('git-cmd-fetch-prune', 'git fetch origin --prune');
         },
       },
     ];
@@ -227,7 +370,7 @@ export function CommandPalette({
     }
 
     return list;
-  }, [repoData, repoUrl, navigate, onClose, openFile, onTriggerExport, copiedClone]);
+  }, [repoData, repoUrl, navigate, onClose, openFile, onTriggerExport, copiedClone, copiedCmdId]);
 
   // Filter items by search query
   const filtered = useMemo(() => {
@@ -305,7 +448,7 @@ export function CommandPalette({
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Search files, actions, tasks, pages..."
+                placeholder="Search files, git commands, actions, tasks..."
                 className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary/60 focus:outline-none font-mono"
               />
               <kbd className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono text-text-secondary bg-surface border border-border px-1.5 py-0.5 rounded shadow-sm">

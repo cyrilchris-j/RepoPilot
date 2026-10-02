@@ -12,6 +12,14 @@ import {
 
 const ACTIONS = [
   {
+    title: 'Improvement Lab',
+    subtitle: 'Component ideas, drop-in recipes & CLI merger',
+    to: '/app/improvements',
+    icon: Sparkles,
+    badge: 'Lab',
+    color: 'from-accent-cyan/25 to-accent-violet/20 border-accent-cyan/40 text-accent-cyan',
+  },
+  {
     title: 'Ask Codebase',
     subtitle: 'Ask questions about routes, logic & design patterns',
     to: '/app/ask',
@@ -71,7 +79,7 @@ export function QuickActionsBar() {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {ACTIONS.map(action => {
           const Icon = action.icon;
           return (

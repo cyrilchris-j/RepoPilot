@@ -12,6 +12,7 @@ import { DependenciesPage } from './pages/DependenciesPage';
 import { DebugPage } from './pages/DebugPage';
 import { AskPage } from './pages/AskPage';
 import { StarterTasksPage } from './pages/StarterTasksPage';
+import { ImprovementsPage } from './pages/ImprovementsPage';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="/analyzing" element={<AnalyzingPage />} />
             <Route path="/app" element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
+              <Route path="improvements" element={<ImprovementsPage />} />
               <Route path="architecture" element={<ArchitecturePage />} />
               <Route path="setup" element={<SetupPage />} />
               <Route path="dependencies" element={<DependenciesPage />} />

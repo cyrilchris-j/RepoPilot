@@ -16,11 +16,15 @@ import {
   Search,
   Send,
   Sparkles,
+  Terminal,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { OnboardingExportButton } from '../components/OnboardingExportButton';
 import { QuickActionsBar } from '../components/QuickActionsBar';
+import { GitCommandsSection } from '../components/GitCommandsSection';
 import {
   DEMO_REPO, DEMO_METRICS, DEMO_ACTIVITY,
   DEMO_SETUP_STEPS, DEMO_STARTER_TASKS,
@@ -54,6 +58,7 @@ function MetricCard({ label, value, sub, accent = false }: {
 export function DashboardPage() {
   const navigate = useNavigate();
   const [askInput, setAskInput] = useState('');
+  const [copiedSpecialCmd, setCopiedSpecialCmd] = useState(false);
   const { repoData, repoUrl } = useRepo();
   const repo = repoData?.repository || (repoUrl ? {
     url: repoUrl,
@@ -203,6 +208,7 @@ export function DashboardPage() {
             'Explain the component architecture',
             'Where are the main API routes?',
             'How do I run and test locally?',
+            'Explain git branch & contribution workflow',
           ].map((prompt, i) => (
             <button
               key={i}
@@ -227,6 +233,61 @@ export function DashboardPage() {
         <MetricCard label="Dependencies" value={metrics.dependencies} />
         <MetricCard label="API Routes" value={metrics.routes} />
         <MetricCard label="Modules" value={metrics.modules} />
+      </motion.div>
+
+      {/* RepoPilot Special Improvement Command & Lab Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12, duration: 0.35 }}
+        className="card p-4 sm:p-5 border-accent-cyan/30 bg-gradient-to-r from-accent-cyan/10 via-surface to-accent-violet/10 relative overflow-hidden shadow-lg"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/40 font-semibold flex items-center gap-1">
+                <Sparkles size={11} />
+                REPOPILOT SPECIAL COMMAND
+              </span>
+              <span className="text-xs text-text-secondary font-mono">
+                Codebase Evolution Engine
+              </span>
+            </div>
+            <h3 className="text-sm font-semibold text-text-primary">
+              Improve, Modernize &amp; Merge Components with 1 Command
+            </h3>
+            <p className="text-xs text-text-secondary max-w-xl">
+              Anyone with this repository can run our signature CLI command to automatically audit code, deploy CI/CD pipelines, and merge battle-tested components.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2 bg-bg/90 border border-border rounded-lg px-3 py-2 font-mono text-xs text-text-primary shadow-inner">
+              <Terminal size={13} className="text-accent-cyan shrink-0" />
+              <span className="select-all">npx repopilot@latest improve {repo.url || 'https://github.com/cyrilchris-j/RepoPilot.git'}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(`npx repopilot@latest improve ${repo.url || 'https://github.com/cyrilchris-j/RepoPilot.git'}`);
+                  setCopiedSpecialCmd(true);
+                  setTimeout(() => setCopiedSpecialCmd(false), 1800);
+                }}
+                className="p-1 rounded hover:bg-elevated text-text-secondary hover:text-accent-cyan transition-colors ml-1 cursor-pointer"
+                title="Copy Special Command"
+              >
+                {copiedSpecialCmd ? <Check size={13} className="text-success" /> : <Copy size={13} />}
+              </button>
+            </div>
+
+            <Link
+              to="/app/improvements"
+              className="btn-primary text-xs px-4 py-2 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-md"
+            >
+              <span>Explore Ideas &amp; Components</span>
+              <ArrowRight size={13} />
+            </Link>
+          </div>
+        </div>
       </motion.div>
 
       {/* Quick Actions Bar */}
@@ -419,6 +480,20 @@ export function DashboardPage() {
             </div>
           )}
         </div>
+      </motion.div>
+
+      {/* Git Workflows & Commands */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.33, duration: 0.4 }}
+      >
+        <GitCommandsSection
+          repoUrl={repo.url}
+          repoName={repo.name}
+          branch={repo.branch}
+          topHotspotFile={gitInsights.hotspots?.[0]?.path}
+        />
       </motion.div>
 
       {/* Starter tasks preview */}
