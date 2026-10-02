@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { RepoProvider } from './lib/RepoContext';
+import { CodeViewerProvider } from './lib/CodeViewerContext';
+import { CodeViewerModal } from './components/CodeViewerModal';
 import { AppLayout } from './layouts/AppLayout';
 import { LandingPage } from './pages/LandingPage';
 import { AnalyzingPage } from './pages/AnalyzingPage';
@@ -10,25 +12,30 @@ import { DependenciesPage } from './pages/DependenciesPage';
 import { DebugPage } from './pages/DebugPage';
 import { AskPage } from './pages/AskPage';
 import { StarterTasksPage } from './pages/StarterTasksPage';
+import { ImprovementsPage } from './pages/ImprovementsPage';
 
 export default function App() {
   return (
     <RepoProvider>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/analyzing" element={<AnalyzingPage />} />
-        <Route path="/app" element={<AppLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="architecture" element={<ArchitecturePage />} />
-          <Route path="setup" element={<SetupPage />} />
-          <Route path="dependencies" element={<DependenciesPage />} />
-          <Route path="debug" element={<DebugPage />} />
-          <Route path="ask" element={<AskPage />} />
-          <Route path="tasks" element={<StarterTasksPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+      <CodeViewerProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/analyzing" element={<AnalyzingPage />} />
+            <Route path="/app" element={<AppLayout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="improvements" element={<ImprovementsPage />} />
+              <Route path="architecture" element={<ArchitecturePage />} />
+              <Route path="setup" element={<SetupPage />} />
+              <Route path="dependencies" element={<DependenciesPage />} />
+              <Route path="debug" element={<DebugPage />} />
+              <Route path="ask" element={<AskPage />} />
+              <Route path="tasks" element={<StarterTasksPage />} />
+            </Route>
+          </Routes>
+          <CodeViewerModal />
+        </BrowserRouter>
+      </CodeViewerProvider>
     </RepoProvider>
   );
 }

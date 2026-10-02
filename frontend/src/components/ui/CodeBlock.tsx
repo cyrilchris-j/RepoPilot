@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CopyButton } from './CopyButton';
+import { useCodeViewer } from '../../lib/CodeViewerContext';
 
 interface CodeBlockProps {
   code: string;
@@ -57,6 +58,33 @@ export function FilePath({ path, className = '' }: { path: string; className?: s
         </span>
       ))}
     </span>
+  );
+}
+
+/** Clickable file path that opens the Code Viewer Modal */
+export function ClickableFilePath({ path, className = '' }: { path: string; className?: string }) {
+  const { openFile } = useCodeViewer();
+  const parts = path.split('/');
+
+  return (
+    <button
+      onClick={() => openFile(path)}
+      title={`Open ${path} in code viewer`}
+      className={`font-mono text-sm group/fp inline-flex items-center gap-0.5 hover:opacity-90 transition-opacity cursor-pointer ${className}`}
+    >
+      {parts.map((part, i) => (
+        <span key={i} className="inline-flex items-center">
+          {i > 0 && <span className="text-text-secondary mx-0.5">/</span>}
+          <span className={`${
+            i === parts.length - 1
+              ? 'text-accent-cyan group-hover/fp:underline underline-offset-2'
+              : 'text-text-secondary'
+          }`}>
+            {part}
+          </span>
+        </span>
+      ))}
+    </button>
   );
 }
 

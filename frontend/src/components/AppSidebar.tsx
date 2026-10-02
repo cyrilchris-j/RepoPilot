@@ -10,8 +10,12 @@ import {
   MessageCircle,
   Compass,
   ChevronRight,
+  Search,
+  Sparkles,
 } from 'lucide-react';
 import { StatusBadge } from './ui/StatusBadge';
+import { RepoSwitcher } from './RepoSwitcher';
+import { OnboardingExportButton } from './OnboardingExportButton';
 
 interface NavItem {
   id: string;
@@ -21,22 +25,31 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={15} />, path: '/app' },
-  { id: 'architecture', label: 'Architecture', icon: <GitBranch size={15} />, path: '/app/architecture' },
-  { id: 'setup', label: 'Setup', icon: <Settings size={15} />, path: '/app/setup' },
-  { id: 'dependencies', label: 'Dependencies', icon: <Package size={15} />, path: '/app/dependencies' },
-  { id: 'debug', label: 'Debug Agent', icon: <Bug size={15} />, path: '/app/debug' },
-  { id: 'ask', label: 'Ask Codebase', icon: <MessageCircle size={15} />, path: '/app/ask' },
-  { id: 'tasks', label: 'Starter Tasks', icon: <Compass size={15} />, path: '/app/tasks' },
+  { id: 'overview',      label: 'Overview',      icon: <LayoutDashboard size={15} />, path: '/app' },
+  { id: 'improvements',  label: 'Improvements', icon: <Sparkles size={15} />,        path: '/app/improvements' },
+  { id: 'ask',           label: 'Ask Codebase',  icon: <MessageCircle size={15} />,   path: '/app/ask' },
+  { id: 'architecture',  label: 'Architecture',  icon: <GitBranch size={15} />,       path: '/app/architecture' },
+  { id: 'setup',         label: 'Setup',          icon: <Settings size={15} />,        path: '/app/setup' },
+  { id: 'dependencies',  label: 'Dependencies',  icon: <Package size={15} />,         path: '/app/dependencies' },
+  { id: 'debug',         label: 'Debug Agent',   icon: <Bug size={15} />,             path: '/app/debug' },
+  { id: 'tasks',         label: 'Starter Tasks', icon: <Compass size={15} />,         path: '/app/tasks' },
 ];
 
 interface AppSidebarProps {
   repoName: string;
   repoBranch: string;
   analysisStatus: 'analyzing' | 'complete' | 'error';
+  repoUrl?: string;
+  onOpenCommandPalette?: () => void;
 }
 
-export function AppSidebar({ repoName, repoBranch, analysisStatus }: AppSidebarProps) {
+export function AppSidebar({
+  repoName,
+  repoBranch,
+  analysisStatus,
+  repoUrl = '',
+  onOpenCommandPalette,
+}: AppSidebarProps) {
   const location = useLocation();
 
   return (
@@ -55,14 +68,29 @@ export function AppSidebar({ repoName, repoBranch, analysisStatus }: AppSidebarP
         </Link>
       </div>
 
-      {/* Repository identity */}
+      {/* Quick Search / Command Palette Trigger */}
+      <div className="px-3 py-2 border-b border-border/60">
+        <button
+          type="button"
+          onClick={onOpenCommandPalette}
+          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md bg-elevated/70 hover:bg-elevated border border-border/80 hover:border-accent-cyan/40 text-text-secondary hover:text-text-primary text-xs transition-colors group"
+          title="Open Command Palette (⌘K)"
+        >
+          <div className="flex items-center gap-2">
+            <Search size={13} className="text-text-secondary group-hover:text-accent-cyan transition-colors" />
+            <span className="text-[12px]">Jump to...</span>
+          </div>
+          <kbd className="text-[10px] font-mono px-1 py-0.2 rounded bg-surface border border-border text-text-secondary">
+            ⌘K
+          </kbd>
+        </button>
+      </div>
+
+      {/* Repository identity + switcher */}
       <div className="px-4 py-3 border-b border-border">
         <div className="text-[10px] font-mono text-text-secondary tracking-widest uppercase mb-1.5">Repository</div>
-        <div className="font-mono text-xs text-text-primary truncate">{repoName}</div>
-        <div className="flex items-center gap-1.5 mt-1">
-          <GitBranch size={10} className="text-text-secondary" />
-          <span className="font-mono text-[10px] text-text-secondary">{repoBranch}</span>
-        </div>
+        <div className="font-mono text-xs text-text-primary truncate mb-2">{repoName}</div>
+        <RepoSwitcher currentRepo={repoUrl || repoName} branch={repoBranch} />
         <div className="mt-2">
           <StatusBadge status={analysisStatus === 'complete' ? 'complete' : analysisStatus} size="sm" />
         </div>
@@ -88,7 +116,19 @@ export function AppSidebar({ repoName, repoBranch, analysisStatus }: AppSidebarP
                   <span className={`shrink-0 ${isActive ? 'text-accent-cyan' : 'text-text-secondary group-hover:text-text-primary'}`}>
                     {item.icon}
                   </span>
-                  <span className="flex-1 text-[13px] font-medium">{item.label}</span>
+                  <span className="flex-1 text-[13px] font-medium flex items-center justify-between">
+                    <span>{item.label}</span>
+                    {item.id === 'ask' && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30 uppercase font-semibold">
+                        AI
+                      </span>
+                    )}
+                    {item.id === 'improvements' && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accent-violet/20 text-accent-violet border border-accent-violet/40 uppercase font-semibold">
+                        LAB
+                      </span>
+                    )}
+                  </span>
                   {isActive && (
                     <motion.span
                       initial={{ opacity: 0, x: -4 }}
@@ -103,6 +143,12 @@ export function AppSidebar({ repoName, repoBranch, analysisStatus }: AppSidebarP
             );
           })}
         </ul>
+
+        {/* Export section */}
+        <div className="mt-4 pt-3 border-t border-border/50 px-0">
+          <div className="text-[10px] font-mono text-text-secondary tracking-widest uppercase px-2 mb-1.5">Export</div>
+          <OnboardingExportButton variant="sidebar" />
+        </div>
       </nav>
 
       {/* System status */}
