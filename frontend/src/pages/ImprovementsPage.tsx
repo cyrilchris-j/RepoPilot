@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
@@ -18,40 +18,25 @@ import {
   Filter,
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
-import { DEMO_REPO } from '../lib/demo-data';
-
-interface ImprovementItem {
-  id: string;
-  category: 'components' | 'architecture' | 'deployment' | 'merger';
-  title: string;
-  tagline: string;
-  impact: 'High' | 'Medium' | 'Quick Win';
-  effort: string;
-  analyzedReason: string;
-  targetFiles: string[];
-  cliCommand: string;
-  codeSnippet: string;
-  filename: string;
-  beforeSnippet?: string;
-  benefits: string[];
-}
+import { generateDynamicImprovements, type DynamicImprovement } from '../lib/repoAnalyzer';
 
 export function ImprovementsPage() {
   const { repoData, repoUrl } = useRepo();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'components' | 'architecture' | 'deployment' | 'merger'>('all');
-  const [expandedId, setExpandedId] = useState<string | null>('cmd-palette');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [cliTab, setCliTab] = useState<'npx' | 'docker' | 'github-action' | 'badge'>('npx');
 
-  const repo = repoData?.repository || (repoUrl ? {
-    url: repoUrl,
-    name: repoUrl.split('/').pop()?.replace(/\.git$/, '') || 'repository',
-    owner: repoUrl.split('/').slice(-2)[0] || 'owner',
+  const repo = repoData?.repository || {
+    url: repoUrl || 'https://github.com/cyrilchris-j/airoadgen.git',
+    name: repoUrl ? repoUrl.split('/').pop()?.replace(/\.git$/, '') || 'repository' : 'airoadgen',
+    owner: repoUrl ? repoUrl.split('/').slice(-2)[0] || 'owner' : 'cyrilchris-j',
     branch: 'main',
-  } : DEMO_REPO);
+    language: 'JavaScript',
+  };
 
-  const cleanRepoUrl = repo.url || 'https://github.com/cyrilchris-j/RepoPilot.git';
-  const cleanRepoName = repo.name || 'RepoPilot';
+  const cleanRepoUrl = repo.url.startsWith('http') ? repo.url : `https://github.com/${repo.url}.git`;
+  const cleanRepoName = repo.name;
 
   const copyToClipboard = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
@@ -61,392 +46,28 @@ export function ImprovementsPage() {
     }, 1800);
   };
 
-  const improvements: ImprovementItem[] = useMemo(() => [
-    {
-      id: 'cmd-palette',
-      category: 'components',
-      title: 'Global Command Palette (⌘K) & Search Modal',
-      tagline: 'Empower users with instant keyboard navigation, file search, and actions',
-      impact: 'High',
-      effort: '30 mins',
-      analyzedReason: 'Analyzed repository lacks a global spotlight search or quick-action launcher for developers.',
-      targetFiles: ['src/components/CommandPalette.tsx', 'src/layouts/AppLayout.tsx'],
-      cliCommand: `npx repopilot@latest add component command-palette`,
-      filename: 'src/components/CommandPalette.tsx',
-      beforeSnippet: `// Current: Users have to manually click across navigation links
-<header>
-  <nav><Link to="/dashboard">Dashboard</Link>...</nav>
-</header>`,
-      codeSnippet: `import { useState, useEffect } from 'react';
-import { Search, Terminal, FileCode } from 'lucide-react';
+  // Generate 100% genuine dynamic improvements based on real repoData
+  const improvements: DynamicImprovement[] = useMemo(() => {
+    return generateDynamicImprovements(repoData);
+  }, [repoData]);
 
-export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [query, setQuery] = useState('');
-  
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose]);
-
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-24">
-      <div className="w-full max-w-lg bg-surface border border-border rounded-xl shadow-2xl overflow-hidden">
-        <div className="flex items-center px-4 py-3 border-b border-border gap-2.5">
-          <Search size={16} className="text-accent-cyan" />
-          <input
-            autoFocus
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search commands, files, actions (⌘K)..."
-            className="w-full bg-transparent text-sm font-mono text-text-primary focus:outline-none"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}`,
-      benefits: [
-        'Increases power-user keyboard accessibility by 4x',
-        'Built-in quick action launcher tailored for repository files',
-        'Drop-in ready without extra heavy external dependencies',
-      ],
-    },
-    {
-      id: 'env-validator',
-      category: 'architecture',
-      title: 'Type-Safe Runtime Environment Schema (Zod)',
-      tagline: 'Fail fast at boot time if required environment variables are missing',
-      impact: 'Quick Win',
-      effort: '15 mins',
-      analyzedReason: 'Analyzed repository accesses process.env or import.meta.env directly without runtime assertion.',
-      targetFiles: ['src/lib/env.ts', '.env.example'],
-      cliCommand: `npx repopilot@latest add recipe env-validation`,
-      filename: 'src/lib/env.ts',
-      beforeSnippet: `// Current: Unchecked process.env can crash runtime with silent undefined errors
-const dbUrl = process.env.DATABASE_URL;
-const secret = process.env.AUTH_SECRET;`,
-      codeSnippet: `import { z } from 'zod';
-
-const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  DATABASE_URL: z.string().url('Invalid database URL string'),
-  API_BASE_URL: z.string().url().default('http://localhost:3000'),
-  PORT: z.coerce.number().default(3001),
-});
-
-const _env = envSchema.safeParse(process.env);
-
-if (!_env.success) {
-  console.error('❌ Invalid environment variables:', _env.error.format());
-  throw new Error('Invalid environment configuration');
-}
-
-export const env = _env.data;`,
-      benefits: [
-        'Eliminates runtime crashes caused by misspelled or unset .env keys',
-        'Auto-completes process.env in IDEs with full TypeScript inference',
-        'Generates actionable terminal error messages during build time',
-      ],
-    },
-    {
-      id: 'ci-matrix',
-      category: 'deployment',
-      title: 'Automated GitHub Actions CI Pipeline with RepoPilot Audit',
-      tagline: 'Continuous validation for linting, type-checking, tests, and RepoPilot architectural health',
-      impact: 'High',
-      effort: '20 mins',
-      analyzedReason: 'No continuous integration workflow detected in .github/workflows directory.',
-      targetFiles: ['.github/workflows/ci.yml'],
-      cliCommand: `npx repopilot@latest init ci`,
-      filename: '.github/workflows/ci.yml',
-      beforeSnippet: `// Current: Manual verification on local machine before pull requests`,
-      codeSnippet: `name: CI & RepoPilot Health Check
-
-on:
-  push:
-    branches: [main, master, develop]
-  pull_request:
-    branches: [main, master]
-
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Type Check & Lint
-        run: npm run lint --if-present && npx tsc --noEmit
-
-      - name: Run Tests
-        run: npm test --if-present
-
-      - name: RepoPilot Architecture & Health Audit
-        run: npx repopilot@latest inspect --strict
-        env:
-          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}`,
-      benefits: [
-        'Guarantees zero broken builds or syntax regressions on main branch',
-        'Performs automated architectural regression checks on every PR',
-        'Includes pre-configured caching for sub-minute test runs',
-      ],
-    },
-    {
-      id: 'health-endpoint',
-      category: 'deployment',
-      title: 'Production Healthcheck & Diagnostic Route (/api/healthz)',
-      tagline: 'Standardized uptime check for Docker, Kubernetes, Vercel, or AWS ECS',
-      impact: 'Quick Win',
-      effort: '10 mins',
-      analyzedReason: 'Analyzed repository lacks a dedicated liveness/readiness probe for deployment orchestrators.',
-      targetFiles: ['src/routes/health.ts', 'server.ts'],
-      cliCommand: `npx repopilot@latest add recipe health-probe`,
-      filename: 'src/routes/health.ts',
-      beforeSnippet: `// Current: Orchestrators ping root (/) route which carries heavy SSR/frontend overhead`,
-      codeSnippet: `import { Router, Request, Response } from 'express';
-
-export const healthRouter = Router();
-
-healthRouter.get('/healthz', async (_req: Request, res: Response) => {
-  const startTime = Date.now();
-  
-  // Optional: ping database or Redis here
-  const dbStatus = 'healthy';
-  
-  res.status(200).json({
-    status: 'ok',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-    latencyMs: Date.now() - startTime,
-    service: '${cleanRepoName}',
-    database: dbStatus,
-  });
-});`,
-      benefits: [
-        'Zero-overhead route for cloud load balancers and container restarts',
-        'Surfaces memory usage, uptime, and database connectivity in 1 API call',
-        'Prevents traffic routing to containers before dependencies are ready',
-      ],
-    },
-    {
-      id: 'code-split',
-      category: 'architecture',
-      title: 'Dynamic Code-Splitting & Lazy Module Chunking',
-      tagline: 'Split oversized bundles (>500 kB) into lazy-loaded sub-chunks for 3x faster LCP',
-      impact: 'High',
-      effort: '40 mins',
-      analyzedReason: 'Vite/Webpack build warning: Multiple bundle chunks exceed 500 kB uncompressed.',
-      targetFiles: ['src/App.tsx', 'vite.config.ts'],
-      cliCommand: `npx repopilot@latest recipe code-splitting`,
-      filename: 'src/App.tsx (with React.lazy)',
-      beforeSnippet: `// Current: Synchronous imports bundle everything into one giant bundle
-import { DashboardPage } from './pages/DashboardPage';
-import { ArchitecturePage } from './pages/ArchitecturePage';
-import { DebugPage } from './pages/DebugPage';`,
-      codeSnippet: `import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
-
-// Lazy-load route pages to keep initial bundle under 150 kB
-const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
-const ArchitecturePage = lazy(() => import('./pages/ArchitecturePage').then(m => ({ default: m.ArchitecturePage })));
-const DebugPage = lazy(() => import('./pages/DebugPage').then(m => ({ default: m.DebugPage })));
-
-export function AppRoutes() {
-  return (
-    <Suspense fallback={<div className="p-8 text-center font-mono text-xs text-text-secondary">Loading module...</div>}>
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/architecture" element={<ArchitecturePage />} />
-        <Route path="/debug" element={<DebugPage />} />
-      </Routes>
-    </Suspense>
-  );
-}`,
-      benefits: [
-        'Cuts initial page download size by up to 65%',
-        'Improves Largest Contentful Paint (LCP) and Core Web Vitals',
-        'Users only download the code for the specific routes they visit',
-      ],
-    },
-    {
-      id: 'recipe-merger',
-      category: 'merger',
-      title: 'RepoPilot Battle-Tested Diagnostics & Code-Viewer Component Merger',
-      tagline: 'Import RepoPilot\'s rich syntax-highlighted modal and diagnostics engine into this repository',
-      impact: 'High',
-      effort: '25 mins',
-      analyzedReason: 'Merge reusable developer components from RepoPilot directly into your own project.',
-      targetFiles: ['src/components/CodeViewerModal.tsx', 'src/lib/CodeViewerContext.tsx'],
-      cliCommand: `npx repopilot@latest merge component code-viewer`,
-      filename: 'src/components/CodeViewerModal.tsx',
-      beforeSnippet: `// Current: Code references open raw URLs or require external IDE switching`,
-      codeSnippet: `import React, { createContext, useContext, useState } from 'react';
-import { X, Copy, Check, FileCode } from 'lucide-react';
-
-interface CodeViewerContextType {
-  openFile: (path: string, line?: number) => void;
-  closeViewer: () => void;
-}
-
-const CodeViewerContext = createContext<CodeViewerContextType>({
-  openFile: () => {},
-  closeViewer: () => {},
-});
-
-export const useCodeViewer = () => useContext(CodeViewerContext);
-
-export function CodeViewerModal({ currentFile, onClose }: { currentFile: string | null; onClose: () => void }) {
-  if (!currentFile) return null;
-  return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl bg-surface border border-border rounded-xl p-5 shadow-2xl">
-        <div className="flex items-center justify-between pb-3 border-b border-border">
-          <div className="flex items-center gap-2 font-mono text-xs text-accent-cyan">
-            <FileCode size={14} />
-            <span>{currentFile}</span>
-          </div>
-          <button onClick={onClose} className="text-text-secondary hover:text-text-primary">
-            <X size={16} />
-          </button>
-        </div>
-        <div className="mt-3 max-h-96 overflow-y-auto font-mono text-xs text-text-primary bg-bg p-3 rounded">
-          {/* File contents with line numbers */}
-          <code>Loaded from repository index...</code>
-        </div>
-      </div>
-    </div>
-  );
-}`,
-      benefits: [
-        'Instant in-browser file preview without leaving the application',
-        'Deep-links line numbers for error stack traces and tasks',
-        'Learn from RepoPilot\'s proven multi-component architecture',
-      ],
-    },
-    {
-      id: 'error-boundary',
-      category: 'components',
-      title: 'Self-Healing React Error Boundary with Diagnostic Trace',
-      tagline: 'Catch unhandled UI rendering exceptions and offer 1-click recovery instead of white screens',
-      impact: 'Medium',
-      effort: '20 mins',
-      analyzedReason: 'React application has no top-level ErrorBoundary to intercept lifecycle crashes.',
-      targetFiles: ['src/components/ErrorBoundary.tsx'],
-      cliCommand: `npx repopilot@latest add component error-boundary`,
-      filename: 'src/components/ErrorBoundary.tsx',
-      beforeSnippet: `// Current: An uncaught exception causes an unresponsive blank white screen`,
-      codeSnippet: `import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
-
-interface Props {
-  children: ReactNode;
-}
-
-interface State {
-  hasError: boolean;
-  error: Error | null;
-}
-
-export class ErrorBoundary extends Component<Props, State> {
-  public state: State = { hasError: false, error: null };
-
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
-  }
-
-  public componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[RepoPilot Error Boundary]', error, info);
-  }
-
-  public render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-[300px] flex flex-col items-center justify-center p-6 text-center card m-4 border-error/30">
-          <AlertTriangle size={32} className="text-error mb-3" />
-          <h2 className="text-sm font-semibold text-text-primary mb-1">Component Crashed</h2>
-          <p className="text-xs text-text-secondary max-w-md mb-4 font-mono">
-            {this.state.error?.message || 'An unexpected rendering error occurred.'}
-          </p>
-          <button
-            onClick={() => this.setState({ hasError: false, error: null })}
-            className="btn-primary flex items-center gap-1.5 text-xs"
-          >
-            <RefreshCw size={12} />
-            <span>Try Recovering</span>
-          </button>
-        </div>
-      );
+    if (improvements.length > 0 && !expandedId) {
+      setExpandedId(improvements[0].id);
     }
-    return this.props.children;
-  }
-}`,
-      benefits: [
-        'Eliminates the dreaded "white screen of death" for end users',
-        'Isolates failing widgets without bringing down the whole layout',
-        'Provides actionable error traces in console for developers',
-      ],
-    },
-    {
-      id: 'docker-multi',
-      category: 'deployment',
-      title: 'Production-Hardened Multi-Stage Dockerfile',
-      tagline: 'Lightweight, unprivileged container image (<120MB) ready for AWS, GCP, Fly.io, or Railway',
-      impact: 'Medium',
-      effort: '20 mins',
-      analyzedReason: 'No containerization configuration found in project root.',
-      targetFiles: ['Dockerfile', '.dockerignore'],
-      cliCommand: `npx repopilot@latest init docker`,
-      filename: 'Dockerfile',
-      beforeSnippet: `// Current: Runs directly on host system with environment drift`,
-      codeSnippet: `# Stage 1: Build dependencies
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-# Stage 2: Minimal Production Runner
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-RUN addgroup --system --gid 1001 nodejs && \\
-    adduser --system --uid 1001 appuser
-
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-RUN npm ci --omit=dev
-
-USER appuser
-EXPOSE 3000
-CMD ["node", "dist/index.js"]`,
-      benefits: [
-        'Cuts image size from 1.2 GB to under 120 MB via multi-stage caching',
-        'Runs as non-root user (appuser) for zero-trust container security',
-        'Deploys consistently across any cloud provider with zero drift',
-      ],
-    },
-  ], [cleanRepoName]);
+  }, [improvements, expandedId]);
 
   const filtered = selectedCategory === 'all'
     ? improvements
     : improvements.filter(i => i.category === selectedCategory);
+
+  const counts = {
+    all: improvements.length,
+    components: improvements.filter(i => i.category === 'components').length,
+    architecture: improvements.filter(i => i.category === 'architecture').length,
+    deployment: improvements.filter(i => i.category === 'deployment').length,
+    merger: improvements.filter(i => i.category === 'merger').length,
+  };
 
   const signatureCommands = {
     npx: `npx repopilot@latest improve ${cleanRepoUrl}`,
@@ -471,7 +92,7 @@ CMD ["node", "dist/index.js"]`,
               REPOPILOT LAB
             </span>
             <span className="text-xs font-mono text-text-secondary">
-              Codebase Evolution &amp; Component Merger
+              Analyzed Codebase Evolution &amp; Component Merger
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-text-primary tracking-tight">
@@ -484,7 +105,7 @@ CMD ["node", "dist/index.js"]`,
 
         <div className="flex items-center gap-2 shrink-0">
           <div className="text-right hidden sm:block">
-            <div className="text-xs font-mono text-text-primary font-semibold">8 Improvements</div>
+            <div className="text-xs font-mono text-text-primary font-semibold">{improvements.length} Improvements</div>
             <div className="text-[10px] font-mono text-success">Automated Recipes Available</div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-accent-cyan/10 border border-accent-cyan/30 flex items-center justify-center text-accent-cyan shadow-sm">
@@ -493,7 +114,7 @@ CMD ["node", "dist/index.js"]`,
         </div>
       </motion.div>
 
-      {/* Signature RepoPilot Command Card (Make them use RepoPilot!) */}
+      {/* Signature RepoPilot Command Card */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -512,7 +133,7 @@ CMD ["node", "dist/index.js"]`,
               </span>
             </div>
             <p className="text-xs text-text-secondary max-w-2xl">
-              Anyone with a repository can run this command to inspect, audit, and automatically merge these modern components and architectural patterns directly into their codebase.
+              Anyone with this repository can run this command to inspect, audit, and automatically merge these modern components and architectural patterns directly into their codebase.
             </p>
           </div>
 
@@ -580,11 +201,11 @@ CMD ["node", "dist/index.js"]`,
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
           {[
-            { id: 'all', label: 'All Improvements', count: improvements.length, icon: Filter },
-            { id: 'components', label: 'UI & Component Ideas', count: 2, icon: Code2 },
-            { id: 'architecture', label: 'Architecture & Perf', count: 2, icon: Cpu },
-            { id: 'deployment', label: 'Deployment & CI/CD', count: 3, icon: Rocket },
-            { id: 'merger', label: 'Component Merger', count: 1, icon: GitMerge },
+            { id: 'all', label: 'All Improvements', count: counts.all, icon: Filter },
+            { id: 'components', label: 'UI & Component Ideas', count: counts.components, icon: Code2 },
+            { id: 'architecture', label: 'Architecture & Perf', count: counts.architecture, icon: Cpu },
+            { id: 'deployment', label: 'Deployment & CI/CD', count: counts.deployment, icon: Rocket },
+            { id: 'merger', label: 'Component Merger', count: counts.merger, icon: GitMerge },
           ].map(cat => {
             const Icon = cat.icon;
             const isSelected = selectedCategory === cat.id;
@@ -704,16 +325,18 @@ CMD ["node", "dist/index.js"]`,
                     </div>
 
                     {/* Files affected */}
-                    <div className="flex items-center gap-2 text-xs font-mono text-text-secondary flex-wrap">
-                      <span className="text-text-primary font-medium flex items-center gap-1">
-                        <FileCode size={13} className="text-accent-cyan" /> Target Files:
-                      </span>
-                      {item.targetFiles.map(f => (
-                        <span key={f} className="px-2 py-0.5 rounded bg-elevated border border-border text-accent-cyan text-[11px]">
-                          {f}
+                    {item.targetFiles && item.targetFiles.length > 0 && (
+                      <div className="flex items-center gap-2 text-xs font-mono text-text-secondary flex-wrap">
+                        <span className="text-text-primary font-medium flex items-center gap-1">
+                          <FileCode size={13} className="text-accent-cyan" /> Target Files:
                         </span>
-                      ))}
-                    </div>
+                        {item.targetFiles.map(f => (
+                          <span key={f} className="px-2 py-0.5 rounded bg-elevated border border-border text-accent-cyan text-[11px]">
+                            {f}
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
                     {/* CLI Run snippet */}
                     <div className="flex items-center justify-between gap-2 p-3 rounded-lg bg-bg/90 border border-border font-mono text-xs">
@@ -770,7 +393,7 @@ CMD ["node", "dist/index.js"]`,
                       <div className="rounded-lg bg-bg border border-border/80 overflow-hidden text-xs font-mono">
                         <div className="bg-elevated/90 px-3.5 py-1.5 border-b border-border flex items-center justify-between text-[11px] text-text-secondary">
                           <span>{item.filename}</span>
-                          <span>TypeScript / React / Config</span>
+                          <span>Configuration / Code</span>
                         </div>
                         <pre className="p-4 overflow-x-auto text-text-primary leading-relaxed max-h-72">
                           <code>{item.codeSnippet}</code>

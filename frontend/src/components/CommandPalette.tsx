@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
 import { useCodeViewer } from '../lib/CodeViewerContext';
-import { DEMO_ARCHITECTURE_NODES, DEMO_STARTER_TASKS } from '../lib/demo-data';
 
 interface CommandItem {
   id: string;
@@ -310,7 +309,7 @@ export function CommandPalette({
     ];
 
     // Files from architecture nodes or common repo files
-    const archNodes = repoData?.architectureNodes || DEMO_ARCHITECTURE_NODES;
+    const archNodes = repoData?.architectureNodes || [];
     const filePathsSeen = new Set<string>();
 
     for (const node of archNodes) {
@@ -353,7 +352,7 @@ export function CommandPalette({
     }
 
     // Starter Tasks
-    const tasks = repoData?.starterTasks || DEMO_STARTER_TASKS;
+    const tasks = repoData?.starterTasks || [];
     for (const task of tasks) {
       list.push({
         id: `task-${task.id}`,

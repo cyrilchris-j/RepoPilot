@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, ShieldAlert, Trash2, CheckCircle, FileCode, Search } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
 import { useCodeViewer } from '../lib/CodeViewerContext';
-import { DEMO_DEPENDENCIES } from '../lib/demo-data';
 
 const statusConfig = {
   ok:         { label: 'UP TO DATE',  color: 'text-success',        bg: 'bg-success/10',         border: 'border-success/20',   icon: <CheckCircle size={13} className="text-success" /> },
@@ -17,9 +16,7 @@ export function DependenciesPage() {
   const { openFile } = useCodeViewer();
   const [filterQuery, setFilterQuery] = useState('');
 
-  const dependencies = (repoData?.dependenciesList && repoData.dependenciesList.length > 0)
-    ? repoData.dependenciesList
-    : DEMO_DEPENDENCIES;
+  const dependencies = repoData?.dependenciesList || [];
 
   const production = dependencies.filter(d => d.type === 'production');
   const development = dependencies.filter(d => d.type === 'development');
@@ -55,7 +52,7 @@ export function DependenciesPage() {
           <div className="section-label mb-1">Dependencies</div>
           <h1 className="text-xl font-semibold text-text-primary">Package Analysis</h1>
           <p className="text-sm text-text-secondary mt-1">
-            {dependencies.length} packages audited from {repoData ? 'analyzed repository' : 'demo data'}. Outdated, vulnerable, and unused packages highlighted.
+            {dependencies.length} packages audited from analyzed repository. Package versions and health status verified.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -173,7 +170,7 @@ export function DependenciesPage() {
         <div className="space-y-0">
           {filteredProduction.length === 0 ? (
             <div className="py-6 text-center text-xs text-text-secondary font-mono">
-              No production dependencies match &ldquo;{filterQuery}&rdquo;
+              {filterQuery ? `No production dependencies match "${filterQuery}"` : 'No production dependencies detected in package manifest.'}
             </div>
           ) : (
             filteredProduction.map((dep, i) => (
@@ -227,7 +224,7 @@ export function DependenciesPage() {
         <div className="space-y-0">
           {filteredDevelopment.length === 0 ? (
             <div className="py-6 text-center text-xs text-text-secondary font-mono">
-              No development dependencies match &ldquo;{filterQuery}&rdquo;
+              {filterQuery ? `No development dependencies match "${filterQuery}"` : 'No development dependencies detected in package manifest.'}
             </div>
           ) : (
             filteredDevelopment.map((dep, i) => (

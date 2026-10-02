@@ -1,12 +1,7 @@
 import { useRepo } from './RepoContext';
-import {
-  DEMO_REPO, DEMO_METRICS, DEMO_ARCHITECTURE_NODES,
-  DEMO_ENV_VARIABLES, DEMO_SETUP_STEPS, DEMO_STARTER_TASKS,
-} from './demo-data';
 
 /**
  * Generates a complete ONBOARDING.md string from the current repo analysis.
- * Falls back to demo data when no live repo is loaded.
  */
 export type ExportFormat = 'markdown' | 'script' | 'devcontainer';
 
@@ -17,25 +12,38 @@ export function useOnboardingExport(): {
   download: (format?: ExportFormat) => void;
   repoName: string;
 } {
-  const { repoData } = useRepo();
+  const { repoData, repoUrl } = useRepo();
 
-  const repo = repoData?.repository || DEMO_REPO;
-  const metrics = repoData?.metrics || DEMO_METRICS;
-  const arch = (repoData?.architectureNodes?.length ?? 0) > 0
-    ? repoData!.architectureNodes
-    : DEMO_ARCHITECTURE_NODES;
-  const envVars = (repoData?.envVariables?.length ?? 0) > 0
-    ? repoData!.envVariables
-    : DEMO_ENV_VARIABLES;
-  const setup = (repoData?.setupSteps?.length ?? 0) > 0
-    ? repoData!.setupSteps
-    : DEMO_SETUP_STEPS;
-  const tasks = (repoData?.starterTasks?.length ?? 0) > 0
-    ? repoData!.starterTasks
-    : DEMO_STARTER_TASKS;
+  const repo = repoData?.repository || (() => {
+    const raw = repoUrl || 'workspace';
+    const clean = raw.replace(/^https?:\/\//, '').replace(/^github\.com\//, '').replace(/\.git$/, '');
+    const parts = clean.split('/');
+    return {
+      name: parts[1] || 'repository',
+      owner: parts[0] || 'owner',
+      url: raw.startsWith('http') ? raw : `https://github.com/${clean}`,
+      branch: 'main',
+      language: 'TypeScript',
+      description: `${parts[1] || 'repository'} analyzed by RepoPilot`,
+      status: 'complete' as const,
+    };
+  })();
+
+  const metrics = repoData?.metrics || {
+    totalFiles: 0,
+    linesOfCode: 0,
+    dependencies: repoData?.dependenciesList?.length || 0,
+    routes: 0,
+    modules: 0,
+    testCoverage: 0,
+  };
+  const arch = repoData?.architectureNodes || [];
+  const envVars = repoData?.envVariables || [];
+  const setup = repoData?.setupSteps || [];
+  const tasks = repoData?.starterTasks || [];
 
   const repoName = `${repo.owner}/${repo.name}`;
-  const isDemo = !repoData;
+  const isDemo = false;
 
   function generateMarkdown(): string {
     const now = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });

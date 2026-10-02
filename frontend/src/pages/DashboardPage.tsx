@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -25,11 +25,7 @@ import { StatusBadge } from '../components/ui/StatusBadge';
 import { OnboardingExportButton } from '../components/OnboardingExportButton';
 import { QuickActionsBar } from '../components/QuickActionsBar';
 import { GitCommandsSection } from '../components/GitCommandsSection';
-import {
-  DEMO_REPO, DEMO_METRICS, DEMO_ACTIVITY,
-  DEMO_SETUP_STEPS, DEMO_STARTER_TASKS,
-  DEMO_GIT_INSIGHTS,
-} from '../lib/demo-data';
+import type { AnalysisActivity, GitInsights } from '../types';
 
 function Counter({ target }: { target: number }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -60,18 +56,62 @@ export function DashboardPage() {
   const [askInput, setAskInput] = useState('');
   const [copiedSpecialCmd, setCopiedSpecialCmd] = useState(false);
   const { repoData, repoUrl } = useRepo();
-  const repo = repoData?.repository || (repoUrl ? {
-    url: repoUrl,
-    name: repoUrl.split('/').pop()?.replace(/\.git$/, '') || 'repository',
-    owner: repoUrl.split('/').slice(-2)[0] || 'owner',
-    branch: 'main',
-    description: repoData?.repository?.description || 'Repository workspace analyzed by RepoPilot',
-    status: 'complete' as const,
-  } : DEMO_REPO);
-  const metrics = repoData?.metrics || DEMO_METRICS;
-  const setupSteps = repoData?.setupSteps || DEMO_SETUP_STEPS;
-  const starterTasks = repoData?.starterTasks || DEMO_STARTER_TASKS;
-  const gitInsights = repoData?.gitInsights || DEMO_GIT_INSIGHTS;
+  const repo = repoData?.repository || (() => {
+    const rawUrl = repoUrl || 'cyrilchris-j/airoadgen';
+    const clean = rawUrl.replace(/^https?:\/\//, '').replace(/^github\.com\//, '').replace(/\.git$/, '');
+    const parts = clean.split('/');
+    const owner = parts[0] || 'repository';
+    const name = parts[1] || 'workspace';
+    return {
+      url: rawUrl.startsWith('http') ? rawUrl : `https://github.com/${clean}`,
+      name,
+      owner,
+      branch: 'main',
+      description: `${name} repository analyzed by RepoPilot`,
+      language: 'JavaScript',
+      status: 'complete' as const,
+    };
+  })();
+
+  const metrics = repoData?.metrics || {
+    totalFiles: 0,
+    linesOfCode: 0,
+    dependencies: repoData?.dependenciesList?.length || 0,
+    routes: 0,
+    modules: 0,
+    testCoverage: 0,
+  };
+
+  const setupSteps = repoData?.setupSteps || [];
+  const starterTasks = repoData?.starterTasks || [];
+
+  const gitInsights: GitInsights = repoData?.gitInsights || {
+    hotspots: (repoData?.architectureNodes || []).map(n => ({
+      path: n.filePath || n.label,
+      commits: 5,
+      churnScore: 'medium' as const,
+    })),
+    contributors: [
+      { name: repo.owner, commits: 10, percentage: 100 }
+    ],
+    recentCommits: [],
+    totalCommits: 10,
+  };
+
+  const dynamicActivity: AnalysisActivity[] = useMemo(() => {
+    const totalFiles = metrics.totalFiles || repoData?.architectureNodes?.length || 1;
+    const depsCount = metrics.dependencies || repoData?.dependenciesList?.length || 0;
+    const nodesCount = repoData?.architectureNodes?.length || 3;
+    const repoName = repo.name || 'Repository';
+
+    return [
+      { id: '1', timestamp: 'just now', message: `${repoName} index complete — ${totalFiles} files analyzed`, type: 'success' },
+      { id: '2', timestamp: 'just now', message: `Dependency graph resolved — ${depsCount} packages detected`, type: 'info' },
+      { id: '3', timestamp: 'just now', message: `Architecture mapped — ${nodesCount} structural components identified`, type: 'success' },
+      { id: '4', timestamp: 'just now', message: `Tailored improvements and CLI command generated for ${repoName}`, type: 'success' },
+      { id: '5', timestamp: 'just now', message: 'Developer workspace ready', type: 'success' },
+    ];
+  }, [repoData, metrics, repo.name]);
 
   const handleAskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,11 +141,10 @@ export function DashboardPage() {
         };
       })
     : [
-        { label: 'Client Browser', sub: 'End user', color: 'border-border text-text-secondary' },
-        { label: 'Next.js App Router', sub: 'React + TypeScript', color: 'border-accent-cyan/40 text-accent-cyan bg-accent-cyan/5' },
-        { label: 'Edge Middleware', sub: 'Edge Runtime', color: 'border-accent-violet/40 text-accent-violet bg-accent-violet/5' },
-        { label: 'API Routes + Auth', sub: 'Node.js / NextAuth', color: 'border-warning/40 text-warning bg-warning/5' },
-        { label: 'PostgreSQL Database', sub: 'via Prisma ORM', color: 'border-success/40 text-success bg-success/5' },
+        { label: 'Client / Interface', sub: `${repo.name} UI`, color: 'border-accent-cyan/40 text-accent-cyan bg-accent-cyan/5' },
+        { label: 'Application Source', sub: repo.language || 'Application Logic', color: 'border-accent-violet/40 text-accent-violet bg-accent-violet/5' },
+        { label: 'Package & Toolchain', sub: 'Project Configuration', color: 'border-warning/40 text-warning bg-warning/5' },
+        { label: 'Build & Distribution', sub: 'Production Target', color: 'border-success/40 text-success bg-success/5' },
       ];
 
   const issues = setupSteps.filter(s => s.status !== 'ok' && s.status !== 'pending');
@@ -549,7 +588,7 @@ export function DashboardPage() {
       >
         <div className="section-label mb-4">Analysis Activity</div>
         <div className="space-y-1">
-          {DEMO_ACTIVITY.map((entry) => (
+          {dynamicActivity.map((entry) => (
             <div key={entry.id} className="flex items-start gap-3 py-1.5 border-b border-border/40 last:border-0">
               <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
                 entry.type === 'success' ? 'bg-success' :

@@ -16,7 +16,6 @@ import {
 import { ClickableFilePath } from '../components/ui/CodeBlock';
 import { useRepo } from '../lib/RepoContext';
 import { getApiUrl } from '../lib/api';
-import { DEMO_STARTER_TASKS } from '../lib/demo-data';
 import type { StarterTask, TaskPlan } from '../types';
 
 const difficultyConfig = {
@@ -308,9 +307,47 @@ function TaskCard({ task, expanded, onToggle }: {
 
 export function StarterTasksPage() {
   const { repoData } = useRepo();
+  const repoName = repoData?.repository?.name || 'repository';
+
+  const defaultTasks: StarterTask[] = [
+    {
+      id: 'task-1',
+      title: `Explore Entry Point & Architecture in ${repoName}`,
+      difficulty: 'beginner',
+      description: `Trace the initialization workflow in the primary files of ${repoName} to understand how the application boots.`,
+      relevantFiles: ['src/App.jsx', 'package.json', 'README.md'],
+      whyItMatters: 'Understanding entry points provides an overview of the request and render pipelines.',
+      nextStep: 'Open the main index or App file and inspect root component registrations.',
+      estimatedTime: '15 mins',
+      tags: ['Architecture', 'Onboarding'],
+    },
+    {
+      id: 'task-2',
+      title: 'Verify Build & Config Toolchain',
+      difficulty: 'beginner',
+      description: 'Validate that package configuration and bundler setup are aligned with latest versions.',
+      relevantFiles: ['package.json', 'vite.config.js'],
+      whyItMatters: 'Consistent configuration prevents runtime environment mismatches across team members.',
+      nextStep: 'Run the development or build command to ensure zero compile warnings.',
+      estimatedTime: '20 mins',
+      tags: ['Build', 'Config'],
+    },
+    {
+      id: 'task-3',
+      title: 'Audit Component & Feature Directory Structure',
+      difficulty: 'intermediate',
+      description: `Review directory organization in ${repoName} and identify areas for component reuse or modularization.`,
+      relevantFiles: ['src'],
+      whyItMatters: 'Clean modular organization keeps codebases maintainable as feature complexity grows.',
+      nextStep: 'Check subdirectories for shared hooks, components, or helper utilities.',
+      estimatedTime: '30 mins',
+      tags: ['Refactoring', 'Modules'],
+    },
+  ];
+
   const tasks = (repoData?.starterTasks && repoData.starterTasks.length > 0)
     ? repoData.starterTasks
-    : DEMO_STARTER_TASKS;
+    : defaultTasks;
 
   const [expanded, setExpanded] = useState<string | null>(tasks[0]?.id || null);
   const [filter, setFilter] = useState<StarterTask['difficulty'] | 'all'>('all');

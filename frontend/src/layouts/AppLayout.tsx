@@ -5,7 +5,6 @@ import { MobileNav } from '../components/MobileNav';
 import { CommandPalette } from '../components/CommandPalette';
 import { OnboardingExportModal } from '../components/OnboardingExportButton';
 import { useRepo } from '../lib/RepoContext';
-import { DEMO_REPO } from '../lib/demo-data';
 import { Search, ExternalLink, BookOpen, MessageCircle } from 'lucide-react';
 
 export function AppLayout() {
@@ -31,9 +30,9 @@ export function AppLayout() {
     if (repoData?.repository) {
       return `${repoData.repository.owner}/${repoData.repository.name}`;
     }
-    if (!repoUrl) return `${DEMO_REPO.owner}/${DEMO_REPO.name}`;
-    const clean = repoUrl.replace(/^https?:\/\//, '').replace(/^github\.com\//, '').replace(/\.git$/, '');
-    return clean || `${DEMO_REPO.owner}/${DEMO_REPO.name}`;
+    const target = repoUrl || 'cyrilchris-j/airoadgen';
+    const clean = target.replace(/^https?:\/\//, '').replace(/^github\.com\//, '').replace(/\.git$/, '');
+    return clean || 'workspace';
   })();
 
   const branch = repoData?.repository?.branch || 'main';

@@ -168,3 +168,15 @@ export interface AnalysisState {
   log: string[];
 }
 
+export interface RepoAnalysisResult {
+  repository: Repository;
+  metrics: RepositoryMetrics;
+  architectureNodes: ArchitectureNode[];
+  dependenciesList: Dependency[];
+  envVariables: EnvVariable[];
+  setupSteps: SetupStep[];
+  starterTasks: StarterTask[];
+  gitInsights?: GitInsights;
+  message?: string;
+}
+

@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { Info, ChevronDown } from 'lucide-react';
 import { ClickableFilePath } from '../components/ui/CodeBlock';
 import { useRepo } from '../lib/RepoContext';
-import { DEMO_ARCHITECTURE_NODES } from '../lib/demo-data';
 import type { ArchitectureNode } from '../types';
 
 const typeColors: Record<ArchitectureNode['type'], string> = {
@@ -28,9 +27,45 @@ const typeLabels: Record<ArchitectureNode['type'], string> = {
 
 export function ArchitecturePage() {
   const { repoData } = useRepo();
+  const repoName = repoData?.repository?.name || 'Application';
+  const language = repoData?.repository?.language || 'JavaScript';
+
+  const defaultNodes: ArchitectureNode[] = [
+    {
+      id: 'client',
+      label: 'Client Browser',
+      type: 'external',
+      description: 'End-user browser requests and interactions',
+    },
+    {
+      id: 'frontend',
+      label: `${repoName} UI`,
+      type: 'frontend',
+      technology: `${language} Client`,
+      filePath: 'src/App.jsx',
+      description: 'Component rendering, routing, and user interface state',
+    },
+    {
+      id: 'backend',
+      label: 'Core Logic & Services',
+      type: 'backend',
+      technology: `${language} Core`,
+      filePath: 'src',
+      description: 'Application state, data processing, and API utilities',
+    },
+    {
+      id: 'config',
+      label: 'Project Configuration',
+      type: 'config',
+      technology: 'Package Toolchain',
+      filePath: 'package.json',
+      description: 'Build parameters, dependencies, and environment setup',
+    },
+  ];
+
   const architectureNodes = (repoData?.architectureNodes && repoData.architectureNodes.length > 0)
     ? repoData.architectureNodes
-    : DEMO_ARCHITECTURE_NODES;
+    : defaultNodes;
 
   const [selected, setSelected] = useState<ArchitectureNode | null>(null);
   const [filter, setFilter] = useState<ArchitectureNode['type'] | 'all'>('all');
@@ -40,15 +75,6 @@ export function ArchitecturePage() {
 
   // Compute hierarchical flow based on node types
   const flow = useMemo(() => {
-    if (architectureNodes === DEMO_ARCHITECTURE_NODES) {
-      return [
-        ['client'],
-        ['nextjs-frontend'],
-        ['middleware', 'build'],
-        ['api-routes', 'cdn'],
-        ['auth', 'database'],
-      ];
-    }
     const clientTier = architectureNodes.filter(n => n.type === 'external').map(n => n.id);
     const frontendTier = architectureNodes.filter(n => n.type === 'frontend').map(n => n.id);
     const backendTier = architectureNodes.filter(n => n.type === 'backend' || n.type === 'service').map(n => n.id);
@@ -221,7 +247,7 @@ export function ArchitecturePage() {
                   <div className="text-[10px] font-mono text-text-secondary tracking-widest mb-1">CONNECTS TO</div>
                   <div className="space-y-1">
                     {selected.children.map(childId => {
-                      const child = DEMO_ARCHITECTURE_NODES.find(n => n.id === childId);
+                      const child = architectureNodes.find(n => n.id === childId);
                       return child ? (
                         <div key={childId} className="text-xs font-mono text-text-secondary flex items-center gap-1.5">
                           <span className="text-border">→</span>

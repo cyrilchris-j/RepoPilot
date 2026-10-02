@@ -4,7 +4,6 @@ import { CheckCircle, AlertTriangle, XCircle, Circle, Terminal, Download, Copy, 
 import { CodeBlock } from '../components/ui/CodeBlock';
 import { EnvironmentDiagnostics } from '../components/EnvironmentDiagnostics';
 import { useRepo } from '../lib/RepoContext';
-import { DEMO_SETUP_STEPS, DEMO_ENV_VARIABLES } from '../lib/demo-data';
 import type { SetupStep, EnvVariable } from '../types';
 
 function StepIcon({ status }: { status: SetupStep['status'] }) {
@@ -88,12 +87,41 @@ function EnvVarRow({
 
 export function SetupPage() {
   const { repoData } = useRepo();
+  const repoName = repoData?.repository?.name || 'repository';
+  const fullUrl = repoData?.repository?.url || `https://github.com/${repoName}.git`;
+
+  const defaultSteps: SetupStep[] = [
+    {
+      id: 'step-clone',
+      label: 'Clone & Navigate',
+      command: `git clone ${fullUrl} && cd ${repoName}`,
+      status: 'ok',
+      description: 'Clone source codebase and enter project root',
+      details: 'Git repository',
+    },
+    {
+      id: 'step-install',
+      label: 'Install Dependencies',
+      command: 'npm install',
+      status: 'ok',
+      description: 'Install project packages via package manager',
+      details: 'Dependencies resolved',
+    },
+    {
+      id: 'step-run',
+      label: 'Start Application Server',
+      command: 'npm run dev',
+      status: 'pending',
+      description: 'Launch the application local development server',
+      details: 'Ready to run',
+    },
+  ];
+
   const setupSteps = (repoData?.setupSteps && repoData.setupSteps.length > 0)
     ? repoData.setupSteps
-    : DEMO_SETUP_STEPS;
-  const envVariables = (repoData?.envVariables && repoData.envVariables.length > 0)
-    ? repoData.envVariables
-    : DEMO_ENV_VARIABLES;
+    : defaultSteps;
+
+  const envVariables = repoData?.envVariables || [];
 
   const okCount = setupSteps.filter(s => s.status === 'ok').length;
   const warnCount = setupSteps.filter(s => s.status === 'warning').length;
@@ -280,16 +308,22 @@ export function SetupPage() {
         </p>
 
         {/* Env var rows */}
-        <div className="divide-y divide-border/0">
-          {envVariables.map(v => (
-            <EnvVarRow
-              key={v.name}
-              envVar={v}
-              value={envValues[v.name] || ''}
-              onChange={val => handleUpdateValue(v.name, val)}
-            />
-          ))}
-        </div>
+        {envVariables.length === 0 ? (
+          <div className="py-6 px-4 text-center text-xs font-mono text-text-secondary bg-elevated/30 rounded border border-border/40">
+            No environment variable templates (.env.example) detected in this repository. All core configurations run with sensible runtime defaults.
+          </div>
+        ) : (
+          <div className="divide-y divide-border/0">
+            {envVariables.map(v => (
+              <EnvVarRow
+                key={v.name}
+                envVar={v}
+                value={envValues[v.name] || ''}
+                onChange={val => handleUpdateValue(v.name, val)}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Preview */}
         {filledCount > 0 && (
