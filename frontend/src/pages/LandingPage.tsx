@@ -728,28 +728,6 @@ export function LandingPage() {
       <ProblemSection />
       <SolutionSection />
 
-      {/* CTA */}
-      <section className="py-24 px-6 border-t border-border">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="section-label mb-4">Ready to Start</div>
-          <h2 className="text-3xl md:text-4xl font-semibold text-text-primary mb-4 tracking-tight">
-            Open a repository.<br />
-            Understand it in seconds.
-          </h2>
-          <p className="text-text-secondary mb-10 leading-relaxed">
-            RepoPilot turns the anxiety of joining an unfamiliar codebase<br className="hidden md:block" />
-            into a structured, guided developer workflow.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/app" className="btn-primary px-8 py-3 text-base">
-              Open RepoPilot
-            </Link>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="btn-secondary px-8 py-3 text-base">
-              View on GitHub
-            </a>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t border-border py-8 px-6">
