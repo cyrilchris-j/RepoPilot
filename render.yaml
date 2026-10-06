@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: repopilot-backend
+    env: node
+    rootDir: backend
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://repopilot20.vercel.app
+      - key: WATSONX_API_URL
+        value: https://eu-de.ml.cloud.ibm.com
+      - key: WATSONX_MODEL
+        value: meta-llama/llama-3-3-70b-instruct
+      - key: WATSONX_API_KEY
+        sync: false
+      - key: WATSONX_PROJECT_ID
+        sync: false
