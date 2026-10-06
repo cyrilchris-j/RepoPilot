@@ -547,9 +547,8 @@ function analyzeDirectory(
 
   const hasFrontend = files.some(f => f.relativePath.startsWith('frontend') || f.relativePath.includes('src/pages') || f.relativePath.includes('src/components') || f.relativePath.includes('app/'));
   const hasBackend = files.some(f => f.relativePath.startsWith('backend') || f.relativePath.includes('src/controllers') || f.relativePath.includes('src/routes') || f.relativePath.includes('server'));
-  const hasFirebase = files.some(f => f.relativePath.includes('firebase.json') || f.relativePath.includes('firestore.rules')) || dependenciesList.some(d => d.name.includes('firebase'));
-  const hasDatabase = hasFirebase || dependenciesList.some(d => ['prisma', 'mongoose', 'pg', 'mysql2', 'sqlite3', 'typeorm'].includes(d.name.toLowerCase()));
-  const hasAuth = files.some(f => f.relativePath.toLowerCase().includes('auth')) || dependenciesList.some(d => d.name.toLowerCase().includes('auth') || d.name.toLowerCase().includes('jwt') || d.name.toLowerCase().includes('passport') || d.name.includes('firebase'));
+  const hasDatabase = dependenciesList.some(d => ['prisma', 'mongoose', 'pg', 'mysql2', 'sqlite3', 'typeorm'].includes(d.name.toLowerCase())) || files.some(f => f.relativePath.includes('schema') || f.relativePath.includes('models/'));
+  const hasAuth = files.some(f => f.relativePath.toLowerCase().includes('auth')) || dependenciesList.some(d => d.name.toLowerCase().includes('auth') || d.name.toLowerCase().includes('jwt') || d.name.toLowerCase().includes('passport'));
 
   architectureNodes.push({
     id: 'client',
@@ -588,20 +587,21 @@ function analyzeDirectory(
       id: 'auth',
       label: 'Authentication & Security',
       type: 'auth',
-      technology: hasFirebase ? 'Firebase Auth + JWT' : 'JWT / Session Auth',
+      technology: 'JWT / Session Auth',
       filePath: files.find(f => f.relativePath.toLowerCase().includes('auth'))?.relativePath || 'auth',
       description: 'User authentication, tokens, and authorization guards',
     });
   }
 
   if (hasDatabase) {
+    const dbDep = dependenciesList.find(d => ['prisma', 'mongoose', 'pg', 'mysql2', 'sqlite3', 'typeorm'].includes(d.name.toLowerCase()));
     architectureNodes.push({
       id: 'database',
-      label: hasFirebase ? 'Cloud Firestore' : 'Data Store',
+      label: dbDep ? `${dbDep.name} Data Store` : 'Database Store',
       type: 'database',
-      technology: hasFirebase ? 'Cloud Firestore NoSQL' : (dependenciesList.find(d => ['prisma', 'mongoose', 'pg', 'mysql2'].includes(d.name))?.name || 'Database'),
-      filePath: files.find(f => f.relativePath.includes('firestore') || f.relativePath.includes('schema') || f.relativePath.includes('database'))?.relativePath,
-      description: hasFirebase ? 'Realtime document storage & security rules' : 'Relational / document database',
+      technology: dbDep ? dbDep.name : 'SQL / NoSQL Database',
+      filePath: files.find(f => f.relativePath.includes('schema') || f.relativePath.includes('models') || f.relativePath.includes('database'))?.relativePath,
+      description: 'Persistent data storage, models, and records',
     });
   }
 
@@ -645,18 +645,6 @@ function analyzeDirectory(
       details: envVariables.length > 0 ? `${envVariables.length} variables detected across project` : 'Default environment configuration',
     },
   ];
-
-  // If Firebase exists
-  if (hasFirebase) {
-    setupSteps.push({
-      id: 'step-firebase',
-      label: 'Deploy Firestore Rules & Security',
-      command: 'firebase deploy --only firestore:rules,firestore:indexes',
-      status: 'ok',
-      description: 'Deploy Firestore security rules and composite index specifications',
-      details: 'Firebase project configuration detected',
-    });
-  }
 
   // If Prisma exists
   if (dependenciesList.some(d => d.name === 'prisma')) {

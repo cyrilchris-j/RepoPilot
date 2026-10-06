@@ -204,7 +204,8 @@ async function analyzeViaGitHubApi(
     }
   }
 
-  const hasFirebase = filePaths.some(p => p.includes('firebase') || p.includes('firestore')) || seenDeps.has('firebase') || seenDeps.has('firebase-admin');
+  const hasAuth = seenDeps.has('next-auth') || seenDeps.has('passport') || seenDeps.has('jsonwebtoken') || filePaths.some(p => p.toLowerCase().includes('auth'));
+  const hasDatabase = seenDeps.has('prisma') || seenDeps.has('mongoose') || seenDeps.has('pg') || seenDeps.has('mysql2') || seenDeps.has('sqlite3') || filePaths.some(p => p.includes('schema') || p.includes('models/'));
   const hasVite = seenDeps.has('vite') || filePaths.some(p => p.includes('vite.config'));
   const hasNext = seenDeps.has('next') || filePaths.some(p => p.includes('next.config') || p.includes('src/app'));
   const hasReact = seenDeps.has('react') || filePaths.some(p => p.endsWith('.tsx') || p.endsWith('.jsx'));
@@ -228,25 +229,29 @@ async function analyzeViaGitHubApi(
       technology: hasNext ? 'Next.js + TypeScript' : (hasVite ? 'React + Vite' : `${language} UI`),
       filePath: filePaths.find(p => p.includes('App') || p.includes('page.') || p.includes('index.')) || 'frontend',
       description: 'Client-side rendering, views, and state management',
-      children: hasFirebase ? ['database'] : [],
+      children: hasDatabase ? ['database'] : [],
     });
   }
 
-  if (hasFirebase) {
+  if (hasAuth) {
     architectureNodes.push({
       id: 'auth',
-      label: 'Authentication',
+      label: 'Authentication & Security',
       type: 'auth',
-      technology: 'Firebase Auth',
+      technology: 'JWT / Session Auth',
       filePath: filePaths.find(p => p.toLowerCase().includes('auth')) || 'auth',
       description: 'User identity, authentication tokens, and access guards',
     });
+  }
+
+  if (hasDatabase) {
+    const dbTech = seenDeps.has('prisma') ? 'Prisma ORM' : (seenDeps.has('mongoose') ? 'MongoDB' : 'SQL / NoSQL Database');
     architectureNodes.push({
       id: 'database',
-      label: 'Cloud Firestore',
+      label: 'Database Store',
       type: 'database',
-      technology: 'Cloud Firestore NoSQL',
-      description: 'Realtime cloud database & security rules',
+      technology: dbTech,
+      description: 'Persistent document and relational storage',
     });
   }
 
@@ -345,16 +350,6 @@ async function analyzeViaGitHubApi(
     },
   ];
 
-  if (hasFirebase) {
-    setupSteps.push({
-      id: 'step-firebase',
-      label: 'Deploy Firestore Rules & Security',
-      command: 'firebase deploy --only firestore:rules,firestore:indexes',
-      status: 'ok',
-      description: 'Deploy Firestore security rules and composite index specifications',
-      details: 'Firebase configuration detected',
-    });
-  }
 
   setupSteps.push({
     id: 'step-run',
@@ -478,7 +473,6 @@ export function generateDynamicImprovements(repoData: RepoAnalysisResult | null)
   const depNames = new Set(deps.map((d: Dependency) => d.name.toLowerCase()));
   const topFiles = (repoData as any)?.filesSummary?.topFiles || repoData?.architectureNodes?.map((n: ArchitectureNode) => n.filePath || '') || [];
 
-  const hasFirebase = depNames.has('firebase') || depNames.has('@firebase/app') || topFiles.some((f: string) => f.includes('firebase') || f.includes('Auth'));
   const hasReact = depNames.has('react') || topFiles.some((f: string) => f.endsWith('.jsx') || f.endsWith('.tsx'));
   const hasVite = depNames.has('vite') || topFiles.some((f: string) => f.includes('vite'));
   const hasTailwind = depNames.has('tailwindcss') || topFiles.some((f: string) => f.includes('tailwind'));
@@ -488,83 +482,59 @@ export function generateDynamicImprovements(repoData: RepoAnalysisResult | null)
 
   const list: DynamicImprovement[] = [];
 
-  // 1. Firebase specific improvements
-  if (hasFirebase) {
-    list.push({
-      id: 'fb-security-rules',
-      category: 'architecture',
-      title: 'Firestore Security Rules & Schema Isolation',
-      tagline: 'Replace default open permissions with granular authenticated access rules',
-      impact: 'High',
-      effort: '20 mins',
-      analyzedReason: `Detected Firebase in ${repoName}. Unprotected Firestore security rules allow unauthenticated write access.`,
-      targetFiles: ['firestore.rules', 'firebase.json'],
-      cliCommand: `firebase deploy --only firestore:rules`,
-      filename: 'firestore.rules',
-      codeSnippet: `rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Authenticated users can only read/write their own document
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    // Protected collections require valid user session
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}`,
-      benefits: [
-        'Blocks unauthorized client modifications to cloud databases',
-        'Enforces user-isolated data partitioning',
-        'Deploy directly with the standard Firebase CLI',
-      ],
-    });
+  // 1. Strict Environment Schema Validation
+  list.push({
+    id: 'env-schema-validation',
+    category: 'architecture',
+    title: `Strict Environment Variable Validation for ${repoName}`,
+    tagline: 'Fail-fast runtime schema validation to eliminate missing config errors in production',
+    impact: 'High',
+    effort: '15 mins',
+    analyzedReason: `Ensures all required runtime keys in ${repoName} are parsed and validated immediately on boot.`,
+    targetFiles: ['src/config/env.ts', '.env.example'],
+    cliCommand: `npm install zod`,
+    filename: 'src/config/env.ts',
+    codeSnippet: `import { z } from 'zod';
 
-    list.push({
-      id: 'fb-auth-guard',
-      category: 'components',
-      title: 'Persistent Auth Session & Token Refresh Guard',
-      tagline: 'Keep authenticated user sessions active across tab reloads with automatic token refresh',
-      impact: 'Quick Win',
-      effort: '15 mins',
-      analyzedReason: `Detected Auth components in ${repoName}. Manual auth state checks can cause auth flicker on refresh.`,
-      targetFiles: topFiles.filter((f: string) => f.includes('Auth') || f.includes('App')).slice(0, 2) || ['src/components/Auth/AuthContext.jsx'],
-      cliCommand: `npm install firebase`,
-      filename: 'src/components/Auth/AuthContext.jsx',
-      codeSnippet: `import { createContext, useContext, useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  PORT: z.string().default('3000'),
+  API_URL: z.string().url().optional(),
+});
 
-const AuthContext = createContext({ user: null, loading: true });
+export const env = envSchema.parse(process.env);`,
+    benefits: [
+      'Eliminates cryptic production errors caused by missing environment variables',
+      'Provides full TypeScript auto-completion across the entire project for configuration',
+      'Validates variable formats (URLs, ports, numbers) at boot time',
+    ],
+  });
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // 2. Production Security Headers & CORS
+  list.push({
+    id: 'api-security-headers',
+    category: 'architecture',
+    title: `Hardened HTTP Security Headers for ${repoName}`,
+    tagline: 'Protect against XSS, clickjacking, and MIME sniffing with automated HTTP headers',
+    impact: 'Quick Win',
+    effort: '10 mins',
+    analyzedReason: `Securing HTTP response headers safeguards ${repoName} against clickjacking and cross-site scripting.`,
+    targetFiles: ['src/server.ts', 'src/index.ts'],
+    cliCommand: `npm install helmet`,
+    filename: 'src/server.ts',
+    codeSnippet: `import helmet from 'helmet';
 
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  return (
-    <AuthContext.Provider value={{ user, loading }}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
-}
-
-export const useAuth = () => useContext(AuthContext);`,
-      benefits: [
-        'Eliminates page-flicker during Firebase session initialization',
-        'Provides global reactive user profile and token access',
-        'Works seamlessly with protected client-side routes',
-      ],
-    });
-  }
+// Apply security headers middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // configure specifically for SPA routing
+  crossOriginEmbedderPolicy: false,
+}));`,
+    benefits: [
+      'Blocks cross-site scripting (XSS) and clickjacking attacks',
+      'Enforces strict MIME-type sniffing prevention',
+      'Industry standard best practice for zero overhead security',
+    ],
+  });
 
   // 2. React / Vite improvements
   if (hasReact && hasVite) {
