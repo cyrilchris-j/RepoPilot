@@ -18,15 +18,21 @@ export function AnalyzingPage() {
 
   // Support direct navigation with state (e.g. from LandingPage)
   const urlFromState = (location.state as { repoUrl?: string } | null)?.repoUrl || '';
-  const activeRepo = urlFromState || repoUrl || 'cyrilchris-j/airoadgen';
+  const activeRepo = urlFromState || repoUrl || '';
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!activeRepo) {
+      navigate('/');
+      return;
+    }
     if (urlFromState && urlFromState !== repoUrl) {
       setRepoUrl(urlFromState);
     }
-  }, [urlFromState, repoUrl, setRepoUrl]);
+  }, [urlFromState, repoUrl, activeRepo, setRepoUrl, navigate]);
 
   useEffect(() => {
+    if (!activeRepo) return;
     if (hasTriggeredRef.current) return;
     hasTriggeredRef.current = true;
 
@@ -79,13 +85,12 @@ export function AnalyzingPage() {
         setTimeout(() => {
           navigate('/app');
         }, 900);
-      } catch (err) {
+      } catch (err: any) {
         console.error('[AnalyzingPage] analysis failed:', err);
         if (isCancelled) return;
-        setLogs(prev => [...prev, 'Warning: Engine fallback triggered, loading workspace...']);
-        setProgress(100);
-        setCompleted(true);
-        setTimeout(() => navigate('/app'), 1000);
+        const msg = err.message || 'Analysis failed. Could not inspect repository.';
+        setLogs(prev => [...prev, `Error: ${msg}`]);
+        setErrorMessage(msg);
       }
     }
 
@@ -161,6 +166,35 @@ export function AnalyzingPage() {
               })}
             </AnimatePresence>
           </div>
+
+          {errorMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-3 bg-error/10 border border-error/30 p-3.5 rounded text-xs font-mono"
+            >
+              <div className="flex items-start gap-2 text-error">
+                <span className="font-bold shrink-0">✕</span>
+                <span className="leading-relaxed">{errorMessage}</span>
+              </div>
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="px-3 py-1.5 rounded bg-surface border border-border text-text-primary hover:bg-elevated transition-colors text-xs"
+                >
+                  ← Back to Home
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="px-3 py-1.5 rounded bg-accent-cyan/15 border border-accent-cyan/40 text-accent-cyan hover:bg-accent-cyan/25 transition-colors text-xs"
+                >
+                  Retry Analysis
+                </button>
+              </div>
+            </motion.div>
+          )}
 
           {completed && (
             <motion.div

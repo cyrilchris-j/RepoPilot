@@ -30,7 +30,7 @@ export function AppLayout() {
     if (repoData?.repository) {
       return `${repoData.repository.owner}/${repoData.repository.name}`;
     }
-    const target = repoUrl || 'cyrilchris-j/airoadgen';
+    const target = repoUrl || '';
     const clean = target.replace(/^https?:\/\//, '').replace(/^github\.com\//, '').replace(/\.git$/, '');
     return clean || 'workspace';
   })();

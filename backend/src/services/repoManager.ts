@@ -172,13 +172,7 @@ export async function getOrCloneRepository(repoInput: string): Promise<AnalyzedR
         console.log(`[RepoManager] Clone successful for ${normalized.owner}/${normalized.name}`);
       } catch (err) {
         console.error(`[RepoManager] Git clone failed:`, err);
-        // Fallback: If clone fails (e.g. offline, rate limit, or invalid repo), check if current workspace can be used
-        const workspaceDir = path.resolve(__dirname, '../../..');
-        if (fs.existsSync(workspaceDir)) {
-          repoDir = workspaceDir;
-        } else {
-          throw new Error(`Failed to clone repository: ${(err as Error).message}`);
-        }
+        throw new Error(`Failed to clone repository ${normalized.owner}/${normalized.name}: ${(err as Error).message}`);
       }
     } else {
       console.log(`[RepoManager] Using cached clone at ${repoDir}`);

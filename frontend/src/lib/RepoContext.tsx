@@ -52,6 +52,10 @@ export function RepoProvider({ children }: { children: ReactNode }) {
   });
 
   const setRepoUrl = (url: string) => {
+    if (url !== repoUrl) {
+      setRepoDataState(null);
+      localStorage.removeItem('repopilot_analysis_data');
+    }
     setRepoUrlState(url);
     localStorage.setItem('repopilot_active_url', url);
   };

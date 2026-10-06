@@ -40,77 +40,29 @@ export interface DiagnosticsResult {
   overallStatus: 'all_passed' | 'has_warnings' | 'has_failures';
 }
 
-const FALLBACK_DIAGNOSTICS: DiagnosticsResult = {
-  timestamp: new Date().toISOString(),
-  system: {
-    platform: navigator.platform.toLowerCase().includes('mac') ? 'darwin' : 'linux',
-    arch: 'arm64',
-    cpus: navigator.hardwareConcurrency || 8,
-    totalMemoryGB: 16,
-    freeMemoryGB: 4.2,
-  },
-  checks: [
-    {
-      id: 'node',
-      name: 'Node.js Runtime',
-      category: 'runtime',
-      installed: true,
-      version: 'v20.20.2',
-      details: 'Active Node.js runtime meets modern LTS standards (>= v18.0.0).',
-      status: 'passed',
-    },
-    {
-      id: 'npm',
-      name: 'npm Package Manager',
-      category: 'package_manager',
-      installed: true,
-      version: 'v10.8.2',
-      details: 'Default Node package manager available.',
-      status: 'passed',
-    },
-    {
-      id: 'git',
-      name: 'Git Version Control',
-      category: 'vcs',
-      installed: true,
-      version: 'v2.53.0',
-      details: 'Git installed with active repository configuration.',
-      status: 'passed',
-    },
-    {
-      id: 'docker',
-      name: 'Docker Engine',
-      category: 'container',
-      installed: false,
-      status: 'warning',
-      details: 'Docker CLI not detected. Required if running containerized dependencies.',
-      recommendation: 'Install Docker Desktop to orchestrate local microservices.',
-      installCommand: 'brew install --cask docker',
-    },
-  ],
-  overallStatus: 'has_warnings',
-};
-
 export function EnvironmentDiagnostics() {
   const [data, setData] = useState<DiagnosticsResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [offline, setOffline] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(true);
 
   const fetchDiagnostics = async () => {
     setLoading(true);
+    setOffline(false);
     try {
       const res = await fetch(`${getApiUrl()}/api/diagnostics`, {
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(4000),
       });
       if (!res.ok) {
         throw new Error(`Diagnostics API returned ${res.status}`);
       }
       const json: DiagnosticsResult = await res.json();
       setData(json);
+      setOffline(false);
     } catch {
-      // Graceful fallback in demo mode or offline
-      setData(FALLBACK_DIAGNOSTICS);
+      setData(null);
+      setOffline(true);
     } finally {
       setLoading(false);
     }
@@ -126,7 +78,41 @@ export function EnvironmentDiagnostics() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const currentData = data || FALLBACK_DIAGNOSTICS;
+  if (offline || !data) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="card p-5 border border-border/80 bg-surface/80 relative overflow-hidden backdrop-blur-sm"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="section-label">LIVE ENVIRONMENT DIAGNOSTICS</span>
+              <span className="w-2 h-2 rounded-full bg-warning" />
+            </div>
+            <h2 className="text-base font-semibold text-text-primary mt-0.5">
+              Local Toolchain Diagnostics Offline
+            </h2>
+            <p className="text-xs text-text-secondary mt-1">
+              Start the RepoPilot local backend engine (<code className="text-accent-cyan font-mono">npm run dev</code> or <code className="text-accent-cyan font-mono">npm run dev:backend</code>) to inspect live Node.js, Git, and Docker statuses on your machine.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={fetchDiagnostics}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-accent-cyan/10 hover:bg-accent-cyan/20 text-xs font-mono text-accent-cyan border border-accent-cyan/40 transition-colors disabled:opacity-50 shrink-0"
+          >
+            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+            <span>{loading ? 'Connecting...' : 'Retry Connection'}</span>
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  const currentData = data;
   const passedCount = currentData.checks.filter(c => c.status === 'passed').length;
   const warningCount = currentData.checks.filter(c => c.status === 'warning').length;
   const failedCount = currentData.checks.filter(c => c.status === 'failed').length;

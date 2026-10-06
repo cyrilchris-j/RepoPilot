@@ -57,15 +57,15 @@ export function DashboardPage() {
   const [copiedSpecialCmd, setCopiedSpecialCmd] = useState(false);
   const { repoData, repoUrl } = useRepo();
   const repo = repoData?.repository || (() => {
-    const rawUrl = repoUrl || 'cyrilchris-j/airoadgen';
-    const clean = rawUrl.replace(/^https?:\/\//, '').replace(/^github\.com\//, '').replace(/\.git$/, '');
+    const rawUrl = repoUrl || '';
+    const clean = rawUrl ? rawUrl.replace(/^https?:\/\//, '').replace(/^github\.com\//, '').replace(/\.git$/, '') : 'workspace';
     const parts = clean.split('/');
-    const owner = parts[0] || 'repository';
-    const name = parts[1] || 'workspace';
+    const owner = parts.length > 1 ? parts[0] : 'workspace';
+    const name = parts.length > 1 ? parts[1] : clean;
     return {
-      url: rawUrl.startsWith('http') ? rawUrl : `https://github.com/${clean}`,
-      name,
-      owner,
+      url: rawUrl ? (rawUrl.startsWith('http') ? rawUrl : `https://github.com/${clean}`) : '',
+      name: name || 'Repository',
+      owner: owner || 'local',
       branch: 'main',
       description: `${name} repository analyzed by RepoPilot`,
       language: 'JavaScript',
@@ -303,16 +303,16 @@ export function DashboardPage() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
             <div className="flex items-center gap-2 bg-bg/90 border border-border rounded-lg px-3 py-2 font-mono text-xs text-text-primary shadow-inner">
               <Terminal size={13} className="text-accent-cyan shrink-0" />
-              <span className="select-all">npx repopilot@latest improve {repo.url || 'https://github.com/cyrilchris-j/RepoPilot.git'}</span>
+              <span className="select-all">npx repopilot@latest scan .</span>
               <button
                 type="button"
                 onClick={() => {
-                  navigator.clipboard.writeText(`npx repopilot@latest improve ${repo.url || 'https://github.com/cyrilchris-j/RepoPilot.git'}`);
+                  navigator.clipboard.writeText(`npx repopilot@latest scan .`);
                   setCopiedSpecialCmd(true);
                   setTimeout(() => setCopiedSpecialCmd(false), 1800);
                 }}
                 className="p-1 rounded hover:bg-elevated text-text-secondary hover:text-accent-cyan transition-colors ml-1 cursor-pointer"
-                title="Copy Special Command"
+                title="Copy Scan Command"
               >
                 {copiedSpecialCmd ? <Check size={13} className="text-success" /> : <Copy size={13} />}
               </button>

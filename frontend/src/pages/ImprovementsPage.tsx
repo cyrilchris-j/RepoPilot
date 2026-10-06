@@ -28,14 +28,14 @@ export function ImprovementsPage() {
   const [cliTab, setCliTab] = useState<'npx' | 'docker' | 'github-action' | 'badge'>('npx');
 
   const repo = repoData?.repository || {
-    url: repoUrl || 'https://github.com/cyrilchris-j/airoadgen.git',
-    name: repoUrl ? repoUrl.split('/').pop()?.replace(/\.git$/, '') || 'repository' : 'airoadgen',
-    owner: repoUrl ? repoUrl.split('/').slice(-2)[0] || 'owner' : 'cyrilchris-j',
+    url: repoUrl || '',
+    name: repoUrl ? repoUrl.split('/').pop()?.replace(/\.git$/, '') || 'repository' : 'repository',
+    owner: repoUrl ? repoUrl.split('/').slice(-2)[0] || 'owner' : 'local',
     branch: 'main',
     language: 'JavaScript',
   };
 
-  const cleanRepoUrl = repo.url.startsWith('http') ? repo.url : `https://github.com/${repo.url}.git`;
+  const cleanRepoUrl = repo.url.startsWith('http') ? repo.url : (repo.url ? `https://github.com/${repo.url}.git` : '');
   const cleanRepoName = repo.name;
 
   const copyToClipboard = (id: string, text: string) => {
@@ -70,10 +70,10 @@ export function ImprovementsPage() {
   };
 
   const signatureCommands = {
-    npx: `npx repopilot@latest improve ${cleanRepoUrl}`,
-    docker: `docker run --rm -it -v $(pwd):/workspace repopilot/cli:latest improve`,
-    'github-action': `uses: cyrilchris-j/repopilot-action@v1\nwith:\n  repo-url: '${cleanRepoUrl}'\n  audit-mode: 'strict'`,
-    badge: `[![RepoPilot Analyzed & Optimized](https://img.shields.io/badge/RepoPilot-Analyzed%20%26%20Optimized-67E8F9?logo=github)](${cleanRepoUrl})`,
+    npx: `npx repopilot@latest scan .`,
+    docker: `docker run --rm -it -v $(pwd):/workspace repopilot/cli:latest scan .`,
+    'github-action': `uses: actions/checkout@v4\n- run: npx repopilot@latest scan .`,
+    badge: `[![RepoPilot Verified](https://img.shields.io/badge/RepoPilot-Verified-67E8F9?logo=github)](${cleanRepoUrl || '#'})`,
   };
 
   return (
