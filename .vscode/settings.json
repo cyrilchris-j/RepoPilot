@@ -1,0 +1,18 @@
+{
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "files.exclude": {
+    "**/backend/cache": true
+  },
+  "search.exclude": {
+    "**/backend/cache": true
+  },
+  "files.watcherExclude": {
+    "**/backend/cache/**": true
+  },
+  "json.schemaDownload.enable": false
+}
