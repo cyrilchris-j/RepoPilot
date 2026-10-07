@@ -8,7 +8,6 @@ import {
   Terminal,
   Zap,
   Shield,
-  ShieldCheck,
   Eye,
   ChevronRight,
   ExternalLink,
@@ -573,14 +572,6 @@ export function LandingPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
               SYSTEM ONLINE
             </div>
-            <Link
-              to="/admin"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/80 bg-elevated/70 hover:bg-elevated hover:border-accent-cyan/40 text-text-secondary hover:text-text-primary text-xs transition-colors group shadow-xs"
-              title="Admin Dashboard — View repository usage and user suggestions"
-            >
-              <ShieldCheck size={14} className="text-accent-cyan group-hover:scale-105 transition-transform" />
-              <span className="font-medium font-sans">Admin</span>
-            </Link>
             <Link to="/app" className="btn-primary text-xs px-4 py-2">
               Open App <ArrowRight size={12} className="inline ml-1" />
             </Link>
@@ -745,15 +736,6 @@ export function LandingPage() {
             <span className="text-sm font-mono text-text-secondary">RepoPilot</span>
             <span className="text-border">·</span>
             <span className="text-xs text-text-secondary">IBM Bob 2.0 Hackathon</span>
-          </div>
-          <div className="flex items-center gap-4 text-xs">
-            <Link to="/app/improvements" className="text-text-secondary hover:text-accent-cyan transition-colors">
-              Feedback &amp; Wishlist
-            </Link>
-            <Link to="/admin" className="text-text-secondary hover:text-accent-cyan transition-colors flex items-center gap-1">
-              <ShieldCheck size={12} className="text-accent-cyan" />
-              <span>Admin Dashboard</span>
-            </Link>
           </div>
           <div className="flex items-center gap-1.5 text-xs font-mono text-text-secondary">
             <span className="w-1.5 h-1.5 rounded-full bg-success" />

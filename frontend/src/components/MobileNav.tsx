@@ -12,7 +12,6 @@ import {
   X,
   ChevronLeft,
   Sparkles,
-  ShieldCheck,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusBadge } from './ui/StatusBadge';
@@ -135,11 +134,7 @@ export function MobileNav({ repoName, repoUrl = '', analysisStatus }: MobileNavP
               </nav>
 
               {/* Footer */}
-              <div className="px-4 py-3 border-t border-border flex flex-col gap-2">
-                <Link to="/admin" className="flex items-center gap-2 text-accent-cyan hover:underline text-sm font-medium">
-                  <ShieldCheck size={14} />
-                  Admin Dashboard
-                </Link>
+              <div className="px-4 py-3 border-t border-border">
                 <Link to="/" className="flex items-center gap-2 text-text-secondary hover:text-text-primary text-sm transition-colors">
                   <ChevronLeft size={14} />
                   Back to home
