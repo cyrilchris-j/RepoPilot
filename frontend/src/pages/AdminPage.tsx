@@ -41,6 +41,7 @@ import {
   recordRepositoryAnalysis,
   updateFeedbackStatus,
   deleteFeedback,
+  clearAllAdminData,
   isAdminAuthenticated,
   verifyAdminPassword,
   logoutAdmin,
@@ -148,6 +149,15 @@ export function AdminPage() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  };
+
+  // Clear all data
+  const handleClearAllData = () => {
+    if (confirm('Are you sure you want to clear all tracked repositories and feedback? This will reset all records.')) {
+      clearAllAdminData();
+      setRepos([]);
+      setFeedbacks([]);
+    }
   };
 
   // Delete repo
@@ -352,6 +362,16 @@ export function AdminPage() {
             >
               <Download size={13} className="text-accent-cyan" />
               <span className="hidden sm:inline text-[11px] font-mono">Export Data</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleClearAllData}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-elevated border border-border/80 hover:bg-rose-500/10 hover:border-rose-500/40 text-text-secondary hover:text-rose-400 text-xs transition-colors"
+              title="Reset all tracked admin data"
+            >
+              <Trash2 size={13} />
+              <span className="hidden sm:inline text-[11px] font-mono">Reset</span>
             </button>
 
             <button
@@ -611,7 +631,27 @@ export function AdminPage() {
                     {filteredRepos.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="py-12 text-center text-text-secondary">
-                          No repositories found matching your query.
+                          {repos.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-6 text-center">
+                              <div className="w-12 h-12 rounded-full bg-accent-cyan/10 border border-accent-cyan/30 flex items-center justify-center text-accent-cyan mb-3">
+                                <GitBranch size={22} />
+                              </div>
+                              <h4 className="text-sm font-semibold text-text-primary">No Repositories Tracked Yet</h4>
+                              <p className="text-xs text-text-secondary max-w-sm mt-1 mb-4">
+                                As users analyze GitHub repositories on RepoPilot, their repositories and direct links will appear here automatically with usage tracking.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => setIsAddRepoModalOpen(true)}
+                                className="btn-primary text-xs px-3.5 py-1.5 flex items-center gap-1.5"
+                              >
+                                <Plus size={13} />
+                                <span>Track First Repository</span>
+                              </button>
+                            </div>
+                          ) : (
+                            'No repositories found matching your query.'
+                          )}
                         </td>
                       </tr>
                     ) : (
@@ -799,7 +839,19 @@ export function AdminPage() {
             <div className="space-y-3">
               {filteredFeedbacks.length === 0 ? (
                 <div className="py-12 text-center text-text-secondary border border-dashed border-border/80 rounded-xl bg-surface/30">
-                  No improvement suggestions match the current filters.
+                  {feedbacks.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-4 text-center">
+                      <div className="w-12 h-12 rounded-full bg-accent-violet/10 border border-accent-violet/30 flex items-center justify-center text-accent-violet mb-3">
+                        <Sparkles size={22} />
+                      </div>
+                      <h4 className="text-sm font-semibold text-text-primary">No Improvement Suggestions Yet</h4>
+                      <p className="text-xs text-text-secondary max-w-sm mt-1">
+                        When users submit feature requests or feedback via the wishlist form, they will appear here for administrator review.
+                      </p>
+                    </div>
+                  ) : (
+                    'No improvement suggestions match the current filters.'
+                  )}
                 </div>
               ) : (
                 filteredFeedbacks.map((f) => {
@@ -927,23 +979,29 @@ export function AdminPage() {
                 </div>
 
                 <div className="space-y-3">
-                  {metrics.topLanguages.map(({ language, count }) => {
-                    const pct = Math.round((count / Math.max(metrics.totalRepositories, 1)) * 100);
-                    return (
-                      <div key={language} className="space-y-1">
-                        <div className="flex justify-between text-xs font-mono">
-                          <span className="text-text-primary">{language}</span>
-                          <span className="text-text-secondary">{count} repos ({pct}%)</span>
+                  {metrics.topLanguages.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-text-secondary">
+                      No language data recorded yet.
+                    </div>
+                  ) : (
+                    metrics.topLanguages.map(({ language, count }) => {
+                      const pct = Math.round((count / Math.max(metrics.totalRepositories, 1)) * 100);
+                      return (
+                        <div key={language} className="space-y-1">
+                          <div className="flex justify-between text-xs font-mono">
+                            <span className="text-text-primary">{language}</span>
+                            <span className="text-text-secondary">{count} repos ({pct}%)</span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-elevated overflow-hidden">
+                            <div
+                              className="h-full bg-accent-cyan rounded-full transition-all duration-500"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="h-1.5 w-full rounded-full bg-elevated overflow-hidden">
-                          <div
-                            className="h-full bg-accent-cyan rounded-full transition-all duration-500"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
@@ -958,7 +1016,12 @@ export function AdminPage() {
                 </div>
 
                 <div className="space-y-2.5">
-                  {repos.slice(0, 5).map((r, i) => (
+                  {repos.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-text-secondary">
+                      No repositories analyzed yet.
+                    </div>
+                  ) : (
+                    repos.slice(0, 5).map((r, i) => (
                     <div
                       key={r.id}
                       className="p-2.5 rounded-lg bg-elevated/50 border border-border/60 flex items-center justify-between text-xs"
@@ -979,7 +1042,7 @@ export function AdminPage() {
                         </span>
                       </div>
                     </div>
-                  ))}
+                  )))}
                 </div>
               </div>
             </div>

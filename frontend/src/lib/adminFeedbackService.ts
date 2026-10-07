@@ -6,146 +6,15 @@ const VOTED_KEY = 'repopilot_voted_feedback_ids_v2';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
-// Seed initial repositories so admin dashboard starts with meaningful sample data
-const DEFAULT_TRACKED_REPOS: TrackedRepository[] = [
-  {
-    id: 'repo-vercel-nextjs',
-    url: 'https://github.com/vercel/next.js',
-    name: 'next.js',
-    owner: 'vercel',
-    language: 'TypeScript',
-    analyzedAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString(),
-    lastAnalyzedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    analysisCount: 16,
-    stars: 126400,
-    totalFiles: 3842,
-    linesOfCode: 184000,
-    status: 'complete',
-  },
-  {
-    id: 'repo-facebook-react',
-    url: 'https://github.com/facebook/react',
-    name: 'react',
-    owner: 'facebook',
-    language: 'JavaScript',
-    analyzedAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
-    lastAnalyzedAt: new Date(Date.now() - 3600000 * 6).toISOString(),
-    analysisCount: 11,
-    stars: 228900,
-    totalFiles: 2150,
-    linesOfCode: 142000,
-    status: 'complete',
-  },
-  {
-    id: 'repo-tailwind-tailwindcss',
-    url: 'https://github.com/tailwindlabs/tailwindcss',
-    name: 'tailwindcss',
-    owner: 'tailwindlabs',
-    language: 'TypeScript',
-    analyzedAt: new Date(Date.now() - 3600000 * 24 * 8).toISOString(),
-    lastAnalyzedAt: new Date(Date.now() - 3600000 * 28).toISOString(),
-    analysisCount: 8,
-    stars: 82500,
-    totalFiles: 1240,
-    linesOfCode: 65000,
-    status: 'complete',
-  },
-  {
-    id: 'repo-expressjs-express',
-    url: 'https://github.com/expressjs/express',
-    name: 'express',
-    owner: 'expressjs',
-    language: 'JavaScript',
-    analyzedAt: new Date(Date.now() - 3600000 * 24 * 10).toISOString(),
-    lastAnalyzedAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-    analysisCount: 5,
-    stars: 65400,
-    totalFiles: 420,
-    linesOfCode: 18500,
-    status: 'complete',
-  },
-];
+// No mock data - admin dashboard starts clean and tracks real analyzed repositories and suggestions
+const LEGACY_MOCK_REPO_IDS = new Set([
+  'repo-vercel-nextjs',
+  'repo-facebook-react',
+  'repo-tailwind-tailwindcss',
+  'repo-expressjs-express',
+]);
 
-// Seed initial realistic community feature suggestions & improvement feedback
-const DEFAULT_USER_FEEDBACK: UserFeedback[] = [
-  {
-    id: 'fb-1',
-    title: 'Interactive Git Churn & Hotspot Visualizer in Dashboard',
-    description: 'It would be amazing to have a visual heatmap showing which files change the most often and which have the highest defect probability. This will help new engineers know which legacy parts to approach with caution.',
-    category: 'feature',
-    submittedBy: 'Karthik Raja',
-    userHandle: '@karthik_dev',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
-    votes: 38,
-    status: 'planned',
-    priority: 'high',
-    adminNote: 'Planned for v2.2. Git insights will include interactive D3/SVG churn tree.',
-  },
-  {
-    id: 'fb-2',
-    title: 'Export System Architecture as SVG & Interactive Mermaid Diagram',
-    description: 'We love the architecture topology view! If we could download it as a high-res SVG or export as Mermaid.js syntax for our GitHub README docs, it would save our team hours of manual diagramming.',
-    category: 'feature',
-    submittedBy: 'Sophie Martin',
-    userHandle: '@smartin_tech',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 4).toISOString(),
-    votes: 29,
-    status: 'in_progress',
-    priority: 'high',
-    adminNote: 'Currently in development! Mermaid export button arriving shortly.',
-  },
-  {
-    id: 'fb-3',
-    title: 'Support Private Repositories via GitHub Personal Access Token (PAT)',
-    description: 'Our enterprise team hosts repositories in private GitHub and GitLab organizations. Allowing us to supply an optional token or OAuth login would allow us to analyze internal company codebases securely.',
-    category: 'integration',
-    submittedBy: 'David Chen',
-    userHandle: '@dchen_eng',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 6).toISOString(),
-    votes: 45,
-    status: 'under_review',
-    priority: 'high',
-    adminNote: 'Evaluating client-side token storage vs secure session proxy.',
-  },
-  {
-    id: 'fb-4',
-    title: 'Dark / Neon Theme Customizer & High-Contrast Code Mode',
-    description: 'Add an option in settings to customize editor colors or switch between Cyberpunk Cyan, Solarized Dark, and High Contrast. Helps readability during long code audits.',
-    category: 'ui_ux',
-    submittedBy: 'Ananya Sharma',
-    userHandle: '@ananya_ui',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 7).toISOString(),
-    votes: 18,
-    status: 'completed',
-    priority: 'medium',
-    adminNote: 'Completed! High-contrast cyan/violet syntax themes enabled by default.',
-  },
-  {
-    id: 'fb-5',
-    title: 'One-Click Pull Request Generator for Starter Tasks',
-    description: 'When viewing Good First Issues in Starter Tasks, have an AI action to draft the actual git branch name, commit message, and scaffold boilerplate code directly.',
-    category: 'agent_ai',
-    submittedBy: 'Marcus Brody',
-    userHandle: '@mbrody',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 9).toISOString(),
-    votes: 25,
-    status: 'under_review',
-    priority: 'medium',
-  },
-  {
-    id: 'fb-6',
-    title: 'Performance: Faster initial indexing for repos with >10,000 files',
-    description: 'For huge monorepos (like monorepos with multiple packages), initial AST scanning can take over 15 seconds. Adding background web worker scanning or chunked indexing would improve initial load time.',
-    category: 'performance',
-    submittedBy: 'Elena Rostova',
-    userHandle: '@erostova',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 12).toISOString(),
-    votes: 14,
-    status: 'planned',
-    priority: 'medium',
-    adminNote: 'Chunked scanning pipeline scheduled for Q2 performance sprint.',
-  },
-];
+const LEGACY_MOCK_FEEDBACK_IDS = new Set(['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5', 'fb-6']);
 
 function getVotedIds(): Set<string> {
   try {
@@ -173,13 +42,21 @@ export function getTrackedRepositories(): TrackedRepository[] {
   try {
     const raw = localStorage.getItem(REPOS_STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(REPOS_STORAGE_KEY, JSON.stringify(DEFAULT_TRACKED_REPOS));
-      return DEFAULT_TRACKED_REPOS;
+      return [];
     }
-    const parsed: TrackedRepository[] = JSON.parse(raw);
-    return parsed && parsed.length > 0 ? parsed : DEFAULT_TRACKED_REPOS;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      const sanitized = parsed.filter(
+        (r: any) => r && r.id && !LEGACY_MOCK_REPO_IDS.has(r.id)
+      );
+      if (sanitized.length !== parsed.length) {
+        saveTrackedRepositories(sanitized);
+      }
+      return sanitized;
+    }
+    return [];
   } catch {
-    return DEFAULT_TRACKED_REPOS;
+    return [];
   }
 }
 
@@ -315,13 +192,18 @@ export function getUserFeedbacks(): UserFeedback[] {
   try {
     const votedIds = getVotedIds();
     const raw = localStorage.getItem(FEEDBACK_STORAGE_KEY);
-    let items: UserFeedback[];
     if (!raw) {
-      items = DEFAULT_USER_FEEDBACK;
-      localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(DEFAULT_USER_FEEDBACK));
-    } else {
-      items = JSON.parse(raw);
-      if (!items || items.length === 0) items = DEFAULT_USER_FEEDBACK;
+      return [];
+    }
+    const parsed = JSON.parse(raw);
+    let items: UserFeedback[] = [];
+    if (Array.isArray(parsed)) {
+      items = parsed.filter(
+        (fb: any) => fb && fb.id && !LEGACY_MOCK_FEEDBACK_IDS.has(fb.id)
+      );
+      if (items.length !== parsed.length) {
+        saveUserFeedbacks(items);
+      }
     }
 
     return items.map(fb => ({
@@ -329,7 +211,7 @@ export function getUserFeedbacks(): UserFeedback[] {
       hasVoted: votedIds.has(fb.id),
     }));
   } catch {
-    return DEFAULT_USER_FEEDBACK;
+    return [];
   }
 }
 
@@ -462,7 +344,7 @@ export function getAdminMetrics(): AdminStats {
   const feedbacks = getUserFeedbacks();
 
   const totalRepositories = repos.length;
-  const totalAnalyses = repos.reduce((acc, r) => acc + (r.analysisCount || 1), 0);
+  const totalAnalyses = repos.reduce((acc, r) => acc + (r.analysisCount || 0), 0);
   const totalFeedback = feedbacks.length;
   const totalVotes = feedbacks.reduce((acc, f) => acc + (f.votes || 0), 0);
 
@@ -475,7 +357,10 @@ export function getAdminMetrics(): AdminStats {
     .map(([language, count]) => ({ language, count }))
     .sort((a, b) => b.count - a.count);
 
-  const uniqueUsers = Math.max(totalRepositories * 3 + totalFeedback * 2, 28);
+  const uniqueUsers =
+    totalRepositories === 0 && totalFeedback === 0
+      ? 0
+      : Math.max(totalRepositories, Math.ceil(totalAnalyses * 0.7));
 
   return {
     totalRepositories,
@@ -485,6 +370,16 @@ export function getAdminMetrics(): AdminStats {
     totalVotes,
     topLanguages,
   };
+}
+
+export function clearAllAdminData(): void {
+  try {
+    localStorage.removeItem(REPOS_STORAGE_KEY);
+    localStorage.removeItem(FEEDBACK_STORAGE_KEY);
+    localStorage.removeItem(VOTED_KEY);
+  } catch {
+    // ignore
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

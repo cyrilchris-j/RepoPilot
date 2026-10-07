@@ -19,78 +19,31 @@ export interface TrackedRepository {
 
 const CACHE_FILE = path.resolve(__dirname, '../../cache/tracked_repos.json');
 
-const SEED_REPOSITORIES: TrackedRepository[] = [
-  {
-    id: 'repo-vercel-nextjs',
-    url: 'https://github.com/vercel/next.js',
-    name: 'next.js',
-    owner: 'vercel',
-    language: 'TypeScript',
-    analyzedAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString(),
-    lastAnalyzedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    analysisCount: 16,
-    stars: 126400,
-    totalFiles: 3842,
-    linesOfCode: 184000,
-    status: 'complete',
-  },
-  {
-    id: 'repo-facebook-react',
-    url: 'https://github.com/facebook/react',
-    name: 'react',
-    owner: 'facebook',
-    language: 'JavaScript',
-    analyzedAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
-    lastAnalyzedAt: new Date(Date.now() - 3600000 * 6).toISOString(),
-    analysisCount: 11,
-    stars: 228900,
-    totalFiles: 2150,
-    linesOfCode: 142000,
-    status: 'complete',
-  },
-  {
-    id: 'repo-tailwind-tailwindcss',
-    url: 'https://github.com/tailwindlabs/tailwindcss',
-    name: 'tailwindcss',
-    owner: 'tailwindlabs',
-    language: 'TypeScript',
-    analyzedAt: new Date(Date.now() - 3600000 * 24 * 8).toISOString(),
-    lastAnalyzedAt: new Date(Date.now() - 3600000 * 28).toISOString(),
-    analysisCount: 8,
-    stars: 82500,
-    totalFiles: 1240,
-    linesOfCode: 65000,
-    status: 'complete',
-  },
-  {
-    id: 'repo-expressjs-express',
-    url: 'https://github.com/expressjs/express',
-    name: 'express',
-    owner: 'expressjs',
-    language: 'JavaScript',
-    analyzedAt: new Date(Date.now() - 3600000 * 24 * 10).toISOString(),
-    lastAnalyzedAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-    analysisCount: 5,
-    stars: 65400,
-    totalFiles: 420,
-    linesOfCode: 18500,
-    status: 'complete',
-  },
-];
+const SEED_REPOSITORIES: TrackedRepository[] = [];
+
+const LEGACY_MOCK_REPO_IDS = new Set([
+  'repo-vercel-nextjs',
+  'repo-facebook-react',
+  'repo-tailwind-tailwindcss',
+  'repo-expressjs-express',
+]);
 
 function readRepos(): TrackedRepository[] {
   try {
     if (!fs.existsSync(CACHE_FILE)) {
       const dir = path.dirname(CACHE_FILE);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(CACHE_FILE, JSON.stringify(SEED_REPOSITORIES, null, 2), 'utf8');
-      return SEED_REPOSITORIES;
+      fs.writeFileSync(CACHE_FILE, JSON.stringify([], null, 2), 'utf8');
+      return [];
     }
     const data = fs.readFileSync(CACHE_FILE, 'utf8');
     const parsed = JSON.parse(data);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : SEED_REPOSITORIES;
+    if (Array.isArray(parsed)) {
+      return parsed.filter((r: any) => r && !LEGACY_MOCK_REPO_IDS.has(r.id));
+    }
+    return [];
   } catch {
-    return SEED_REPOSITORIES;
+    return [];
   }
 }
 
@@ -191,8 +144,8 @@ export function getAdminStats(_req: Request, res: Response) {
   try {
     const repos = readRepos();
     const totalRepositories = repos.length;
-    const totalAnalyses = repos.reduce((acc, r) => acc + (r.analysisCount || 1), 0);
-    const uniqueUsers = Math.max(totalRepositories * 3, 25);
+    const totalAnalyses = repos.reduce((acc, r) => acc + (r.analysisCount || 0), 0);
+    const uniqueUsers = totalRepositories === 0 ? 0 : Math.max(totalRepositories, Math.ceil(totalAnalyses * 0.7));
 
     const langMap: Record<string, number> = {};
     for (const r of repos) {

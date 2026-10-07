@@ -18,74 +18,26 @@ export interface UserFeedback {
 
 const FEEDBACK_FILE = path.resolve(__dirname, '../../cache/user_feedback.json');
 
-const SEED_FEEDBACK: UserFeedback[] = [
-  {
-    id: 'fb-1',
-    title: 'Interactive Git Churn & Hotspot Visualizer in Dashboard',
-    description: 'It would be amazing to have a visual heatmap showing which files change the most often and which have the highest defect probability. This will help new engineers know which legacy parts to approach with caution.',
-    category: 'feature',
-    submittedBy: 'Karthik Raja',
-    userHandle: '@karthik_dev',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
-    votes: 38,
-    status: 'planned',
-    priority: 'high',
-    adminNote: 'Planned for v2.2. Git insights will include interactive D3/SVG churn tree.',
-  },
-  {
-    id: 'fb-2',
-    title: 'Export System Architecture as SVG & Interactive Mermaid Diagram',
-    description: 'We love the architecture topology view! If we could download it as a high-res SVG or export as Mermaid.js syntax for our GitHub README docs, it would save our team hours of manual diagramming.',
-    category: 'feature',
-    submittedBy: 'Sophie Martin',
-    userHandle: '@smartin_tech',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 4).toISOString(),
-    votes: 29,
-    status: 'in_progress',
-    priority: 'high',
-    adminNote: 'Currently in development! Mermaid export button arriving shortly.',
-  },
-  {
-    id: 'fb-3',
-    title: 'Support Private Repositories via GitHub Personal Access Token (PAT)',
-    description: 'Our enterprise team hosts repositories in private GitHub and GitLab organizations. Allowing us to supply an optional token or OAuth login would allow us to analyze internal company codebases securely.',
-    category: 'integration',
-    submittedBy: 'David Chen',
-    userHandle: '@dchen_eng',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 6).toISOString(),
-    votes: 45,
-    status: 'under_review',
-    priority: 'high',
-    adminNote: 'Evaluating client-side token storage vs secure session proxy.',
-  },
-  {
-    id: 'fb-4',
-    title: 'Dark / Neon Theme Customizer & High-Contrast Code Mode',
-    description: 'Add an option in settings to customize editor colors or switch between Cyberpunk Cyan, Solarized Dark, and High Contrast. Helps readability during long code audits.',
-    category: 'ui_ux',
-    submittedBy: 'Ananya Sharma',
-    userHandle: '@ananya_ui',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 7).toISOString(),
-    votes: 18,
-    status: 'completed',
-    priority: 'medium',
-    adminNote: 'Completed! High-contrast cyan/violet syntax themes enabled by default.',
-  },
-];
+const SEED_FEEDBACK: UserFeedback[] = [];
+
+const LEGACY_MOCK_FEEDBACK_IDS = new Set(['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5', 'fb-6']);
 
 function readFeedback(): UserFeedback[] {
   try {
     if (!fs.existsSync(FEEDBACK_FILE)) {
       const dir = path.dirname(FEEDBACK_FILE);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(FEEDBACK_FILE, JSON.stringify(SEED_FEEDBACK, null, 2), 'utf8');
-      return SEED_FEEDBACK;
+      fs.writeFileSync(FEEDBACK_FILE, JSON.stringify([], null, 2), 'utf8');
+      return [];
     }
     const data = fs.readFileSync(FEEDBACK_FILE, 'utf8');
     const parsed = JSON.parse(data);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : SEED_FEEDBACK;
+    if (Array.isArray(parsed)) {
+      return parsed.filter((f: any) => f && !LEGACY_MOCK_FEEDBACK_IDS.has(f.id));
+    }
+    return [];
   } catch {
-    return SEED_FEEDBACK;
+    return [];
   }
 }
 
