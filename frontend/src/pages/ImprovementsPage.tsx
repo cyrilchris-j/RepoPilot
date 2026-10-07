@@ -162,43 +162,31 @@ export function ImprovementsPage() {
             </p>
           </div>
 
-          {/* Admin view switch */}
-          <div className="flex items-center gap-2 shrink-0">
-            {isAdmin ? (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab(activeTab === 'admin_view' ? 'submit' : 'admin_view')}
-                  className={`px-3 py-1.5 rounded-lg border text-xs font-mono transition-colors flex items-center gap-1.5 ${
-                    activeTab === 'admin_view'
-                      ? 'bg-accent-cyan/15 border-accent-cyan/50 text-accent-cyan font-semibold'
-                      : 'bg-elevated border-border text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  <ShieldCheck size={13} className="text-accent-cyan" />
-                  <span>{activeTab === 'admin_view' ? 'Form Mode' : 'Admin View'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleAdminLogout}
-                  className="p-1.5 rounded-lg bg-elevated border border-border/80 hover:bg-rose-500/10 hover:border-rose-500/30 text-text-secondary hover:text-rose-400 text-xs transition-colors"
-                  title="Lock Admin Session"
-                >
-                  <LogOut size={13} />
-                </button>
-              </div>
-            ) : (
+          {/* Admin view switch (only visible if admin is authenticated) */}
+          {isAdmin && (
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
-                onClick={() => setShowAdminLogin(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/80 bg-elevated/70 hover:bg-elevated hover:border-accent-cyan/40 text-text-secondary hover:text-text-primary text-xs transition-colors"
-                title="Enter admin password to view submissions"
+                onClick={() => setActiveTab(activeTab === 'admin_view' ? 'submit' : 'admin_view')}
+                className={`px-3 py-1.5 rounded-lg border text-xs font-mono transition-colors flex items-center gap-1.5 ${
+                  activeTab === 'admin_view'
+                    ? 'bg-accent-cyan/15 border-accent-cyan/50 text-accent-cyan font-semibold'
+                    : 'bg-elevated border-border text-text-secondary hover:text-text-primary'
+                }`}
               >
-                <Lock size={12} className="text-accent-cyan" />
-                <span className="font-mono text-[11px]">Admin Access</span>
+                <ShieldCheck size={13} className="text-accent-cyan" />
+                <span>{activeTab === 'admin_view' ? 'Form Mode' : 'Admin View'}</span>
               </button>
-            )}
-          </div>
+              <button
+                type="button"
+                onClick={handleAdminLogout}
+                className="p-1.5 rounded-lg bg-elevated border border-border/80 hover:bg-rose-500/10 hover:border-rose-500/30 text-text-secondary hover:text-rose-400 text-xs transition-colors"
+                title="Lock Admin Session"
+              >
+                <LogOut size={13} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
