@@ -13,6 +13,7 @@ import { DebugPage } from './pages/DebugPage';
 import { AskPage } from './pages/AskPage';
 import { StarterTasksPage } from './pages/StarterTasksPage';
 import { ImprovementsPage } from './pages/ImprovementsPage';
+import { AdminPage } from './pages/AdminPage';
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="/analyzing" element={<AnalyzingPage />} />
             <Route path="/app" element={<AppLayout />}>
               <Route index element={<DashboardPage />} />

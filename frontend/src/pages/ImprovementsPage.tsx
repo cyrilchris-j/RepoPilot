@@ -1,412 +1,652 @@
-import { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
-  Terminal,
-  Copy,
+  Send,
   Check,
-  Rocket,
+  Tag,
+  User,
   ShieldCheck,
-  Zap,
-  Code2,
-  GitMerge,
-  Cpu,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  FileCode,
-  Filter,
+  Lock,
+  Eye,
+  EyeOff,
+  LogOut,
+  Clock,
+  Trash2,
+  Edit3,
+  AlertCircle,
+  FileText,
+  ArrowRight,
 } from 'lucide-react';
-import { useRepo } from '../lib/RepoContext';
-import { generateDynamicImprovements, type DynamicImprovement } from '../lib/repoAnalyzer';
+import { Link } from 'react-router-dom';
+import {
+  getUserFeedbacks,
+  submitUserFeedback,
+  isAdminAuthenticated,
+  verifyAdminPassword,
+  logoutAdmin,
+  updateFeedbackStatus,
+  deleteFeedback,
+} from '../lib/adminFeedbackService';
+import type { UserFeedback, FeedbackCategory, FeedbackStatus } from '../types';
+
+const CATEGORIES: Array<{ id: FeedbackCategory; label: string; desc: string }> = [
+  { id: 'feature', label: 'Feature Request', desc: 'New capability or tool you would like added' },
+  { id: 'ui_ux', label: 'UI / UX Design', desc: 'Interface, theme, readability or design tweak' },
+  { id: 'agent_ai', label: 'AI Intelligence', desc: 'AI code analysis, assistant or agent prompts' },
+  { id: 'integration', label: 'Integration', desc: 'GitHub, GitLab, Docker, or CI/CD integration' },
+  { id: 'performance', label: 'Performance', desc: 'Faster repo indexing, speed or memory optimization' },
+  { id: 'other', label: 'General Feedback', desc: 'Other ideas or comments for the website' },
+];
 
 export function ImprovementsPage() {
-  const { repoData, repoUrl } = useRepo();
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'components' | 'architecture' | 'deployment' | 'merger'>('all');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [cliTab, setCliTab] = useState<'npx' | 'docker' | 'github-action' | 'badge'>('npx');
+  // Admin authentication state
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => isAdminAuthenticated());
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminPasswordInput, setAdminPasswordInput] = useState('');
+  const [showPasswordText, setShowPasswordText] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
 
-  const repo = repoData?.repository || {
-    url: repoUrl || '',
-    name: repoUrl ? repoUrl.split('/').pop()?.replace(/\.git$/, '') || 'repository' : 'repository',
-    owner: repoUrl ? repoUrl.split('/').slice(-2)[0] || 'owner' : 'local',
-    branch: 'main',
-    language: 'JavaScript',
-  };
+  // Form state for regular users
+  const [formTitle, setFormTitle] = useState('');
+  const [formDescription, setFormDescription] = useState('');
+  const [formCategory, setFormCategory] = useState<FeedbackCategory>('feature');
+  const [formPriority, setFormPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [formName, setFormName] = useState('');
+  const [formHandle, setFormHandle] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const cleanRepoUrl = repo.url.startsWith('http') ? repo.url : (repo.url ? `https://github.com/${repo.url}.git` : '');
-  const cleanRepoName = repo.name;
+  // Admin view state
+  const [feedbacks, setFeedbacks] = useState<UserFeedback[]>([]);
+  const [activeTab, setActiveTab] = useState<'submit' | 'admin_view'>('submit');
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [adminNoteText, setAdminNoteText] = useState('');
 
-  const copyToClipboard = (id: string, text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => {
-      setCopiedId(cur => (cur === id ? null : cur));
-    }, 1800);
-  };
-
-  // Generate 100% genuine dynamic improvements based on real repoData
-  const improvements: DynamicImprovement[] = useMemo(() => {
-    return generateDynamicImprovements(repoData);
-  }, [repoData]);
-
+  // When admin unlocks, load feedback list
   useEffect(() => {
-    if (improvements.length > 0 && !expandedId) {
-      setExpandedId(improvements[0].id);
+    if (isAdmin) {
+      setFeedbacks(getUserFeedbacks());
     }
-  }, [improvements, expandedId]);
+  }, [isAdmin]);
 
-  const filtered = selectedCategory === 'all'
-    ? improvements
-    : improvements.filter(i => i.category === selectedCategory);
+  // Handle password login
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setIsVerifying(true);
 
-  const counts = {
-    all: improvements.length,
-    components: improvements.filter(i => i.category === 'components').length,
-    architecture: improvements.filter(i => i.category === 'architecture').length,
-    deployment: improvements.filter(i => i.category === 'deployment').length,
-    merger: improvements.filter(i => i.category === 'merger').length,
+    try {
+      const ok = await verifyAdminPassword(adminPasswordInput);
+      if (ok) {
+        setIsAdmin(true);
+        setShowAdminLogin(false);
+        setAdminPasswordInput('');
+        setFeedbacks(getUserFeedbacks());
+        setActiveTab('admin_view');
+      } else {
+        setAuthError('Incorrect administrator password. Access denied.');
+      }
+    } catch {
+      setAuthError('Failed to verify password. Please try again.');
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
-  const signatureCommands = {
-    npx: `npx repopilot@latest scan .`,
-    docker: `docker run --rm -it -v $(pwd):/workspace repopilot/cli:latest scan .`,
-    'github-action': `uses: actions/checkout@v4\n- run: npx repopilot@latest scan .`,
-    badge: `[![RepoPilot Verified](https://img.shields.io/badge/RepoPilot-Verified-67E8F9?logo=github)](${cleanRepoUrl || '#'})`,
+  const handleAdminLogout = () => {
+    logoutAdmin();
+    setIsAdmin(false);
+    setActiveTab('submit');
+  };
+
+  // Submit suggestion form
+  const handleSubmitSuggestion = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formTitle.trim() || !formDescription.trim()) return;
+
+    submitUserFeedback({
+      title: formTitle.trim(),
+      description: formDescription.trim(),
+      category: formCategory,
+      priority: formPriority,
+      submittedBy: formName.trim() || 'Community Developer',
+      userHandle: formHandle.trim() || '@developer',
+    });
+
+    setIsSubmitted(true);
+    setFormTitle('');
+    setFormDescription('');
+    setFormName('');
+    setFormHandle('');
+    setFormPriority('medium');
+  };
+
+  // Admin actions
+  const handleStatusChange = (id: string, newStatus: FeedbackStatus) => {
+    const updated = updateFeedbackStatus(id, newStatus);
+    setFeedbacks(updated);
+  };
+
+  const handleSaveNote = (id: string) => {
+    const target = feedbacks.find(f => f.id === id);
+    const updated = updateFeedbackStatus(id, target?.status || 'under_review', adminNoteText);
+    setFeedbacks(updated);
+    setEditingNoteId(null);
+    setAdminNoteText('');
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this improvement suggestion?')) {
+      const updated = deleteFeedback(id);
+      setFeedbacks(updated);
+    }
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-      >
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30 font-semibold flex items-center gap-1.5">
-              <Sparkles size={12} />
-              REPOPILOT LAB
-            </span>
-            <span className="text-xs font-mono text-text-secondary">
-              Analyzed Codebase Evolution &amp; Component Merger
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-text-primary tracking-tight">
-            Architectural Improvements &amp; Component Ideas
-          </h1>
-          <p className="text-xs sm:text-sm text-text-secondary mt-1">
-            Tailored enhancements detected by analyzing <span className="text-text-primary font-mono font-medium">{cleanRepoName}</span>. Merge battle-tested components, upgrade deployment pipelines, and optimize performance.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="text-right hidden sm:block">
-            <div className="text-xs font-mono text-text-primary font-semibold">{improvements.length} Improvements</div>
-            <div className="text-[10px] font-mono text-success">Automated Recipes Available</div>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-accent-cyan/10 border border-accent-cyan/30 flex items-center justify-center text-accent-cyan shadow-sm">
-            <Rocket size={20} />
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Signature RepoPilot Command Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.35 }}
-        className="card p-5 border-accent-cyan/35 bg-gradient-to-r from-accent-cyan/15 via-surface to-accent-violet/15 relative overflow-hidden shadow-xl shadow-black/20"
-      >
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+    <div className="min-h-full pb-16 bg-bg text-text-primary">
+      {/* Top Header */}
+      <div className="border-b border-border/80 bg-surface/60 backdrop-blur-xs px-6 py-8">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Terminal size={16} className="text-accent-cyan" />
-              <h2 className="text-sm font-semibold text-text-primary tracking-tight uppercase">
-                RepoPilot Signature CLI Command
-              </h2>
-              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/40">
-                OFFICIAL WORKSPACE RUNNER
-              </span>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan text-xs font-mono mb-2.5">
+              <Sparkles size={13} />
+              <span>FEEDBACK &amp; FEATURE SUGGESTIONS</span>
             </div>
-            <p className="text-xs text-text-secondary max-w-2xl">
-              Anyone with this repository can run this command to inspect, audit, and automatically merge these modern components and architectural patterns directly into their codebase.
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-text-primary">
+              Suggest an Improvement
+            </h1>
+            <p className="text-xs md:text-sm text-text-secondary mt-1 max-w-xl leading-relaxed">
+              Have an idea or feature you&apos;d love to see added to RepoPilot? Submit your suggestion below.
+              All feedback is sent directly and privately to the administrator.
             </p>
           </div>
 
-          {/* Quick tab switcher for command formats */}
-          <div className="flex items-center gap-1 bg-elevated/80 border border-border/80 p-1 rounded-lg self-start lg:self-auto text-xs font-mono">
-            {(['npx', 'github-action', 'docker', 'badge'] as const).map(tab => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setCliTab(tab)}
-                className={`px-2.5 py-1 rounded text-xs transition-colors cursor-pointer ${
-                  cliTab === tab
-                    ? 'bg-accent-cyan text-bg font-semibold shadow-xs'
-                    : 'text-text-secondary hover:text-text-primary'
-                }`}
-              >
-                {tab === 'npx' ? 'NPX Command' : tab === 'github-action' ? 'GitHub Action' : tab === 'docker' ? 'Docker' : 'README Badge'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Command code preview */}
-        <div className="flex items-center justify-between gap-3 bg-bg/95 border border-border rounded-lg p-3 font-mono text-xs sm:text-sm">
-          <div className="flex items-center gap-2 overflow-x-auto select-all text-text-primary">
-            <span className="text-accent-cyan font-bold">$</span>
-            <pre className="whitespace-pre overflow-x-auto text-text-primary font-mono">
-              {signatureCommands[cliTab]}
-            </pre>
-          </div>
-          <button
-            type="button"
-            onClick={() => copyToClipboard('sig-cmd', signatureCommands[cliTab])}
-            className="btn-primary py-1.5 px-3 text-xs flex items-center gap-1.5 shrink-0 cursor-pointer shadow-md"
-          >
-            {copiedId === 'sig-cmd' ? (
-              <>
-                <Check size={13} />
-                <span>Copied!</span>
-              </>
+          {/* Admin view switch */}
+          <div className="flex items-center gap-2 shrink-0">
+            {isAdmin ? (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(activeTab === 'admin_view' ? 'submit' : 'admin_view')}
+                  className={`px-3 py-1.5 rounded-lg border text-xs font-mono transition-colors flex items-center gap-1.5 ${
+                    activeTab === 'admin_view'
+                      ? 'bg-accent-cyan/15 border-accent-cyan/50 text-accent-cyan font-semibold'
+                      : 'bg-elevated border-border text-text-secondary hover:text-text-primary'
+                  }`}
+                >
+                  <ShieldCheck size={13} className="text-accent-cyan" />
+                  <span>{activeTab === 'admin_view' ? 'Form Mode' : 'Admin View'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAdminLogout}
+                  className="p-1.5 rounded-lg bg-elevated border border-border/80 hover:bg-rose-500/10 hover:border-rose-500/30 text-text-secondary hover:text-rose-400 text-xs transition-colors"
+                  title="Lock Admin Session"
+                >
+                  <LogOut size={13} />
+                </button>
+              </div>
             ) : (
-              <>
-                <Copy size={13} />
-                <span>Copy Command</span>
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Pro-tips */}
-        <div className="mt-3 flex items-center gap-4 text-[11px] font-mono text-text-secondary flex-wrap">
-          <span className="flex items-center gap-1 text-accent-cyan">
-            <Zap size={11} /> Zero installation required
-          </span>
-          <span className="flex items-center gap-1 text-success">
-            <CheckCircle2 size={11} /> Analyzes local or remote GitHub repositories
-          </span>
-          <span className="flex items-center gap-1 text-warning">
-            <ShieldCheck size={11} /> Generates verifiable, reversible PRs
-          </span>
-        </div>
-      </motion.div>
-
-      {/* Category filter tabs */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-          {[
-            { id: 'all', label: 'All Improvements', count: counts.all, icon: Filter },
-            { id: 'components', label: 'UI & Component Ideas', count: counts.components, icon: Code2 },
-            { id: 'architecture', label: 'Architecture & Perf', count: counts.architecture, icon: Cpu },
-            { id: 'deployment', label: 'Deployment & CI/CD', count: counts.deployment, icon: Rocket },
-            { id: 'merger', label: 'Component Merger', count: counts.merger, icon: GitMerge },
-          ].map(cat => {
-            const Icon = cat.icon;
-            const isSelected = selectedCategory === cat.id;
-            return (
               <button
-                key={cat.id}
                 type="button"
-                onClick={() => setSelectedCategory(cat.id as any)}
-                className={`px-3 py-1.5 rounded-lg font-mono text-xs transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                  isSelected
-                    ? 'bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/40 font-medium'
-                    : 'bg-surface hover:bg-elevated text-text-secondary hover:text-text-primary border border-border'
-                }`}
+                onClick={() => setShowAdminLogin(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/80 bg-elevated/70 hover:bg-elevated hover:border-accent-cyan/40 text-text-secondary hover:text-text-primary text-xs transition-colors"
+                title="Enter admin password to view submissions"
               >
-                <Icon size={13} />
-                <span>{cat.label}</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-elevated border border-border text-text-secondary">
-                  {cat.count}
-                </span>
+                <Lock size={12} className="text-accent-cyan" />
+                <span className="font-mono text-[11px]">Admin Access</span>
               </button>
-            );
-          })}
-        </div>
-
-        <div className="text-xs font-mono text-text-secondary">
-          Showing <span className="text-text-primary font-medium">{filtered.length}</span> suggestions
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Improvement items list */}
-      <div className="space-y-4">
-        {filtered.map(item => {
-          const isExpanded = expandedId === item.id;
-          const isCopied = copiedId === item.id;
-          const isCliCopied = copiedId === `cli-${item.id}`;
-
-          return (
-            <motion.div
-              key={item.id}
-              layout
-              className={`card overflow-hidden transition-all duration-200 border-border/90 ${
-                isExpanded ? 'border-accent-cyan/40 shadow-lg shadow-black/20' : 'hover:border-border'
-              }`}
-            >
-              {/* Main Summary Header */}
-              <div
-                onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-elevated/40 transition-colors"
+      {/* Main Container */}
+      <div className="max-w-4xl mx-auto px-6 mt-8">
+        {/* ─── TAB 1: SUGGESTION SUBMISSION FORM (DEFAULT FOR REGULAR USERS) ─── */}
+        {activeTab === 'submit' && (
+          <div className="space-y-6">
+            {isSubmitted ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="p-8 rounded-2xl border border-border/80 bg-surface/90 text-center space-y-4 shadow-lg max-w-xl mx-auto my-6"
               >
-                <div className="flex items-start gap-3.5 min-w-0">
-                  <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${
-                    item.category === 'components' ? 'bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/30' :
-                    item.category === 'architecture' ? 'bg-accent-violet/10 text-accent-violet border border-accent-violet/30' :
-                    item.category === 'deployment' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' :
-                    'bg-amber-500/10 text-warning border border-amber-500/30'
-                  }`}>
-                    {item.category === 'components' && <Code2 size={18} />}
-                    {item.category === 'architecture' && <Cpu size={18} />}
-                    {item.category === 'deployment' && <Rocket size={18} />}
-                    {item.category === 'merger' && <GitMerge size={18} />}
-                  </div>
-
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="text-sm sm:text-base font-semibold text-text-primary tracking-tight truncate">
-                        {item.title}
-                      </h3>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase font-medium ${
-                        item.impact === 'High' ? 'text-accent-cyan bg-accent-cyan/10 border-accent-cyan/30' :
-                        item.impact === 'Quick Win' ? 'text-success bg-success/10 border-success/30' :
-                        'text-warning bg-warning/10 border-warning/30'
-                      }`}>
-                        {item.impact}
-                      </span>
-                      <span className="text-[10px] font-mono text-text-secondary border border-border px-1.5 py-0.5 rounded">
-                        Est: {item.effort}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-text-secondary leading-relaxed">
-                      {item.tagline}
-                    </p>
-
-                    <div className="mt-2 text-[11px] font-mono text-warning/90 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-warning" />
-                      <span>Reason: {item.analyzedReason}</span>
-                    </div>
-                  </div>
+                <div className="w-14 h-14 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
+                  <Check size={28} />
+                </div>
+                <h3 className="text-lg font-semibold text-text-primary">
+                  Thank You for Your Suggestion!
+                </h3>
+                <p className="text-xs text-text-secondary max-w-md mx-auto leading-relaxed">
+                  Your improvement feedback has been securely submitted. Only the site administrator
+                  can view this submission to review and plan roadmap additions.
+                </p>
+                <div className="pt-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsSubmitted(false)}
+                    className="btn-primary text-xs px-4 py-2 inline-flex items-center gap-1.5"
+                  >
+                    <span>Submit Another Improvement</span>
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-2xl border border-border/80 bg-surface/80 p-6 md:p-8 shadow-sm"
+              >
+                <div className="border-b border-border/60 pb-5 mb-6">
+                  <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                    <FileText size={16} className="text-accent-cyan" />
+                    <span>Improvement Suggestion Form</span>
+                  </h2>
+                  <p className="text-xs text-text-secondary mt-1">
+                    Describe what feature or enhancement you would like added to the website.
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
-                  <span className="text-xs font-mono text-accent-cyan flex items-center gap-1">
-                    {isExpanded ? 'Collapse' : 'Explore & Apply'}
-                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                  </span>
+                <form onSubmit={handleSubmitSuggestion} className="space-y-5">
+                  {/* Title */}
+                  <div>
+                    <label className="block text-xs font-medium text-text-primary mb-1.5">
+                      Improvement Title <span className="text-rose-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formTitle}
+                      onChange={(e) => setFormTitle(e.target.value)}
+                      placeholder="e.g. Add interactive Git branch graph visualizer"
+                      className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-elevated border border-border/80 focus:border-accent-cyan/60 focus:outline-none text-text-primary placeholder:text-text-secondary/40 transition-colors"
+                    />
+                  </div>
+
+                  {/* Category Selection */}
+                  <div>
+                    <label className="block text-xs font-medium text-text-primary mb-2">
+                      Category
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                      {CATEGORIES.map((cat) => {
+                        const isSelected = formCategory === cat.id;
+                        return (
+                          <button
+                            type="button"
+                            key={cat.id}
+                            onClick={() => setFormCategory(cat.id)}
+                            className={`p-3 rounded-xl border text-left transition-all ${
+                              isSelected
+                                ? 'bg-accent-cyan/10 border-accent-cyan/60 shadow-xs'
+                                : 'bg-elevated/40 border-border/70 hover:bg-elevated hover:border-border'
+                            }`}
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <Tag
+                                size={12}
+                                className={isSelected ? 'text-accent-cyan' : 'text-text-secondary'}
+                              />
+                              <span
+                                className={`text-xs font-medium ${
+                                  isSelected ? 'text-accent-cyan' : 'text-text-primary'
+                                }`}
+                              >
+                                {cat.label}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-text-secondary mt-1 leading-snug">
+                              {cat.desc}
+                            </p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Detailed Description */}
+                  <div>
+                    <label className="block text-xs font-medium text-text-primary mb-1.5">
+                      Detailed Suggestion / How It Helps <span className="text-rose-400">*</span>
+                    </label>
+                    <textarea
+                      required
+                      rows={5}
+                      value={formDescription}
+                      onChange={(e) => setFormDescription(e.target.value)}
+                      placeholder="Explain how you would like this feature to work and how it will improve developer productivity on RepoPilot..."
+                      className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-elevated border border-border/80 focus:border-accent-cyan/60 focus:outline-none text-text-primary placeholder:text-text-secondary/40 resize-none leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Priority */}
+                  <div>
+                    <label className="block text-xs font-medium text-text-primary mb-1.5">
+                      Impact / Priority
+                    </label>
+                    <div className="flex gap-2">
+                      {(['low', 'medium', 'high'] as const).map((p) => (
+                        <button
+                          type="button"
+                          key={p}
+                          onClick={() => setFormPriority(p)}
+                          className={`flex-1 py-2 text-xs rounded-lg border capitalize transition-colors ${
+                            formPriority === p
+                              ? 'bg-accent-cyan/15 border-accent-cyan/60 text-accent-cyan font-medium'
+                              : 'bg-elevated/40 border-border/60 text-text-secondary hover:text-text-primary'
+                          }`}
+                        >
+                          {p === 'low' ? 'Nice to have' : p === 'medium' ? 'Helpful' : 'High Priority'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Submitter Name & Handle */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                    <div>
+                      <label className="block text-xs font-medium text-text-primary mb-1.5">
+                        Your Name
+                      </label>
+                      <input
+                        type="text"
+                        value={formName}
+                        onChange={(e) => setFormName(e.target.value)}
+                        placeholder="e.g. Alex Rivera"
+                        className="w-full px-3.5 py-2 text-xs rounded-lg bg-elevated border border-border/80 focus:border-accent-cyan/60 focus:outline-none text-text-primary placeholder:text-text-secondary/40"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-text-primary mb-1.5">
+                        GitHub Username or Email
+                      </label>
+                      <input
+                        type="text"
+                        value={formHandle}
+                        onChange={(e) => setFormHandle(e.target.value)}
+                        placeholder="e.g. @alex or alex@example.com"
+                        className="w-full px-3.5 py-2 text-xs rounded-lg bg-elevated border border-border/80 focus:border-accent-cyan/60 focus:outline-none text-text-primary placeholder:text-text-secondary/40"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="pt-4 border-t border-border flex items-center justify-between">
+                    <span className="text-[11px] text-text-secondary font-mono flex items-center gap-1">
+                      <Lock size={11} className="text-accent-cyan" />
+                      <span>Sent privately to Admin</span>
+                    </span>
+
+                    <button
+                      type="submit"
+                      className="btn-primary text-xs px-5 py-2.5 flex items-center gap-1.5 font-medium shadow-md shadow-accent-cyan/10"
+                    >
+                      <Send size={13} />
+                      <span>Send Suggestion</span>
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {/* ─── TAB 2: ADMIN VIEW (PASSWORD PROTECTED - ONLY ADMIN CAN VIEW) ─── */}
+        {activeTab === 'admin_view' && (
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl border border-accent-cyan/30 bg-accent-cyan/5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={18} className="text-accent-cyan" />
+                <div>
+                  <h3 className="text-xs font-semibold text-text-primary font-mono uppercase">
+                    Admin Protected View
+                  </h3>
+                  <p className="text-[11px] text-text-secondary">
+                    You are authenticated as administrator. Viewing all {feedbacks.length} submitted improvements.
+                  </p>
                 </div>
               </div>
 
-              {/* Expanded Details Drawer */}
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="border-t border-border/80 bg-surface/60 p-5 space-y-4"
-                  >
-                    {/* Benefits & Impact row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {item.benefits.map((b, i) => (
-                        <div key={i} className="flex items-start gap-2 p-2.5 rounded bg-elevated/50 border border-border/60 text-xs">
-                          <CheckCircle2 size={14} className="text-success shrink-0 mt-0.5" />
-                          <span className="text-text-secondary">{b}</span>
+              <Link
+                to="/admin"
+                className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1"
+              >
+                <span>Full Admin Dashboard</span>
+                <ArrowRight size={12} />
+              </Link>
+            </div>
+
+            {feedbacks.length === 0 ? (
+              <div className="p-12 text-center text-text-secondary border border-dashed border-border/80 rounded-xl bg-surface/40">
+                No improvement suggestions have been submitted yet.
+              </div>
+            ) : (
+              feedbacks.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-5 rounded-xl border border-border/80 bg-surface/80 space-y-3"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan uppercase">
+                          {item.category.replace('_', ' ')}
+                        </span>
+
+                        {/* Status selector */}
+                        <select
+                          value={item.status}
+                          onChange={(e) => handleStatusChange(item.id, e.target.value as FeedbackStatus)}
+                          className={`text-[10px] font-mono px-2 py-0.5 rounded border focus:outline-none cursor-pointer ${
+                            item.status === 'completed'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                              : item.status === 'planned'
+                              ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                              : item.status === 'in_progress'
+                              ? 'bg-purple-500/10 text-purple-300 border-purple-500/40'
+                              : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
+                          }`}
+                        >
+                          <option value="under_review" className="bg-surface text-text-primary">Under Review</option>
+                          <option value="planned" className="bg-surface text-text-primary">Planned</option>
+                          <option value="in_progress" className="bg-surface text-text-primary">In Progress</option>
+                          <option value="completed" className="bg-surface text-text-primary">Completed</option>
+                        </select>
+
+                        {item.priority === 'high' && (
+                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30 uppercase">
+                            High Priority
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-sm font-semibold text-text-primary">{item.title}</h3>
+                      <p className="text-xs text-text-secondary mt-1 leading-relaxed whitespace-pre-line">
+                        {item.description}
+                      </p>
+
+                      {item.adminNote && (
+                        <div className="mt-2.5 p-2.5 rounded-lg bg-accent-cyan/5 border border-accent-cyan/20 text-xs text-text-primary">
+                          <span className="text-[10px] font-mono text-accent-cyan font-semibold uppercase block">
+                            Admin Note:
+                          </span>
+                          <span className="text-[11px] text-text-secondary mt-0.5 block">
+                            {item.adminNote}
+                          </span>
                         </div>
-                      ))}
+                      )}
                     </div>
 
-                    {/* Files affected */}
-                    {item.targetFiles && item.targetFiles.length > 0 && (
-                      <div className="flex items-center gap-2 text-xs font-mono text-text-secondary flex-wrap">
-                        <span className="text-text-primary font-medium flex items-center gap-1">
-                          <FileCode size={13} className="text-accent-cyan" /> Target Files:
-                        </span>
-                        {item.targetFiles.map(f => (
-                          <span key={f} className="px-2 py-0.5 rounded bg-elevated border border-border text-accent-cyan text-[11px]">
-                            {f}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* CLI Run snippet */}
-                    <div className="flex items-center justify-between gap-2 p-3 rounded-lg bg-bg/90 border border-border font-mono text-xs">
-                      <div className="flex items-center gap-2 overflow-x-auto min-w-0">
-                        <Terminal size={14} className="text-accent-cyan shrink-0" />
-                        <span className="text-text-secondary shrink-0">Apply via CLI:</span>
-                        <code className="text-accent-cyan truncate">{item.cliCommand}</code>
-                      </div>
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
                         type="button"
-                        onClick={() => copyToClipboard(`cli-${item.id}`, item.cliCommand)}
-                        className="btn-secondary py-1 px-2.5 text-xs flex items-center gap-1 shrink-0 cursor-pointer"
+                        onClick={() => {
+                          setEditingNoteId(item.id);
+                          setAdminNoteText(item.adminNote || '');
+                        }}
+                        className="p-1.5 rounded-lg bg-elevated border border-border/80 hover:border-accent-cyan/40 text-text-secondary hover:text-text-primary transition-colors text-xs"
+                        title="Add admin reply"
                       >
-                        {isCliCopied ? (
-                          <>
-                            <Check size={11} className="text-success" />
-                            <span className="text-success font-medium">Copied!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={11} />
-                            <span>Copy CLI</span>
-                          </>
-                        )}
+                        <Edit3 size={13} className="text-accent-cyan" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(item.id)}
+                        className="p-1.5 rounded-lg bg-elevated border border-border/80 hover:bg-rose-500/10 hover:border-rose-500/40 text-text-secondary hover:text-rose-400 transition-colors text-xs"
+                        title="Delete suggestion"
+                      >
+                        <Trash2 size={13} />
                       </button>
                     </div>
+                  </div>
 
-                    {/* Code comparison / Drop-in snippet */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-text-secondary">DROP-IN CODE TEMPLATE:</span>
-                          <span className="text-xs font-mono text-text-primary font-semibold">{item.filename}</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(item.id, item.codeSnippet)}
-                          className="btn-primary py-1 px-3 text-xs flex items-center gap-1.5 cursor-pointer shadow-sm"
-                        >
-                          {isCopied ? (
-                            <>
-                              <Check size={12} />
-                              <span>Code Copied!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy size={12} />
-                              <span>Copy Code</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-
-                      <div className="rounded-lg bg-bg border border-border/80 overflow-hidden text-xs font-mono">
-                        <div className="bg-elevated/90 px-3.5 py-1.5 border-b border-border flex items-center justify-between text-[11px] text-text-secondary">
-                          <span>{item.filename}</span>
-                          <span>Configuration / Code</span>
-                        </div>
-                        <pre className="p-4 overflow-x-auto text-text-primary leading-relaxed max-h-72">
-                          <code>{item.codeSnippet}</code>
-                        </pre>
-                      </div>
+                  <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[10px] font-mono text-text-secondary">
+                    <div className="flex items-center gap-2">
+                      <User size={11} />
+                      <span className="text-text-primary">{item.submittedBy}</span>
+                      <span>({item.userHandle || 'none'})</span>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          );
-        })}
+                    <div className="flex items-center gap-1">
+                      <Clock size={11} />
+                      <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Admin Password Prompt Modal */}
+      <AnimatePresence>
+        {showAdminLogin && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-2xl p-6 space-y-4"
+            >
+              <div className="flex items-center gap-2.5 border-b border-border/80 pb-3">
+                <div className="w-8 h-8 rounded-lg bg-accent-cyan/10 border border-accent-cyan/30 flex items-center justify-center text-accent-cyan">
+                  <Lock size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-text-primary">
+                    Administrator Authentication
+                  </h3>
+                  <p className="text-[11px] text-text-secondary">
+                    Enter password to view user improvements
+                  </p>
+                </div>
+              </div>
+
+              {authError && (
+                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+                  <AlertCircle size={14} className="shrink-0" />
+                  <span>{authError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleAdminLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-text-primary mb-1">
+                    Admin Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPasswordText ? 'text' : 'password'}
+                      required
+                      value={adminPasswordInput}
+                      onChange={(e) => setAdminPasswordInput(e.target.value)}
+                      placeholder="Enter administrator password..."
+                      className="w-full px-3 py-2 pr-9 text-xs rounded-lg bg-elevated border border-border focus:border-accent-cyan focus:outline-none text-text-primary font-mono placeholder:text-text-secondary/40"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordText(!showPasswordText)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary p-1"
+                    >
+                      {showPasswordText ? <EyeOff size={13} /> : <Eye size={13} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAdminLogin(false);
+                      setAuthError('');
+                      setAdminPasswordInput('');
+                    }}
+                    className="px-3 py-1.5 text-xs rounded text-text-secondary hover:text-text-primary transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isVerifying}
+                    className="btn-primary text-xs px-4 py-1.5 flex items-center gap-1.5"
+                  >
+                    <Lock size={12} />
+                    <span>{isVerifying ? 'Verifying...' : 'Unlock View'}</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal: Edit Admin Note */}
+      <AnimatePresence>
+        {editingNoteId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-surface border border-border rounded-xl shadow-2xl p-6 space-y-4"
+            >
+              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+                <Edit3 size={15} className="text-accent-cyan" />
+                <span>Add / Edit Admin Note</span>
+              </h3>
+
+              <textarea
+                rows={3}
+                value={adminNoteText}
+                onChange={(e) => setAdminNoteText(e.target.value)}
+                placeholder="Write an internal note or response..."
+                className="w-full px-3 py-2 text-xs rounded-lg bg-elevated border border-border focus:border-accent-cyan focus:outline-none text-text-primary resize-none"
+              />
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingNoteId(null)}
+                  className="px-3 py-1.5 text-xs rounded text-text-secondary hover:text-text-primary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveNote(editingNoteId)}
+                  className="btn-primary text-xs px-4 py-1.5"
+                >
+                  Save Note
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

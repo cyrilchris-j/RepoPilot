@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ScanningLine } from '../components/ui/CodeBlock';
 import { useRepo } from '../lib/RepoContext';
 import { analyzeRepositoryUniversal } from '../lib/repoAnalyzer';
+import { recordRepositoryAnalysis } from '../lib/adminFeedbackService';
 
 export function AnalyzingPage() {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ export function AnalyzingPage() {
         setCompleted(true);
         setLogs(prev => [...prev.slice(-6), 'WORKSPACE READY — 100% Analyzed']);
 
-        // Update recents
+        // Update recents & track for Admin Dashboard
         try {
           const key = 'repopilot_recent_repos';
           const recents: string[] = JSON.parse(localStorage.getItem(key) || '[]');
@@ -80,6 +81,12 @@ export function AnalyzingPage() {
           localStorage.setItem(key, JSON.stringify(filtered.slice(0, 5)));
         } catch {
           // ignore
+        }
+
+        try {
+          recordRepositoryAnalysis(result);
+        } catch (e) {
+          console.warn('[AnalyzingPage] Failed to track repo for admin:', e);
         }
 
         setTimeout(() => {

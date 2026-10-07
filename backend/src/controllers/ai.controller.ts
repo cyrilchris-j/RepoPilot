@@ -9,6 +9,7 @@ import {
   getGitInsightsForRepo,
 } from '../services/repoManager';
 import type { FileExplanation, TaskPlan, ChatMessage } from '../types';
+import { saveTrackedRepoInternal } from './admin.controller';
 
 const LANGUAGE_MAP: Record<string, string> = {
   '.ts': 'typescript', '.tsx': 'tsx', '.js': 'javascript', '.jsx': 'jsx',
@@ -106,6 +107,19 @@ export async function analyzeRepository(req: Request, res: Response): Promise<vo
   try {
     console.log(`[ai.controller] Starting analysis for: ${repositoryUrl}`);
     const repoData = await getOrCloneRepository(repositoryUrl);
+
+    try {
+      saveTrackedRepoInternal({
+        url: repoData.url,
+        name: repoData.name,
+        owner: repoData.owner,
+        language: repoData.language,
+        totalFiles: repoData.files?.length || 0,
+        linesOfCode: repoData.metrics?.linesOfCode || 0,
+      });
+    } catch {
+      // ignore
+    }
 
     res.json({
       status: 'complete',

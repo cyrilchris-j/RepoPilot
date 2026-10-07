@@ -180,3 +180,53 @@ export interface RepoAnalysisResult {
   message?: string;
 }
 
+export type FeedbackCategory =
+  | 'feature'
+  | 'ui_ux'
+  | 'agent_ai'
+  | 'performance'
+  | 'integration'
+  | 'other';
+
+export type FeedbackStatus = 'under_review' | 'planned' | 'in_progress' | 'completed';
+
+export interface UserFeedback {
+  id: string;
+  title: string;
+  description: string;
+  category: FeedbackCategory;
+  submittedBy: string;
+  userHandle?: string;
+  createdAt: string;
+  votes: number;
+  hasVoted?: boolean;
+  status: FeedbackStatus;
+  priority?: 'low' | 'medium' | 'high';
+  adminNote?: string;
+}
+
+export interface TrackedRepository {
+  id: string;
+  url: string;
+  name: string;
+  owner: string;
+  language?: string;
+  analyzedAt: string;
+  analysisCount: number;
+  lastAnalyzedAt: string;
+  stars?: number;
+  totalFiles?: number;
+  linesOfCode?: number;
+  status: 'complete' | 'analyzing' | 'error';
+}
+
+export interface AdminStats {
+  totalRepositories: number;
+  totalAnalyses: number;
+  uniqueUsers: number;
+  totalFeedback: number;
+  totalVotes: number;
+  topLanguages: Array<{ language: string; count: number }>;
+}
+
+

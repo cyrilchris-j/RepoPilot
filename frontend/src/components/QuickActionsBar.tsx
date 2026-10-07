@@ -12,11 +12,11 @@ import {
 
 const ACTIONS = [
   {
-    title: 'Improvement Lab',
-    subtitle: 'Component ideas, drop-in recipes & CLI merger',
+    title: 'Feedback & Ideas',
+    subtitle: 'Suggest improvements, request features & vote on roadmap',
     to: '/app/improvements',
     icon: Sparkles,
-    badge: 'Lab',
+    badge: 'Wishlist',
     color: 'from-accent-cyan/25 to-accent-violet/20 border-accent-cyan/40 text-accent-cyan',
   },
   {

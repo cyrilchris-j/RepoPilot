@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Search,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { StatusBadge } from './ui/StatusBadge';
 import { RepoSwitcher } from './RepoSwitcher';
@@ -125,7 +126,7 @@ export function AppSidebar({
                     )}
                     {item.id === 'improvements' && (
                       <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accent-violet/20 text-accent-violet border border-accent-violet/40 uppercase font-semibold">
-                        LAB
+                        IDEAS
                       </span>
                     )}
                   </span>
@@ -151,7 +152,7 @@ export function AppSidebar({
         </div>
       </nav>
 
-      {/* System status */}
+      {/* System status + Admin */}
       <div className="px-4 py-3 border-t border-border">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-mono text-text-secondary">SYSTEM</span>
@@ -161,6 +162,18 @@ export function AppSidebar({
           </span>
         </div>
         <div className="mt-1 text-[10px] font-mono text-text-secondary">AI: IBM watsonx.ai</div>
+
+        <Link
+          to="/admin"
+          className="mt-2.5 flex items-center justify-between px-2 py-1.5 rounded-md bg-elevated/60 hover:bg-elevated border border-border/70 hover:border-accent-cyan/40 text-text-secondary hover:text-text-primary text-[11px] font-mono transition-colors group"
+          title="Open Admin Dashboard"
+        >
+          <span className="flex items-center gap-1.5">
+            <ShieldCheck size={12} className="text-accent-cyan" />
+            <span>Admin Center</span>
+          </span>
+          <ChevronRight size={11} className="text-text-secondary/50 group-hover:text-accent-cyan transition-colors" />
+        </Link>
       </div>
     </aside>
   );

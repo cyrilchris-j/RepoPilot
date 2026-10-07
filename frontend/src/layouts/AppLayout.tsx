@@ -5,7 +5,7 @@ import { MobileNav } from '../components/MobileNav';
 import { CommandPalette } from '../components/CommandPalette';
 import { OnboardingExportModal } from '../components/OnboardingExportButton';
 import { useRepo } from '../lib/RepoContext';
-import { Search, ExternalLink, BookOpen, MessageCircle } from 'lucide-react';
+import { Search, ExternalLink, BookOpen, MessageCircle, ShieldCheck } from 'lucide-react';
 
 export function AppLayout() {
   const { repoUrl, repoData } = useRepo();
@@ -40,7 +40,7 @@ export function AppLayout() {
   // Current page breadcrumb title
   const pageTitle = (() => {
     const p = location.pathname;
-    if (p.includes('/improvements')) return 'Improvement Lab & Recipes';
+    if (p.includes('/improvements')) return 'Improvement Feedback & Wishlist';
     if (p.includes('/architecture')) return 'Architecture';
     if (p.includes('/setup')) return 'Environment & Setup';
     if (p.includes('/dependencies')) return 'Dependencies';
@@ -110,6 +110,16 @@ export function AppLayout() {
               <BookOpen size={13} className="text-accent-cyan" />
               <span className="hidden lg:inline text-[11px] font-mono">Export Handbook</span>
             </button>
+
+            {/* Admin Dashboard shortcut */}
+            <Link
+              to="/admin"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-elevated/50 hover:bg-elevated border border-border/60 hover:border-accent-cyan/40 text-text-secondary hover:text-text-primary text-xs transition-colors"
+              title="Open Admin Dashboard"
+            >
+              <ShieldCheck size={13} className="text-accent-cyan" />
+              <span className="hidden lg:inline text-[11px] font-mono">Admin</span>
+            </Link>
 
             {/* GitHub external link if valid URL */}
             {repoUrl && (

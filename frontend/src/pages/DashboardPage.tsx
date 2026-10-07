@@ -322,7 +322,7 @@ export function DashboardPage() {
               to="/app/improvements"
               className="btn-primary text-xs px-4 py-2 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-md"
             >
-              <span>Explore Ideas &amp; Components</span>
+              <span>Community Feedback &amp; Ideas</span>
               <ArrowRight size={13} />
             </Link>
           </div>

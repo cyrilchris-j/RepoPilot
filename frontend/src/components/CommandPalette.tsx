@@ -20,6 +20,7 @@ import {
   GitPullRequest,
   FolderGit2,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
 import { useCodeViewer } from '../lib/CodeViewerContext';
@@ -89,12 +90,24 @@ export function CommandPalette({
       {
         id: 'nav-improvements',
         category: 'Navigation',
-        title: 'Improvement Lab & Component Ideas',
-        subtitle: 'Architectural optimizations, drop-in recipes & CLI merger',
+        title: 'Improvement Wishlist & Feedback',
+        subtitle: 'Suggest features, vote on roadmap & submit feedback',
         icon: Sparkles,
-        badge: 'New',
+        badge: 'Community',
         action: () => {
           navigate('/app/improvements');
+          onClose();
+        },
+      },
+      {
+        id: 'nav-admin',
+        category: 'Navigation',
+        title: 'Admin Dashboard & Usage Analytics',
+        subtitle: 'Track analyzed repositories, website usage count & user ideas',
+        icon: ShieldCheck,
+        badge: 'Admin',
+        action: () => {
+          navigate('/admin');
           onClose();
         },
       },

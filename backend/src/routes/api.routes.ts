@@ -9,6 +9,20 @@ import {
   getGitInsights,
 } from '../controllers/ai.controller';
 import { getDiagnostics } from '../controllers/diagnostics.controller';
+import {
+  getTrackedRepositories,
+  recordTrackedRepository,
+  deleteTrackedRepository,
+  getAdminStats,
+  verifyAdminPassword,
+} from '../controllers/admin.controller';
+import {
+  getAllFeedback,
+  createFeedback,
+  voteFeedback,
+  updateFeedback,
+  deleteFeedback,
+} from '../controllers/feedback.controller';
 
 const router = Router();
 
@@ -20,5 +34,19 @@ router.post('/explain-file', explainFile);
 router.post('/task-plan', generateTaskPlan);
 router.get('/git-insights', getGitInsights);
 router.get('/diagnostics', getDiagnostics);
+
+// Admin & Usage tracking routes
+router.post('/admin/verify', verifyAdminPassword);
+router.get('/admin/repositories', getTrackedRepositories);
+router.post('/admin/repositories', recordTrackedRepository);
+router.delete('/admin/repositories/:id', deleteTrackedRepository);
+router.get('/admin/stats', getAdminStats);
+
+// Community Improvement Suggestions & Feedback routes
+router.get('/feedback', getAllFeedback);
+router.post('/feedback', createFeedback);
+router.post('/feedback/:id/vote', voteFeedback);
+router.patch('/admin/feedback/:id', updateFeedback);
+router.delete('/admin/feedback/:id', deleteFeedback);
 
 export default router;
