@@ -20,13 +20,13 @@ import { OnboardingExportButton } from './OnboardingExportButton';
 
 const navItems = [
   { id: 'overview',      label: 'Overview',       icon: <LayoutDashboard size={18} />, path: '/app' },
-  { id: 'improvements',  label: 'Improvements',  icon: <Sparkles size={18} />,        path: '/app/improvements' },
   { id: 'ask',           label: 'Ask Codebase',   icon: <MessageCircle size={18} />,   path: '/app/ask' },
   { id: 'architecture',  label: 'Architecture',   icon: <GitBranch size={18} />,       path: '/app/architecture' },
   { id: 'setup',         label: 'Setup',           icon: <Settings size={18} />,        path: '/app/setup' },
   { id: 'dependencies',  label: 'Dependencies',   icon: <Package size={18} />,         path: '/app/dependencies' },
   { id: 'debug',         label: 'Debug Agent',    icon: <Bug size={18} />,             path: '/app/debug' },
   { id: 'tasks',         label: 'Starter Tasks',  icon: <Compass size={18} />,         path: '/app/tasks' },
+  { id: 'improvements',  label: 'Improvements',  icon: <Sparkles size={18} />,        path: '/app/improvements' },
 ];
 
 interface MobileNavProps {

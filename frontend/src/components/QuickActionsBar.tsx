@@ -12,14 +12,6 @@ import {
 
 const ACTIONS = [
   {
-    title: 'Feedback & Ideas',
-    subtitle: 'Suggest improvements, request features & vote on roadmap',
-    to: '/app/improvements',
-    icon: Sparkles,
-    badge: 'Wishlist',
-    color: 'from-accent-cyan/25 to-accent-violet/20 border-accent-cyan/40 text-accent-cyan',
-  },
-  {
     title: 'Ask Codebase',
     subtitle: 'Ask questions about routes, logic & design patterns',
     to: '/app/ask',
@@ -58,6 +50,14 @@ const ACTIONS = [
     icon: Bug,
     badge: 'AI Debug',
     color: 'from-rose-500/20 to-pink-500/10 border-rose-500/30 text-rose-400',
+  },
+  {
+    title: 'Feedback & Ideas',
+    subtitle: 'Suggest improvements, request features & vote on roadmap',
+    to: '/app/improvements',
+    icon: Sparkles,
+    badge: 'Wishlist',
+    color: 'from-accent-cyan/25 to-accent-violet/20 border-accent-cyan/40 text-accent-cyan',
   },
 ];
 

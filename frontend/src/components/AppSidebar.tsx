@@ -26,13 +26,13 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'overview',      label: 'Overview',      icon: <LayoutDashboard size={15} />, path: '/app' },
-  { id: 'improvements',  label: 'Improvements', icon: <Sparkles size={15} />,        path: '/app/improvements' },
   { id: 'ask',           label: 'Ask Codebase',  icon: <MessageCircle size={15} />,   path: '/app/ask' },
   { id: 'architecture',  label: 'Architecture',  icon: <GitBranch size={15} />,       path: '/app/architecture' },
   { id: 'setup',         label: 'Setup',          icon: <Settings size={15} />,        path: '/app/setup' },
   { id: 'dependencies',  label: 'Dependencies',  icon: <Package size={15} />,         path: '/app/dependencies' },
   { id: 'debug',         label: 'Debug Agent',   icon: <Bug size={15} />,             path: '/app/debug' },
   { id: 'tasks',         label: 'Starter Tasks', icon: <Compass size={15} />,         path: '/app/tasks' },
+  { id: 'improvements',  label: 'Improvements', icon: <Sparkles size={15} />,        path: '/app/improvements' },
 ];
 
 interface AppSidebarProps {
