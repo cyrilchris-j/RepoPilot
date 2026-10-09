@@ -84,9 +84,49 @@ export interface QAAnswer {
   explanation: string;
   relevantFiles: Array<{ path: string; description: string }>;
   relevantFunctions?: Array<{ name: string; file: string }>;
+  developerBenefits?: string[];
+  userBenefits?: string[];
+  userFlowSteps?: Array<{ step: number; title: string; description: string }>;
   confidence: 'high' | 'medium' | 'low';
   suggestedFollowUps?: string[];
 }
+
+export interface UserFlowStep {
+  step: number;
+  phase: string;
+  title: string;
+  description: string;
+  userAction: string;
+  systemAction: string;
+  keyFiles: string[];
+  outcome: string;
+}
+
+export interface ProjectSummaryData {
+  projectName: string;
+  repoOwner: string;
+  tagline: string;
+  motto: string;
+  executiveSummary: string;
+  howItWorks: string;
+  developerBenefits: Array<{ title: string; description: string; metric?: string }>;
+  userBenefits: Array<{ title: string; description: string; metric?: string }>;
+  userFlowSteps: UserFlowStep[];
+  technicalArchitecture: Array<{
+    tier: string;
+    description: string;
+    technologies: string[];
+    entryFiles: string[];
+  }>;
+  keyHighlights: string[];
+  metricsOverview: {
+    totalFiles: number;
+    linesOfCode: number;
+    dependencies: number;
+    language: string;
+  };
+}
+
 
 export interface StarterTask {
   id: string;

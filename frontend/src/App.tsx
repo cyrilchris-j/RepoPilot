@@ -14,6 +14,7 @@ import { AskPage } from './pages/AskPage';
 import { StarterTasksPage } from './pages/StarterTasksPage';
 import { ImprovementsPage } from './pages/ImprovementsPage';
 import { AdminPage } from './pages/AdminPage';
+import { ProjectSummaryPage } from './pages/ProjectSummaryPage';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="/analyzing" element={<AnalyzingPage />} />
             <Route path="/app" element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
+              <Route path="summary" element={<ProjectSummaryPage />} />
               <Route path="improvements" element={<ImprovementsPage />} />
               <Route path="architecture" element={<ArchitecturePage />} />
               <Route path="setup" element={<SetupPage />} />
@@ -41,3 +43,4 @@ export default function App() {
     </RepoProvider>
   );
 }
+

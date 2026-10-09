@@ -181,7 +181,40 @@ export function DashboardPage() {
         </div>
       </motion.div>
 
+      {/* Featured Project Summary & User Flow Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="relative overflow-hidden rounded-xl border border-accent-cyan/30 bg-gradient-to-r from-accent-cyan/15 via-surface to-accent-violet/10 p-4 sm:p-5 shadow-lg group"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/40">
+                RECOMMENDED FIRST STEP
+              </span>
+              <span className="text-xs font-mono text-text-secondary">Architecture Blueprint</span>
+            </div>
+            <h2 className="text-base font-bold text-text-primary flex items-center gap-2">
+              <span>Deep Project Summary &amp; End-to-End User Flow</span>
+            </h2>
+            <p className="text-xs text-text-secondary max-w-2xl leading-relaxed">
+              Explore how this project operates under the hood, view the 5-stage interactive user journey, and review the dual-benefit matrix for both engineers and real users.
+            </p>
+          </div>
+          <Link
+            to="/app/summary"
+            className="btn-primary text-xs flex items-center gap-2 py-2.5 px-4 shrink-0 shadow-sm"
+          >
+            <span>View Project Summary &amp; Flow</span>
+            <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+      </motion.div>
+
       {/* Ask Codebase Session (Hero Prompt Bar - Primary Interactive Action) */}
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}

@@ -90,8 +90,9 @@ export function AnalyzingPage() {
         }
 
         setTimeout(() => {
-          navigate('/app');
+          navigate('/app/summary');
         }, 900);
+
       } catch (err: any) {
         console.error('[AnalyzingPage] analysis failed:', err);
         if (isCancelled) return;

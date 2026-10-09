@@ -7,6 +7,7 @@ import {
   explainFile,
   generateTaskPlan,
   getGitInsights,
+  getProjectSummary,
 } from '../controllers/ai.controller';
 import { getDiagnostics } from '../controllers/diagnostics.controller';
 import {
@@ -34,6 +35,9 @@ router.post('/explain-file', explainFile);
 router.post('/task-plan', generateTaskPlan);
 router.get('/git-insights', getGitInsights);
 router.get('/diagnostics', getDiagnostics);
+router.post('/project-summary', getProjectSummary);
+router.get('/project-summary', getProjectSummary);
+
 
 // Admin & Usage tracking routes
 router.post('/admin/verify', verifyAdminPassword);

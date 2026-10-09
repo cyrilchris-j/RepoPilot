@@ -40,6 +40,7 @@ export function AppLayout() {
   // Current page breadcrumb title
   const pageTitle = (() => {
     const p = location.pathname;
+    if (p.includes('/summary')) return 'Project Summary & User Flow';
     if (p.includes('/improvements')) return 'Improvement Feedback & Wishlist';
     if (p.includes('/architecture')) return 'Architecture';
     if (p.includes('/setup')) return 'Environment & Setup';
@@ -49,6 +50,7 @@ export function AppLayout() {
     if (p.includes('/tasks')) return 'Starter Tasks';
     return 'Overview';
   })();
+
 
   return (
     <div className="flex h-screen bg-bg overflow-hidden">

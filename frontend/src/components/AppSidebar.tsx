@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Search,
   Sparkles,
+  BookOpen,
 } from 'lucide-react';
 import { StatusBadge } from './ui/StatusBadge';
 import { RepoSwitcher } from './RepoSwitcher';
@@ -25,15 +26,17 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { id: 'overview',      label: 'Overview',      icon: <LayoutDashboard size={15} />, path: '/app' },
-  { id: 'ask',           label: 'Ask Codebase',  icon: <MessageCircle size={15} />,   path: '/app/ask' },
-  { id: 'architecture',  label: 'Architecture',  icon: <GitBranch size={15} />,       path: '/app/architecture' },
-  { id: 'setup',         label: 'Setup',          icon: <Settings size={15} />,        path: '/app/setup' },
-  { id: 'dependencies',  label: 'Dependencies',  icon: <Package size={15} />,         path: '/app/dependencies' },
-  { id: 'debug',         label: 'Debug Agent',   icon: <Bug size={15} />,             path: '/app/debug' },
-  { id: 'tasks',         label: 'Starter Tasks', icon: <Compass size={15} />,         path: '/app/tasks' },
-  { id: 'improvements',  label: 'Improvements', icon: <Sparkles size={15} />,        path: '/app/improvements' },
+  { id: 'overview',      label: 'Overview',        icon: <LayoutDashboard size={15} />, path: '/app' },
+  { id: 'summary',       label: 'Project Summary', icon: <BookOpen size={15} />,        path: '/app/summary' },
+  { id: 'ask',           label: 'Ask Codebase',    icon: <MessageCircle size={15} />,   path: '/app/ask' },
+  { id: 'architecture',  label: 'Architecture',    icon: <GitBranch size={15} />,       path: '/app/architecture' },
+  { id: 'setup',         label: 'Setup',            icon: <Settings size={15} />,        path: '/app/setup' },
+  { id: 'dependencies',  label: 'Dependencies',    icon: <Package size={15} />,         path: '/app/dependencies' },
+  { id: 'debug',         label: 'Debug Agent',     icon: <Bug size={15} />,             path: '/app/debug' },
+  { id: 'tasks',         label: 'Starter Tasks',   icon: <Compass size={15} />,         path: '/app/tasks' },
+  { id: 'improvements',  label: 'Improvements',    icon: <Sparkles size={15} />,        path: '/app/improvements' },
 ];
+
 
 interface AppSidebarProps {
   repoName: string;
@@ -118,6 +121,11 @@ export function AppSidebar({
                   </span>
                   <span className="flex-1 text-[13px] font-medium flex items-center justify-between">
                     <span>{item.label}</span>
+                    {item.id === 'summary' && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30 uppercase font-semibold">
+                        FLOW
+                      </span>
+                    )}
                     {item.id === 'ask' && (
                       <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30 uppercase font-semibold">
                         AI
@@ -128,6 +136,7 @@ export function AppSidebar({
                         IDEAS
                       </span>
                     )}
+
                   </span>
                   {isActive && (
                     <motion.span

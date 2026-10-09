@@ -21,6 +21,7 @@ import {
   FolderGit2,
   Sparkles,
   ShieldCheck,
+  BookOpen,
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
 import { useCodeViewer } from '../lib/CodeViewerContext';
@@ -83,10 +84,23 @@ export function CommandPalette({
         icon: LayoutDashboard,
         badge: 'Page',
         action: () => {
-          navigate('/app/dashboard');
+          navigate('/app');
           onClose();
         },
       },
+      {
+        id: 'nav-summary',
+        category: 'Navigation',
+        title: 'Project Summary & User Flow Walkthrough',
+        subtitle: 'Comprehensive executive summary, user journey & developer benefits',
+        icon: BookOpen,
+        badge: 'Flow',
+        action: () => {
+          navigate('/app/summary');
+          onClose();
+        },
+      },
+
       {
         id: 'nav-improvements',
         category: 'Navigation',

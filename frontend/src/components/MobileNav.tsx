@@ -12,6 +12,7 @@ import {
   X,
   ChevronLeft,
   Sparkles,
+  BookOpen,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusBadge } from './ui/StatusBadge';
@@ -19,15 +20,17 @@ import { RepoSwitcher } from './RepoSwitcher';
 import { OnboardingExportButton } from './OnboardingExportButton';
 
 const navItems = [
-  { id: 'overview',      label: 'Overview',       icon: <LayoutDashboard size={18} />, path: '/app' },
-  { id: 'ask',           label: 'Ask Codebase',   icon: <MessageCircle size={18} />,   path: '/app/ask' },
-  { id: 'architecture',  label: 'Architecture',   icon: <GitBranch size={18} />,       path: '/app/architecture' },
-  { id: 'setup',         label: 'Setup',           icon: <Settings size={18} />,        path: '/app/setup' },
-  { id: 'dependencies',  label: 'Dependencies',   icon: <Package size={18} />,         path: '/app/dependencies' },
-  { id: 'debug',         label: 'Debug Agent',    icon: <Bug size={18} />,             path: '/app/debug' },
-  { id: 'tasks',         label: 'Starter Tasks',  icon: <Compass size={18} />,         path: '/app/tasks' },
-  { id: 'improvements',  label: 'Improvements',  icon: <Sparkles size={18} />,        path: '/app/improvements' },
+  { id: 'overview',      label: 'Overview',        icon: <LayoutDashboard size={18} />, path: '/app' },
+  { id: 'summary',       label: 'Project Summary', icon: <BookOpen size={18} />,        path: '/app/summary' },
+  { id: 'ask',           label: 'Ask Codebase',    icon: <MessageCircle size={18} />,   path: '/app/ask' },
+  { id: 'architecture',  label: 'Architecture',    icon: <GitBranch size={18} />,       path: '/app/architecture' },
+  { id: 'setup',         label: 'Setup',            icon: <Settings size={18} />,        path: '/app/setup' },
+  { id: 'dependencies',  label: 'Dependencies',    icon: <Package size={18} />,         path: '/app/dependencies' },
+  { id: 'debug',         label: 'Debug Agent',     icon: <Bug size={18} />,             path: '/app/debug' },
+  { id: 'tasks',         label: 'Starter Tasks',   icon: <Compass size={18} />,         path: '/app/tasks' },
+  { id: 'improvements',  label: 'Improvements',    icon: <Sparkles size={18} />,        path: '/app/improvements' },
 ];
+
 
 interface MobileNavProps {
   repoName: string;
