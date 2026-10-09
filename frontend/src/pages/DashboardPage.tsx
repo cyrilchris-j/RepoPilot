@@ -1,6 +1,6 @@
-import { useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   GitBranch,
   Clock,
@@ -9,13 +9,23 @@ import {
   CheckCircle,
   XCircle,
   ArrowRight,
+  Flame,
+  Users,
+  GitCommit,
+  MessageSquareCode,
+  Search,
+  Send,
+  Sparkles,
+  Terminal,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
 import { StatusBadge } from '../components/ui/StatusBadge';
-import {
-  DEMO_REPO, DEMO_METRICS, DEMO_ACTIVITY,
-  DEMO_SETUP_STEPS, DEMO_STARTER_TASKS,
-} from '../lib/demo-data';
+import { OnboardingExportButton } from '../components/OnboardingExportButton';
+import { QuickActionsBar } from '../components/QuickActionsBar';
+import { GitCommandsSection } from '../components/GitCommandsSection';
+import type { AnalysisActivity, GitInsights } from '../types';
 
 function Counter({ target }: { target: number }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -42,18 +52,100 @@ function MetricCard({ label, value, sub, accent = false }: {
 }
 
 export function DashboardPage() {
+  const navigate = useNavigate();
+  const [askInput, setAskInput] = useState('');
+  const [copiedSpecialCmd, setCopiedSpecialCmd] = useState(false);
   const { repoData, repoUrl } = useRepo();
-  const repo = repoData?.repository || (repoUrl ? {
-    url: repoUrl,
-    name: repoUrl.split('/').pop()?.replace(/\.git$/, '') || 'repository',
-    owner: repoUrl.split('/').slice(-2)[0] || 'owner',
-    branch: 'main',
-    description: repoData?.repository?.description || 'Repository workspace analyzed by RepoPilot',
-    status: 'complete' as const,
-  } : DEMO_REPO);
-  const metrics = repoData?.metrics || DEMO_METRICS;
-  const setupSteps = repoData?.setupSteps || DEMO_SETUP_STEPS;
-  const starterTasks = repoData?.starterTasks || DEMO_STARTER_TASKS;
+  const repo = repoData?.repository || (() => {
+    const rawUrl = repoUrl || '';
+    const clean = rawUrl ? rawUrl.replace(/^https?:\/\//, '').replace(/^github\.com\//, '').replace(/\.git$/, '') : 'workspace';
+    const parts = clean.split('/');
+    const owner = parts.length > 1 ? parts[0] : 'workspace';
+    const name = parts.length > 1 ? parts[1] : clean;
+    return {
+      url: rawUrl ? (rawUrl.startsWith('http') ? rawUrl : `https://github.com/${clean}`) : '',
+      name: name || 'Repository',
+      owner: owner || 'local',
+      branch: 'main',
+      description: `${name} repository analyzed by RepoPilot`,
+      language: 'JavaScript',
+      status: 'complete' as const,
+    };
+  })();
+
+  const metrics = repoData?.metrics || {
+    totalFiles: 0,
+    linesOfCode: 0,
+    dependencies: repoData?.dependenciesList?.length || 0,
+    routes: 0,
+    modules: 0,
+    testCoverage: 0,
+  };
+
+  const setupSteps = repoData?.setupSteps || [];
+  const starterTasks = repoData?.starterTasks || [];
+
+  const gitInsights: GitInsights = repoData?.gitInsights || {
+    hotspots: (repoData?.architectureNodes || []).map(n => ({
+      path: n.filePath || n.label,
+      commits: 5,
+      churnScore: 'medium' as const,
+    })),
+    contributors: [
+      { name: repo.owner, commits: 10, percentage: 100 }
+    ],
+    recentCommits: [],
+    totalCommits: 10,
+  };
+
+  const dynamicActivity: AnalysisActivity[] = useMemo(() => {
+    const totalFiles = metrics.totalFiles || repoData?.architectureNodes?.length || 1;
+    const depsCount = metrics.dependencies || repoData?.dependenciesList?.length || 0;
+    const nodesCount = repoData?.architectureNodes?.length || 3;
+    const repoName = repo.name || 'Repository';
+
+    return [
+      { id: '1', timestamp: 'just now', message: `${repoName} index complete — ${totalFiles} files analyzed`, type: 'success' },
+      { id: '2', timestamp: 'just now', message: `Dependency graph resolved — ${depsCount} packages detected`, type: 'info' },
+      { id: '3', timestamp: 'just now', message: `Architecture mapped — ${nodesCount} structural components identified`, type: 'success' },
+      { id: '4', timestamp: 'just now', message: `Tailored improvements and CLI command generated for ${repoName}`, type: 'success' },
+      { id: '5', timestamp: 'just now', message: 'Developer workspace ready', type: 'success' },
+    ];
+  }, [repoData, metrics, repo.name]);
+
+  const handleAskSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!askInput.trim()) return;
+    navigate(`/app/ask?q=${encodeURIComponent(askInput.trim())}`);
+  };
+
+  const handleAskPrompt = (prompt: string) => {
+    navigate(`/app/ask?q=${encodeURIComponent(prompt)}`);
+  };
+
+  const miniArchNodes = (repoData?.architectureNodes && repoData.architectureNodes.length > 0)
+    ? repoData.architectureNodes.slice(0, 5).map(node => {
+        const color = node.type === 'frontend'
+          ? 'border-accent-cyan/40 text-accent-cyan bg-accent-cyan/5'
+          : node.type === 'backend'
+          ? 'border-accent-violet/40 text-accent-violet bg-accent-violet/5'
+          : node.type === 'database'
+          ? 'border-success/40 text-success bg-success/5'
+          : node.type === 'auth'
+          ? 'border-warning/40 text-warning bg-warning/5'
+          : 'border-border text-text-secondary';
+        return {
+          label: node.label,
+          sub: node.technology || node.type.toUpperCase(),
+          color,
+        };
+      })
+    : [
+        { label: 'Client / Interface', sub: `${repo.name} UI`, color: 'border-accent-cyan/40 text-accent-cyan bg-accent-cyan/5' },
+        { label: 'Application Source', sub: repo.language || 'Application Logic', color: 'border-accent-violet/40 text-accent-violet bg-accent-violet/5' },
+        { label: 'Package & Toolchain', sub: 'Project Configuration', color: 'border-warning/40 text-warning bg-warning/5' },
+        { label: 'Build & Distribution', sub: 'Production Target', color: 'border-success/40 text-success bg-success/5' },
+      ];
 
   const issues = setupSteps.filter(s => s.status !== 'ok' && s.status !== 'pending');
   const warnings = issues.filter(s => s.status === 'warning');
@@ -85,6 +177,120 @@ export function DashboardPage() {
             Analyzed {repoData ? 'from live repository' : 'demo mode'}
           </div>
           <StatusBadge status="complete" />
+          <OnboardingExportButton variant="header" />
+        </div>
+      </motion.div>
+
+      {/* Featured Project Summary & User Flow Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="relative overflow-hidden rounded-xl border border-accent-cyan/30 bg-gradient-to-r from-accent-cyan/15 via-surface to-accent-violet/10 p-4 sm:p-5 shadow-lg group"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/40">
+                RECOMMENDED FIRST STEP
+              </span>
+              <span className="text-xs font-mono text-text-secondary">Architecture Blueprint</span>
+            </div>
+            <h2 className="text-base font-bold text-text-primary flex items-center gap-2">
+              <span>Deep Project Summary &amp; End-to-End User Flow</span>
+            </h2>
+            <p className="text-xs text-text-secondary max-w-2xl leading-relaxed">
+              Explore how this project operates under the hood, view the 5-stage interactive user journey, and review the dual-benefit matrix for both engineers and real users.
+            </p>
+          </div>
+          <Link
+            to="/app/summary"
+            className="btn-primary text-xs flex items-center gap-2 py-2.5 px-4 shrink-0 shadow-sm"
+          >
+            <span>View Project Summary &amp; Flow</span>
+            <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+      </motion.div>
+
+      {/* Ask Codebase Session (Hero Prompt Bar - Primary Interactive Action) */}
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.08, duration: 0.35 }}
+        className="card p-4 sm:p-5 border-accent-cyan/35 bg-gradient-to-r from-accent-cyan/10 via-surface to-accent-violet/10 relative overflow-hidden shadow-lg shadow-black/20"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-accent-cyan/15 border border-accent-cyan/30 flex items-center justify-center text-accent-cyan shadow-sm shrink-0">
+              <MessageSquareCode size={18} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-text-primary tracking-tight">ASK YOUR CODEBASE</h2>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30 font-medium">
+                  AI ASSISTANT
+                </span>
+              </div>
+              <p className="text-xs text-text-secondary">
+                Ask natural language questions about architecture, files, logic, or dependencies.
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to="/app/ask"
+            className="inline-flex items-center gap-1.5 text-xs font-mono text-accent-cyan hover:underline shrink-0"
+          >
+            <span>Open full chat</span>
+            <ArrowRight size={12} />
+          </Link>
+        </div>
+
+        {/* Input form */}
+        <form onSubmit={handleAskSubmit} className="flex gap-2 mb-3">
+          <div className="flex-1 flex items-center gap-2.5 bg-bg/90 border border-border/80 focus-within:border-accent-cyan/70 rounded-lg px-3.5 py-2.5 shadow-inner transition-colors">
+            <Search size={15} className="text-accent-cyan shrink-0" />
+            <input
+              type="text"
+              value={askInput}
+              onChange={e => setAskInput(e.target.value)}
+              placeholder="Ask anything (e.g., 'How does authentication work?', 'Where are database models defined?')"
+              className="flex-1 bg-transparent text-xs sm:text-sm font-mono text-text-primary placeholder:text-text-secondary/70 focus:outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={!askInput.trim()}
+            className="btn-primary px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-medium flex items-center gap-1.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md"
+          >
+            <Send size={13} />
+            <span>Ask</span>
+          </button>
+        </form>
+
+        {/* Quick prompt suggestions */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[11px] font-mono text-text-secondary flex items-center gap-1">
+            <Sparkles size={11} className="text-accent-cyan" /> Try asking:
+          </span>
+          {[
+            'How is authentication handled?',
+            'Explain the component architecture',
+            'Where are the main API routes?',
+            'How do I run and test locally?',
+            'Explain git branch & contribution workflow',
+          ].map((prompt, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => handleAskPrompt(prompt)}
+              className="text-[11px] font-mono px-2.5 py-1 rounded-md bg-elevated/70 hover:bg-elevated border border-border/80 hover:border-accent-cyan/50 text-text-secondary hover:text-accent-cyan transition-colors cursor-pointer text-left truncate max-w-[260px] sm:max-w-none"
+            >
+              {prompt}
+            </button>
+          ))}
         </div>
       </motion.div>
 
@@ -101,6 +307,63 @@ export function DashboardPage() {
         <MetricCard label="Modules" value={metrics.modules} />
       </motion.div>
 
+      {/* RepoPilot Special Improvement Command & Lab Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12, duration: 0.35 }}
+        className="card p-4 sm:p-5 border-accent-cyan/30 bg-gradient-to-r from-accent-cyan/10 via-surface to-accent-violet/10 relative overflow-hidden shadow-lg"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/40 font-semibold flex items-center gap-1">
+                <Sparkles size={11} />
+                REPOPILOT SPECIAL COMMAND
+              </span>
+              <span className="text-xs text-text-secondary font-mono">
+                Codebase Evolution Engine
+              </span>
+            </div>
+            <h3 className="text-sm font-semibold text-text-primary">
+              Improve, Modernize &amp; Merge Components with 1 Command
+            </h3>
+            <p className="text-xs text-text-secondary max-w-xl">
+              Anyone with this repository can run our signature CLI command to automatically audit code, deploy CI/CD pipelines, and merge battle-tested components.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2 bg-bg/90 border border-border rounded-lg px-3 py-2 font-mono text-xs text-text-primary shadow-inner">
+              <Terminal size={13} className="text-accent-cyan shrink-0" />
+              <span className="select-all">npx repopilot@latest scan .</span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(`npx repopilot@latest scan .`);
+                  setCopiedSpecialCmd(true);
+                  setTimeout(() => setCopiedSpecialCmd(false), 1800);
+                }}
+                className="p-1 rounded hover:bg-elevated text-text-secondary hover:text-accent-cyan transition-colors ml-1 cursor-pointer"
+                title="Copy Scan Command"
+              >
+                {copiedSpecialCmd ? <Check size={13} className="text-success" /> : <Copy size={13} />}
+              </button>
+            </div>
+
+            <Link
+              to="/app/improvements"
+              className="btn-primary text-xs px-4 py-2 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-md"
+            >
+              <span>Community Feedback &amp; Ideas</span>
+              <ArrowRight size={13} />
+            </Link>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Quick Actions Bar */}
+      <QuickActionsBar />
 
       {/* Architecture preview + issues */}
       <div className="grid md:grid-cols-5 gap-4">
@@ -123,13 +386,7 @@ export function DashboardPage() {
 
           {/* Mini architecture */}
           <div className="flex flex-col items-center gap-2 py-2">
-            {[
-              { label: 'Client Browser', sub: 'End user', color: 'border-border text-text-secondary' },
-              { label: 'Next.js App Router', sub: 'React + TypeScript', color: 'border-accent-cyan/40 text-accent-cyan bg-accent-cyan/5' },
-              { label: 'Edge Middleware', sub: 'Edge Runtime', color: 'border-accent-violet/40 text-accent-violet bg-accent-violet/5' },
-              { label: 'API Routes + Auth', sub: 'Node.js / NextAuth', color: 'border-warning/40 text-warning bg-warning/5' },
-              { label: 'PostgreSQL Database', sub: 'via Prisma ORM', color: 'border-success/40 text-success bg-success/5' },
-            ].map((node, i) => (
+            {miniArchNodes.map((node, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -141,7 +398,7 @@ export function DashboardPage() {
                   <div className="text-xs font-semibold">{node.label}</div>
                   <div className="text-[10px] opacity-60 font-mono mt-0.5">{node.sub}</div>
                 </div>
-                {i < 4 && (
+                {i < miniArchNodes.length - 1 && (
                   <div className="flex justify-center">
                     <div className="w-px h-3 bg-border" />
                   </div>
@@ -161,7 +418,7 @@ export function DashboardPage() {
           {/* Setup health */}
           <div className="card p-5">
             <div className="section-label mb-3">Setup Health</div>
-            {DEMO_SETUP_STEPS.slice(0, 4).map((step) => (
+            {setupSteps.slice(0, 4).map((step) => (
               <div key={step.id} className="flex items-center gap-2.5 py-1.5 border-b border-border/50 last:border-0">
                 {step.status === 'ok' && <CheckCircle size={13} className="text-success shrink-0" />}
                 {step.status === 'warning' && <AlertTriangle size={13} className="text-warning shrink-0" />}
@@ -202,6 +459,114 @@ export function DashboardPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Git Hotspots & Contributor Activity */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.4 }}
+        className="grid md:grid-cols-2 gap-4"
+      >
+        {/* Hotspots Card */}
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Flame size={16} className="text-warning shrink-0" />
+              <div>
+                <div className="section-label mb-0.5">Code Hotspots</div>
+                <div className="text-xs text-text-secondary">High-churn files with frequent modifications</div>
+              </div>
+            </div>
+            <span className="text-[10px] font-mono text-text-secondary border border-border px-2 py-0.5 rounded">
+              {gitInsights.totalCommits} commits analyzed
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {gitInsights.hotspots.slice(0, 4).map((spot, i) => (
+              <div key={i} className="flex items-center justify-between p-2 rounded bg-elevated/40 border border-border/50 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                    spot.churnScore === 'high' ? 'bg-error' : spot.churnScore === 'medium' ? 'bg-warning' : 'bg-success'
+                  }`} />
+                  <span className="font-mono text-text-primary truncate">{spot.path}</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-2">
+                  <span className="text-[10px] font-mono text-text-secondary">{spot.commits} edits</span>
+                  <span className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded border ${
+                    spot.churnScore === 'high' ? 'text-error border-error/30 bg-error/10' :
+                    spot.churnScore === 'medium' ? 'text-warning border-warning/30 bg-warning/10' :
+                    'text-success border-success/30 bg-success/10'
+                  }`}>
+                    {spot.churnScore}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Contributors & Recent Commits */}
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-accent-cyan shrink-0" />
+              <div>
+                <div className="section-label mb-0.5">Key Contributors</div>
+                <div className="text-xs text-text-secondary">Primary maintainers & commit velocity</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 mb-4">
+            {gitInsights.contributors.slice(0, 3).map((contrib, i) => (
+              <div key={i} className="space-y-1">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-text-primary font-medium">{contrib.name}</span>
+                  <span className="text-text-secondary text-[11px]">{contrib.commits} commits ({contrib.percentage}%)</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-elevated overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-accent-cyan"
+                    style={{ width: `${contrib.percentage}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {gitInsights.recentCommits.length > 0 && (
+            <div className="pt-3 border-t border-border/50">
+              <div className="text-[10px] font-mono text-text-secondary tracking-widest mb-2 flex items-center gap-1.5">
+                <GitCommit size={11} className="text-accent-violet" />
+                RECENT REPOSITORY ACTIVITY
+              </div>
+              <div className="space-y-1.5">
+                {gitInsights.recentCommits.slice(0, 2).map((c, i) => (
+                  <div key={i} className="flex items-baseline justify-between text-xs font-mono text-text-secondary gap-2">
+                    <span className="text-text-primary truncate">{c.message}</span>
+                    <span className="text-[10px] shrink-0 text-[#6b7280]">{c.date}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Git Workflows & Commands */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.33, duration: 0.4 }}
+      >
+        <GitCommandsSection
+          repoUrl={repo.url}
+          repoName={repo.name}
+          branch={repo.branch}
+          topHotspotFile={gitInsights.hotspots?.[0]?.path}
+        />
+      </motion.div>
 
       {/* Starter tasks preview */}
       <motion.div
@@ -256,7 +621,7 @@ export function DashboardPage() {
       >
         <div className="section-label mb-4">Analysis Activity</div>
         <div className="space-y-1">
-          {DEMO_ACTIVITY.map((entry) => (
+          {dynamicActivity.map((entry) => (
             <div key={entry.id} className="flex items-start gap-3 py-1.5 border-b border-border/40 last:border-0">
               <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
                 entry.type === 'success' ? 'bg-success' :

@@ -1,80 +1,113 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScanningLine } from '../components/ui/CodeBlock';
 import { useRepo } from '../lib/RepoContext';
-import { getApiUrl } from '../lib/api';
-
-
-const ANALYSIS_STEPS = [
-  'Connecting to repository...',
-  'Cloning repository index...',
-  'Scanning source files...',
-  'Resolving dependency graph...',
-  'Building architecture map...',
-  'Detecting environment configuration...',
-  'Analyzing authentication patterns...',
-  'Indexing API routes...',
-  'Running security audit...',
-  'Generating developer workspace...',
-  'WORKSPACE READY',
-];
+import { analyzeRepositoryUniversal } from '../lib/repoAnalyzer';
+import { recordRepositoryAnalysis } from '../lib/adminFeedbackService';
 
 export function AnalyzingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { repoUrl, setRepoUrl, setRepoData } = useRepo();
-  const [stepIndex, setStepIndex] = useState(0);
+  const [logs, setLogs] = useState<string[]>([
+    'Initializing repository scanner...',
+  ]);
+  const [progress, setProgress] = useState(15);
   const [completed, setCompleted] = useState(false);
+  const hasTriggeredRef = useRef(false);
 
   // Support direct navigation with state (e.g. from LandingPage)
   const urlFromState = (location.state as { repoUrl?: string } | null)?.repoUrl || '';
-  const activeRepo = urlFromState || repoUrl || 'github.com/vercel/next.js';
+  const activeRepo = urlFromState || repoUrl || '';
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Save to context if arriving via state
-    if (urlFromState && !repoUrl) setRepoUrl(urlFromState);
-  }, [urlFromState, repoUrl, setRepoUrl]);
+    if (!activeRepo) {
+      navigate('/');
+      return;
+    }
+    if (urlFromState && urlFromState !== repoUrl) {
+      setRepoUrl(urlFromState);
+    }
+  }, [urlFromState, repoUrl, activeRepo, setRepoUrl, navigate]);
 
   useEffect(() => {
-    const apiUrl = getApiUrl();
+    if (!activeRepo) return;
+    if (hasTriggeredRef.current) return;
+    hasTriggeredRef.current = true;
 
-    // Fire the backend analysis call
-    fetch(`${apiUrl}/api/analyze`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ repositoryUrl: activeRepo }),
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.repository) {
-          setRepoData(data);
-        }
-      })
-      .catch(err => {
-        console.warn('[AnalyzingPage] backend analysis error:', err);
-      });
+    let isCancelled = false;
 
+    async function runAnalysis() {
+      try {
+        const stepProgresses: Record<string, number> = {
+          'Connecting': 25,
+          'Fetching': 40,
+          'Scanning': 60,
+          'Resolving': 75,
+          'Analyzing': 85,
+          'Fetching real Git': 90,
+          'Generating': 95,
+          'WORKSPACE': 100,
+        };
 
-    // Step animation
-    let idx = 0;
-    const durations = [600, 700, 900, 800, 900, 700, 600, 500, 700, 800, 500];
-    const run = () => {
-      if (idx >= ANALYSIS_STEPS.length - 1) {
-        setStepIndex(idx);
+        const result = await analyzeRepositoryUniversal(activeRepo, (stepMsg) => {
+          if (isCancelled) return;
+          setLogs(prev => [...prev.slice(-6), stepMsg]);
+
+          // Dynamically adjust progress based on current stage
+          for (const [key, p] of Object.entries(stepProgresses)) {
+            if (stepMsg.includes(key)) {
+              setProgress(prevP => Math.max(prevP, p));
+              break;
+            }
+          }
+        });
+
+        if (isCancelled) return;
+
+        setRepoData(result);
+        setProgress(100);
         setCompleted(true);
-        setTimeout(() => navigate('/app'), 1200);
-        return;
-      }
-      setStepIndex(idx);
-      const d = durations[idx] ?? 700;
-      setTimeout(() => { idx++; run(); }, d);
-    };
-    const t = setTimeout(run, 200);
-    return () => clearTimeout(t);
-  }, [activeRepo, navigate]);
+        setLogs(prev => [...prev.slice(-6), 'WORKSPACE READY — 100% Analyzed']);
 
-  const progress = Math.round((stepIndex / (ANALYSIS_STEPS.length - 1)) * 100);
+        // Update recents & track for Admin Dashboard
+        try {
+          const key = 'repopilot_recent_repos';
+          const recents: string[] = JSON.parse(localStorage.getItem(key) || '[]');
+          const filtered = recents.filter(u => u !== activeRepo);
+          filtered.unshift(activeRepo);
+          localStorage.setItem(key, JSON.stringify(filtered.slice(0, 5)));
+        } catch {
+          // ignore
+        }
+
+        try {
+          recordRepositoryAnalysis(result);
+        } catch (e) {
+          console.warn('[AnalyzingPage] Failed to track repo for admin:', e);
+        }
+
+        setTimeout(() => {
+          navigate('/app/summary');
+        }, 900);
+
+      } catch (err: any) {
+        console.error('[AnalyzingPage] analysis failed:', err);
+        if (isCancelled) return;
+        const msg = err.message || 'Analysis failed. Could not inspect repository.';
+        setLogs(prev => [...prev, `Error: ${msg}`]);
+        setErrorMessage(msg);
+      }
+    }
+
+    runAnalysis();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeRepo, navigate, setRepoData]);
 
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center p-6">
@@ -82,15 +115,15 @@ export function AnalyzingPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card p-8 space-y-6"
+          className="card p-8 space-y-6 border-accent-cyan/30 shadow-2xl"
         >
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] font-mono text-text-secondary tracking-widest mb-1">
-                INDEXING REPOSITORY
+              <div className="text-[10px] font-mono text-text-secondary tracking-widest mb-1 uppercase">
+                INDEXING &amp; ANALYZING REPOSITORY
               </div>
-              <div className="font-mono text-sm text-accent-cyan truncate max-w-xs">
+              <div className="font-mono text-sm font-semibold text-accent-cyan truncate max-w-xs">
                 {activeRepo}
               </div>
             </div>
@@ -100,10 +133,10 @@ export function AnalyzingPage() {
           </div>
 
           {/* Progress bar */}
-          <div className="h-1 bg-elevated rounded-full overflow-hidden">
+          <div className="h-1.5 bg-elevated rounded-full overflow-hidden border border-border/40">
             <motion.div
-              className={`h-full rounded-full ${completed ? 'bg-success' : 'bg-accent-cyan'}`}
-              initial={{ width: 0 }}
+              className={`h-full rounded-full ${completed ? 'bg-success' : 'bg-gradient-to-r from-accent-cyan to-accent-violet'}`}
+              initial={{ width: '15%' }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.3 }}
             />
@@ -112,43 +145,73 @@ export function AnalyzingPage() {
           {/* Scanning line */}
           {!completed && <ScanningLine />}
 
-          {/* Step log */}
-          <div className="space-y-1.5 min-h-[200px]">
+          {/* Dynamic real-time step log */}
+          <div className="space-y-2 min-h-[180px]">
             <AnimatePresence>
-              {ANALYSIS_STEPS.slice(0, stepIndex + 1).map((s, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: i === stepIndex ? 1 : 0.35, x: 0 }}
-                  className={`flex items-center gap-3 font-mono text-xs ${
-                    i === stepIndex && !completed ? 'text-accent-cyan' :
-                    s === 'WORKSPACE READY' ? 'text-success font-semibold' :
-                    'text-text-secondary'
-                  }`}
-                >
-                  <span className={`shrink-0 ${
-                    i < stepIndex ? 'text-success' :
-                    i === stepIndex && !completed ? 'text-accent-cyan' : 'text-text-secondary'
-                  }`}>
-                    {i < stepIndex ? '✓' : i === stepIndex && !completed ? '›' : ' '}
-                  </span>
-                  {s}
-                  {i === stepIndex && !completed && (
-                    <span className="inline-block w-1.5 h-3 bg-accent-cyan animate-blink ml-0.5" />
-                  )}
-                </motion.div>
-              ))}
+              {logs.map((logMsg, i) => {
+                const isLast = i === logs.length - 1;
+                const isReady = logMsg.includes('WORKSPACE READY');
+                return (
+                  <motion.div
+                    key={`${i}-${logMsg}`}
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: isLast ? 1 : 0.45, x: 0 }}
+                    className={`flex items-center gap-2.5 font-mono text-xs ${
+                      isReady ? 'text-success font-semibold' :
+                      isLast && !completed ? 'text-accent-cyan' :
+                      'text-text-secondary'
+                    }`}
+                  >
+                    <span className={`shrink-0 ${isReady ? 'text-success' : isLast ? 'text-accent-cyan' : 'text-text-secondary'}`}>
+                      {isReady ? '✓' : isLast ? '›' : '•'}
+                    </span>
+                    <span className="truncate">{logMsg}</span>
+                    {isLast && !completed && (
+                      <span className="inline-block w-1.5 h-3 bg-accent-cyan animate-blink shrink-0" />
+                    )}
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
+
+          {errorMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-3 bg-error/10 border border-error/30 p-3.5 rounded text-xs font-mono"
+            >
+              <div className="flex items-start gap-2 text-error">
+                <span className="font-bold shrink-0">✕</span>
+                <span className="leading-relaxed">{errorMessage}</span>
+              </div>
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="px-3 py-1.5 rounded bg-surface border border-border text-text-primary hover:bg-elevated transition-colors text-xs"
+                >
+                  ← Back to Home
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="px-3 py-1.5 rounded bg-accent-cyan/15 border border-accent-cyan/40 text-accent-cyan hover:bg-accent-cyan/25 transition-colors text-xs"
+                >
+                  Retry Analysis
+                </button>
+              </div>
+            </motion.div>
+          )}
 
           {completed && (
             <motion.div
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 text-success text-sm font-mono"
+              className="flex items-center gap-2 text-success text-xs font-mono bg-success/10 border border-success/30 p-2.5 rounded"
             >
-              <span className="w-2 h-2 rounded-full bg-success" />
-              Developer workspace ready — redirecting...
+              <span className="w-2 h-2 rounded-full bg-success shrink-0" />
+              <span>Real repository architecture indexed — redirecting to workspace...</span>
             </motion.div>
           )}
         </motion.div>

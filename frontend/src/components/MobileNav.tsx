@@ -11,26 +11,34 @@ import {
   Menu,
   X,
   ChevronLeft,
+  Sparkles,
+  BookOpen,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusBadge } from './ui/StatusBadge';
+import { RepoSwitcher } from './RepoSwitcher';
+import { OnboardingExportButton } from './OnboardingExportButton';
 
 const navItems = [
-  { id: 'overview',      label: 'Overview',       icon: <LayoutDashboard size={18} />, path: '/app' },
-  { id: 'architecture',  label: 'Architecture',   icon: <GitBranch size={18} />,       path: '/app/architecture' },
-  { id: 'setup',         label: 'Setup',           icon: <Settings size={18} />,        path: '/app/setup' },
-  { id: 'dependencies',  label: 'Dependencies',   icon: <Package size={18} />,         path: '/app/dependencies' },
-  { id: 'debug',         label: 'Debug Agent',    icon: <Bug size={18} />,             path: '/app/debug' },
-  { id: 'ask',           label: 'Ask Codebase',   icon: <MessageCircle size={18} />,   path: '/app/ask' },
-  { id: 'tasks',         label: 'Starter Tasks',  icon: <Compass size={18} />,         path: '/app/tasks' },
+  { id: 'overview',      label: 'Overview',        icon: <LayoutDashboard size={18} />, path: '/app' },
+  { id: 'summary',       label: 'Project Summary', icon: <BookOpen size={18} />,        path: '/app/summary' },
+  { id: 'ask',           label: 'Ask Codebase',    icon: <MessageCircle size={18} />,   path: '/app/ask' },
+  { id: 'architecture',  label: 'Architecture',    icon: <GitBranch size={18} />,       path: '/app/architecture' },
+  { id: 'setup',         label: 'Setup',            icon: <Settings size={18} />,        path: '/app/setup' },
+  { id: 'dependencies',  label: 'Dependencies',    icon: <Package size={18} />,         path: '/app/dependencies' },
+  { id: 'debug',         label: 'Debug Agent',     icon: <Bug size={18} />,             path: '/app/debug' },
+  { id: 'tasks',         label: 'Starter Tasks',   icon: <Compass size={18} />,         path: '/app/tasks' },
+  { id: 'improvements',  label: 'Improvements',    icon: <Sparkles size={18} />,        path: '/app/improvements' },
 ];
+
 
 interface MobileNavProps {
   repoName: string;
+  repoUrl?: string;
   analysisStatus: 'analyzing' | 'complete' | 'error';
 }
 
-export function MobileNav({ repoName, analysisStatus }: MobileNavProps) {
+export function MobileNav({ repoName, repoUrl = '', analysisStatus }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
 
@@ -77,18 +85,24 @@ export function MobileNav({ repoName, analysisStatus }: MobileNavProps) {
               transition={{ type: 'tween', duration: 0.2 }}
               className="fixed left-0 top-0 bottom-0 w-64 bg-surface border-r border-border z-50 flex flex-col"
             >
-              <div className="flex items-center justify-between px-4 py-4 border-b border-border">
-                <div>
-                  <div className="font-mono text-sm text-text-primary truncate">{repoName}</div>
-                  <div className="text-[10px] text-text-secondary font-mono mt-0.5">Repository Workspace</div>
+              {/* Repo identity */}
+              <div className="px-4 py-4 border-b border-border space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-mono text-sm text-text-primary truncate">{repoName}</div>
+                    <div className="text-[10px] text-text-secondary font-mono mt-0.5">Repository Workspace</div>
+                  </div>
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="p-1.5 rounded text-text-secondary hover:text-text-primary"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="p-1.5 rounded text-text-secondary hover:text-text-primary"
-                >
-                  <X size={16} />
-                </button>
+                <RepoSwitcher currentRepo={repoUrl || repoName} branch="main" />
               </div>
+
+              {/* Nav links */}
               <nav className="flex-1 px-2 py-3 overflow-y-auto">
                 <ul className="space-y-1">
                   {navItems.map((item) => {
@@ -112,7 +126,17 @@ export function MobileNav({ repoName, analysisStatus }: MobileNavProps) {
                     );
                   })}
                 </ul>
+
+                {/* Export section */}
+                <div className="mt-4 pt-3 border-t border-border/50">
+                  <div className="text-[10px] font-mono text-text-secondary tracking-widest uppercase px-3 mb-1.5">Export</div>
+                  <div className="px-1">
+                    <OnboardingExportButton variant="sidebar" />
+                  </div>
+                </div>
               </nav>
+
+              {/* Footer */}
               <div className="px-4 py-3 border-t border-border">
                 <Link to="/" className="flex items-center gap-2 text-text-secondary hover:text-text-primary text-sm transition-colors">
                   <ChevronLeft size={14} />
