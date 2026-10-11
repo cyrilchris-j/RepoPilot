@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileDown, X, Eye, Download, Check, BookOpen } from 'lucide-react';
+import { FileDown, X, Eye, Download, Check, BookOpen, Terminal, FileCode } from 'lucide-react';
 import { useOnboardingExport } from '../lib/useOnboardingExport';
 
 interface OnboardingExportButtonProps {
@@ -104,7 +104,8 @@ export function OnboardingExportModal({
                         : 'text-text-secondary hover:text-text-primary'
                     }`}
                   >
-                    <span>⚡ setup.sh</span>
+                    <Terminal size={12} />
+                    <span>setup.sh</span>
                   </button>
                   <button
                     type="button"
@@ -115,7 +116,8 @@ export function OnboardingExportModal({
                         : 'text-text-secondary hover:text-text-primary'
                     }`}
                   >
-                    <span>🐳 devcontainer.json</span>
+                    <FileCode size={12} />
+                    <span>devcontainer.json</span>
                   </button>
                 </div>
 

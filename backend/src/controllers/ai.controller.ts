@@ -250,18 +250,18 @@ ${question}`;
     } catch {
       const isProjectQuery = /what is|how does|work|overview|about|summary|benefit|purpose|motto|flow/i.test(question);
       const fallbackExplanation = isProjectQuery
-        ? `### 👋 Welcome! Here is the Complete Project Breakdown
+        ? `### Welcome! Here is the Complete Project Breakdown
 
 This repository is built with a clear mission: **delivering genuine, measurable value to both developers and end-users**.
 
 ---
 
-### 🎯 Core Mission & Purpose
+### Core Mission & Purpose
 The project motto centers on transparency and velocity: eliminating developer onboarding overhead while providing users with intuitive, responsive, and reliable software tools.
 
 ---
 
-### 🔄 End-to-End User Flow & Mechanics
+### End-to-End User Flow & Mechanics
 1. **User Request Initiation:** The user interacts with the entry point, passing their required parameters.
 2. **Routing & Input Validation:** Requests pass through the application routing layer where safety boundaries are verified.
 3. **Core Domain Orchestration:** Controllers delegate tasks to dedicated service engines that process logic and handle caching.
@@ -269,25 +269,25 @@ The project motto centers on transparency and velocity: eliminating developer on
 
 ---
 
-### 💡 Dual Value: Who Benefits & How
+### Dual Value: Who Benefits & How
 - **For Developers:**
   - **Modular Architecture:** Clean separation of concerns allows updating components without fear of breaking side effects.
   - **Self-Documenting Code:** Strong TypeScript types and descriptive controllers make finding logic effortless.
 - **For Real Users:**
   - **Fast & Responsive:** Built-in caching ensures operations return in milliseconds.
   - **Actionable Guidance:** Instead of confusing error logs, users receive clear, friendly direction.`
-        : `### 🔍 Detailed Analysis for: "${question}"
+        : `### Detailed Analysis for: "${question}"
 
 In this codebase, the requested functionality is built with clean modular separation of concerns.
 
 ---
 
-### ⚙️ How It Operates
+### How It Operates
 The system coordinates incoming requests through designated controllers and services, validating all parameters before applying business logic.
 
 ---
 
-### 🚀 Developer & User Benefits
+### Developer & User Benefits
 - **Developer Benefit:** Decoupled functions allow you to write clean unit tests and iterate safely.
 - **User Benefit:** Real-time feedback and high reliability prevent interruptions during active usage.`;
 

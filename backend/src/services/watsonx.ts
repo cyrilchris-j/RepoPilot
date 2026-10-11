@@ -91,18 +91,18 @@ function generateDemoResponse(systemPrompt: string, userMessage: string): string
 
 
     const explanation = isProjectSummary
-      ? `### 👋 Welcome to the Codebase!
+      ? `### Welcome to the Codebase!
 
 This repository is engineered to solve developer onboarding friction and real-world collaboration challenges. Below is a comprehensive breakdown of what this project does, how it operates, and the key benefits it delivers to both developers and end-users.
 
 ---
 
-### 🎯 Core Purpose & Motto
+### Core Purpose & Motto
 The primary motto of this project is **empowering both real users and engineers** through high-transparency architecture, frictionless execution, and intelligent guided workflows. Rather than forcing developers to dig through thousands of lines of code or forcing users to guess how features work, the platform structures the entire operational lifecycle into clear, actionable stages.
 
 ---
 
-### 🔄 End-to-End User Flow: How It Works
+### End-to-End User Flow: How It Works
 1. **Entry & Ingestion:** The user begins at the client portal, inputting targets or configuring workflows.
 2. **Validation & Routing:** Incoming requests are routed through dedicated route handlers with input validation and security boundaries.
 3. **Core Processing & AI Services:** The service orchestration layer coordinates core business logic, asynchronous tasks, and intelligent NLP assistance.
@@ -111,7 +111,7 @@ The primary motto of this project is **empowering both real users and engineers*
 
 ---
 
-### 💡 Dual Value Matrix: Who Benefits & How
+### Dual Value Matrix: Who Benefits & How
 - **For Developers:**
   - **90% Faster Ramp-up:** Clear architectural separation between presentation, routing, and services makes finding code trivial.
   - **Self-Documenting Codebase:** Comprehensive TypeScript typings, modular controllers, and structured utilities make extending features straightforward.
@@ -124,30 +124,30 @@ The primary motto of this project is **empowering both real users and engineers*
 
 ---
 
-### 🛠️ Key Architectural Components
+### Key Architectural Components
 - \`src/index.ts\` — Core application entry point and server lifecycle.
 - \`src/routes/\` — API route endpoints and request validation.
 - \`src/controllers/\` — Orchestration layer bridging requests with domain services.
 - \`src/services/\` — Business logic, repository management, and AI NLP integrations.`
-      : `### 🔍 Detailed Analysis for Your Query: "${query}"
+      : `### Detailed Analysis for Your Query: "${query}"
 
 Here is a comprehensive breakdown based on the repository architecture and active source files:
 
 ---
 
-### 📌 Summary & Context
+### Summary & Context
 In this repository, functionality related to your question is built with a modular, highly decoupled architecture. The codebase is designed around clean separation of concerns, ensuring high developer velocity and intuitive user interactions.
 
 ---
 
-### ⚙️ How This Component Works
+### How This Component Works
 1. **Request Lifecycle:** When a user or system initiates an action related to this domain, the request is received by the routing layer and validated.
 2. **Service Orchestration:** The controller delegates execution to specialized service modules that manage data transformations and external integrations.
 3. **Response & Feedback:** The computed result is returned to the client with rich metadata, ensuring reliable error boundaries and seamless UX.
 
 ---
 
-### 🚀 Benefits to Developers & Users
+### Benefits to Developers & Users
 - **Developer Benefit:** Modular functions with clear boundaries ensure that you can safely test, refactor, or enhance this module without breaking dependent flows.
 - **User Benefit:** Real-time feedback, graceful fallbacks, and resilient execution guarantee an uninterrupted workflow.`;
 

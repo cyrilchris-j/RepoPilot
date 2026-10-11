@@ -77,19 +77,19 @@ function generateLocalAnswer(query: string, repoData: any): QAAnswer {
 
     return {
       question: query,
-      explanation: `### 👋 Welcome to ${repoName}!
+      explanation: `### Welcome to ${repoName}!
 
 Here is a comprehensive breakdown of **${repoName}**, how it operates, and why it is engineered to deliver immediate value to both engineers and real users.
 
 ---
 
-### 🎯 Core Project Purpose & Motto
+### Core Project Purpose & Motto
 The primary motto of **${repoName}** is: **Empowering both real users and developers through high-transparency architecture, fast execution, and actionable intelligence.**
 Rather than treating a codebase as a black box, the platform structures the application lifecycle into clear, manageable phases that eliminate onboarding fatigue and ensure predictable execution.
 
 ---
 
-### 🔄 End-to-End User Flow & Mechanics
+### End-to-End User Flow & Mechanics
 1. **Target Ingestion & Initialization:** The user enters the system (via client views or CLI parameters), triggering route guards and input validation.
 2. **Context Resolution & Indexing:** The engine resolves repository files, dependencies, and architectural nodes to map the system structure.
 3. **Core Processing & AI Services:** Controllers coordinate business logic, background tasks, and AI NLP inference with integrated caching.
@@ -98,7 +98,7 @@ Rather than treating a codebase as a black box, the platform structures the appl
 
 ---
 
-### 💡 Dual Value Matrix: Who Benefits & How
+### Dual Value Matrix: Who Benefits & How
 - **For Developers:**
   - **90% Faster Ramp-up:** Clear architectural tiers mean you can locate relevant files, controllers, and services in seconds.
   - **Self-Documenting Codebase:** Strong typings, modular interfaces, and testable separation of concerns guarantee safe refactoring.
@@ -111,7 +111,7 @@ Rather than treating a codebase as a black box, the platform structures the appl
 
 ---
 
-### 🛠️ Key Architectural Components
+### Key Architectural Components
 - Primary Language: **${language}** (${totalFiles} indexed files${loc ? `, ${loc.toLocaleString()} lines of code` : ''})
 - Audited Dependencies: **${deps.length} packages** across runtime and tooling.
 - Structural Nodes: **${nodes.length} mapped architectural modules**.`,
@@ -146,20 +146,20 @@ Rather than treating a codebase as a black box, the platform structures the appl
       .map((p: string) => ({ path: p, description: 'Application bootstrap and entry root' }));
     return {
       question: query,
-      explanation: `### 🚀 Application Entry Point & Bootstrap Flow
+      explanation: `### Application Entry Point & Bootstrap Flow
 
 In **${repoName}**, execution starts at the primary root modules:
 
 ---
 
-### ⚙️ How It Initializes
+### How It Initializes
 1. **Environment Configuration:** The bootstrap file loads environment configuration, validates required credentials, and configures logging.
 2. **Component & Route Mounting:** Root routing controllers or UI trees are mounted, establishing global context and state providers.
 3. **Service & Database Handlers:** Network listeners and service connections are established with health check ping endpoints.
 
 ---
 
-### 💡 Developer & User Benefits
+### Developer & User Benefits
 - **Developer Benefit:** Clear single entry point makes tracing dependency trees and startup errors straightforward.
 - **User Benefit:** Fast, zero-overhead bootstrap ensures immediate responsiveness when launching the system.`,
       relevantFiles: entryFiles,
@@ -190,20 +190,20 @@ In **${repoName}**, execution starts at the primary root modules:
       .map((p: string) => ({ path: p, description: 'Authentication and session security boundary' }));
     return {
       question: query,
-      explanation: `### 🔐 Authentication & Access Control
+      explanation: `### Authentication & Access Control
 
 Authentication handling in **${repoName}** is structured to balance security with developer ergonomics:
 
 ---
 
-### ⚙️ How It Operates
+### How It Operates
 1. **Credential Validation:** Inbound authentication requests or tokens are checked against security middleware or provider SDKs.
 2. **Session & Token Management:** Secure session tokens or cryptographic secrets verify request authenticity before accessing protected routes.
 3. **Route Guards:** Protected resources reject unauthorized requests with standard HTTP status codes and friendly diagnostic messages.
 
 ---
 
-### 💡 Developer & User Benefits
+### Developer & User Benefits
 - **Developer Benefit:** Centralized auth middleware prevents security leaks across disparate routes.
 - **User Benefit:** Seamless session continuity and robust protection of sensitive data.`,
       relevantFiles: authFiles.length > 0 ? authFiles : [{ path: 'src/routes/api.routes.ts', description: 'API routes with security protection' }],
@@ -228,20 +228,20 @@ Authentication handling in **${repoName}** is structured to balance security wit
       .map((p: string) => ({ path: p, description: 'Data persistence schema and query layer' }));
     return {
       question: query,
-      explanation: `### 💾 Data Persistence & Storage Architecture
+      explanation: `### Data Persistence & Storage Architecture
 
 Data persistence in **${repoName}** is orchestrated through specialized storage and caching abstractions:
 
 ---
 
-### ⚙️ How Data Flows
+### How Data Flows
 1. **Query Dispatch:** Controllers call domain services, passing typed query contracts.
 2. **Caching & Retrieval:** In-memory or filesystem caches are checked first for sub-millisecond retrieval.
 3. **Synchronization & State Integrity:** Persistent operations update records with atomic safeguards and error handling boundaries.
 
 ---
 
-### 💡 Developer & User Benefits
+### Developer & User Benefits
 - **Developer Benefit:** Abstracted data layer allows switching storage backends without rewriting business logic.
 - **User Benefit:** Instant retrieval speeds and guaranteed data durability.`,
       relevantFiles: dbFiles.length > 0 ? dbFiles : [{ path: 'src/services/repoManager.ts', description: 'Data caching and storage manager' }],
@@ -263,23 +263,23 @@ Data persistence in **${repoName}** is orchestrated through specialized storage 
 
   return {
     question: query,
-    explanation: `### 🔍 Comprehensive Codebase Analysis
+    explanation: `### Comprehensive Codebase Analysis
 
 Here is a detailed architectural overview of **${repoName}** regarding your query:
 
 ---
 
-### 📌 Summary & Context
+### Summary & Context
 **${repoName}** is an audited **${language}** codebase containing **${totalFiles} files** and **${deps.length} package dependencies**. Its architecture comprises **${nodes.length} mapped structural components** organized with strict separation of concerns.
 
 ---
 
-### ⚙️ How This Subsystem Works
+### How This Subsystem Works
 The system coordinates incoming requests through designated controllers and services, validating all parameters before applying business logic. Responses are cached and rendered with comprehensive visual metadata.
 
 ---
 
-### 🚀 Dual Value Matrix
+### Dual Value Matrix
 - **Developer Benefit:** Modular functions allow you to write clean unit tests and iterate safely without side effects.
 - **User Benefit:** Real-time feedback and high reliability prevent interruptions during active usage.`,
     relevantFiles: topFiles.slice(0, 3).map((p: string) => ({ path: p, description: 'Core component file' })),

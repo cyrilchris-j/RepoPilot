@@ -117,8 +117,9 @@ export function DependenciesPage() {
                     <div className="text-xs text-text-secondary mt-0.5">{dep.description}</div>
                   )}
                   {dep.auditAdvisory && (
-                    <div className="text-xs text-error font-mono mt-1 bg-error/5 p-1.5 rounded border border-error/20">
-                      🚨 {dep.auditAdvisory}
+                    <div className="text-xs text-error font-mono mt-1 bg-error/5 p-1.5 rounded border border-error/20 flex items-center gap-1.5">
+                      <AlertTriangle size={12} className="shrink-0" />
+                      <span>{dep.auditAdvisory}</span>
                     </div>
                   )}
                   {dep.latestVersion && (
