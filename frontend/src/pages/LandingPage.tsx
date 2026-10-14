@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRepo } from '../lib/RepoContext';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import {
   ArrowRight,
   GitBranch,
@@ -11,6 +11,7 @@ import {
   Eye,
   ChevronRight,
   ExternalLink,
+  RotateCcw,
 } from 'lucide-react';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { ScanningLine } from '../components/ui/CodeBlock';
@@ -37,158 +38,306 @@ function Counter({ target, duration = 1.8 }: { target: number; duration?: number
 }
 
 // ── Mini architecture node ──────────────────────────────────────────────────
-function ArchNode({ label, sub, delay, type = 'default' }: {
-  label: string; sub: string; delay: number; type?: 'frontend' | 'backend' | 'db' | 'auth' | 'default';
+// ── Mini architecture node ──────────────────────────────────────────────────
+function ArchNode({
+  label,
+  sub,
+  type = 'default',
+  active = true,
+}: {
+  label: string;
+  sub: string;
+  type?: 'frontend' | 'backend' | 'db' | 'auth' | 'default';
+  active?: boolean;
 }) {
-  const colors = {
-    frontend: 'border-accent-cyan/40 bg-accent-cyan/5 text-accent-cyan',
-    backend:  'border-accent-violet/40 bg-accent-violet/5 text-accent-violet',
-    db:       'border-success/40 bg-success/5 text-success',
-    auth:     'border-warning/40 bg-warning/5 text-warning',
+  const activeStyles = {
+    frontend: 'border-accent-cyan/60 bg-accent-cyan/10 text-accent-cyan shadow-sm shadow-accent-cyan/10',
+    backend:  'border-accent-violet/60 bg-accent-violet/10 text-accent-violet shadow-sm shadow-accent-violet/10',
+    db:       'border-success/60 bg-success/10 text-success shadow-sm shadow-success/10',
+    auth:     'border-warning/60 bg-warning/10 text-warning shadow-sm shadow-warning/10',
     default:  'border-border bg-elevated text-text-secondary',
   };
+
+  const inactiveStyle = 'border-border/40 bg-surface/40 text-text-secondary/35';
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.4 }}
-      className={`px-3 py-1.5 rounded border text-xs font-mono ${colors[type]}`}
+    <div
+      className={`px-3 py-1.5 rounded-md border text-xs font-mono transition-all duration-400 select-none ${
+        active ? activeStyles[type] : inactiveStyle
+      }`}
     >
-      <div className="font-medium">{label}</div>
-      <div className="text-[10px] opacity-60 mt-0.5">{sub}</div>
-    </motion.div>
+      <div className="font-medium tracking-tight leading-none">{label}</div>
+      <div className={`text-[10px] mt-1 font-sans ${active ? 'opacity-80' : 'opacity-40'}`}>{sub}</div>
+    </div>
   );
 }
 
 // ── Hero product preview ────────────────────────────────────────────────────
-const HERO_LOG_LINES = [
-  '> Connecting to github.com/vercel/next.js...',
-  '> Cloning repository index...',
-  '> Scanning 3,842 source files...',
-  '> Resolving dependency graph...',
-  '> Building architecture map...',
-  '> Analyzing environment configuration...',
-  '> Generating developer workspace...',
-  '> Analysis complete.',
+interface HeroStep {
+  text: string;
+  phase: 'scanning' | 'analyzing' | 'complete';
+  files?: number;
+  deps?: number;
+  routes?: number;
+  config?: number;
+  revealNode?: 'frontend' | 'backend' | 'leaves';
+}
+
+const HERO_STEPS: HeroStep[] = [
+  { text: 'Connecting to github.com/vercel/next.js...', phase: 'scanning' },
+  { text: 'Cloning repository index & metadata...', phase: 'scanning' },
+  { text: 'Scanning 3,842 source files...', phase: 'scanning', files: 3842, revealNode: 'frontend' },
+  { text: 'Resolving dependency graph (147 packages)...', phase: 'analyzing', deps: 147, revealNode: 'backend' },
+  { text: 'Building architecture & route map...', phase: 'analyzing', routes: 89, revealNode: 'leaves' },
+  { text: 'Analyzing environment configuration...', phase: 'analyzing', config: 6 },
+  { text: 'Synthesizing developer workspace...', phase: 'analyzing' },
+  { text: 'Analysis complete. Developer workspace ready.', phase: 'complete' },
 ];
 
 function HeroPreview() {
   const [phase, setPhase] = useState<'scanning' | 'analyzing' | 'complete'>('scanning');
   const [log, setLog] = useState<string[]>([]);
   const [metrics, setMetrics] = useState({ files: 0, deps: 0, routes: 0, config: 0 });
+  const [activeNodes, setActiveNodes] = useState({ frontend: false, backend: false, leaves: false });
+  const [runId, setRunId] = useState(0);
+  const terminalRef = useRef<HTMLDivElement>(null);
 
+  // Auto-scroll terminal log as new lines arrive
   useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTo({
+        top: terminalRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [log]);
+
+  // Stepped animation sequence
+  useEffect(() => {
+    setPhase('scanning');
+    setLog([]);
+    setMetrics({ files: 0, deps: 0, routes: 0, config: 0 });
+    setActiveNodes({ frontend: false, backend: false, leaves: false });
+
     let i = 0;
-    const addLog = setInterval(() => {
-      if (i >= HERO_LOG_LINES.length) { clearInterval(addLog); return; }
-      const line = HERO_LOG_LINES[i];
-      setLog(prev => [...prev, line]);
-      i++;
-      if (i === 3) setPhase('analyzing');
-      if (i === HERO_LOG_LINES.length) {
-        setPhase('complete');
-        setMetrics({ files: 3842, deps: 147, routes: 89, config: 6 });
-        clearInterval(addLog);
+    const interval = setInterval(() => {
+      if (i >= HERO_STEPS.length) {
+        clearInterval(interval);
+        return;
       }
-    }, 500);
-    return () => clearInterval(addLog);
-  }, []);
+
+      const step = HERO_STEPS[i];
+      setLog(prev => [...prev, step.text]);
+      setPhase(step.phase);
+
+      if (step.files) setMetrics(m => ({ ...m, files: step.files! }));
+      if (step.deps) setMetrics(m => ({ ...m, deps: step.deps! }));
+      if (step.routes) setMetrics(m => ({ ...m, routes: step.routes! }));
+      if (step.config) setMetrics(m => ({ ...m, config: step.config! }));
+
+      if (step.revealNode === 'frontend') {
+        setActiveNodes(n => ({ ...n, frontend: true }));
+      } else if (step.revealNode === 'backend') {
+        setActiveNodes(n => ({ ...n, backend: true }));
+      } else if (step.revealNode === 'leaves') {
+        setActiveNodes(n => ({ ...n, leaves: true }));
+      }
+
+      i++;
+      if (i === HERO_STEPS.length) {
+        setPhase('complete');
+        clearInterval(interval);
+      }
+    }, 550);
+
+    return () => clearInterval(interval);
+  }, [runId]);
+
+  const handleReplay = () => {
+    setRunId(r => r + 1);
+  };
 
   return (
-    <div className="rounded-xl border border-border bg-surface overflow-hidden shadow-2xl shadow-black/50 max-w-xl w-full">
+    <div className="rounded-xl border border-border bg-surface overflow-hidden shadow-2xl shadow-black/60 max-w-xl w-full flex flex-col">
       {/* Window chrome */}
-      <div className="flex items-center justify-between px-4 py-3 bg-elevated border-b border-border">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-elevated border-b border-border select-none">
         <div className="flex items-center gap-2">
           <div className="flex gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-error/60" />
-            <span className="w-3 h-3 rounded-full bg-warning/60" />
-            <span className="w-3 h-3 rounded-full bg-success/60" />
+            <span className="w-2.5 h-2.5 rounded-full bg-error/70" />
+            <span className="w-2.5 h-2.5 rounded-full bg-warning/70" />
+            <span className="w-2.5 h-2.5 rounded-full bg-success/70" />
           </div>
-          <span className="text-xs font-mono text-text-secondary ml-2">repopilot — analysis</span>
+          <span className="text-xs font-mono text-text-secondary ml-2 font-medium">repopilot — analysis</span>
         </div>
-        <StatusBadge
-          status={phase === 'complete' ? 'complete' : 'analyzing'}
-          size="sm"
-          label={phase === 'scanning' ? 'SCANNING' : phase === 'analyzing' ? 'ANALYZING' : 'ANALYZED'}
-        />
+
+        <div className="flex items-center gap-2">
+          {phase === 'complete' && (
+            <button
+              onClick={handleReplay}
+              type="button"
+              className="flex items-center gap-1 text-[11px] font-mono text-text-secondary hover:text-accent-cyan px-2 py-0.5 rounded hover:bg-surface border border-transparent hover:border-border transition-colors cursor-pointer"
+              title="Replay analysis animation"
+            >
+              <RotateCcw size={11} />
+              <span>Replay</span>
+            </button>
+          )}
+          <StatusBadge
+            status={phase === 'complete' ? 'complete' : 'analyzing'}
+            size="sm"
+            label={phase === 'scanning' ? 'SCANNING' : phase === 'analyzing' ? 'ANALYZING' : 'ANALYZED'}
+          />
+        </div>
       </div>
 
       {/* Repo identity */}
-      <div className="px-4 py-3 border-b border-border">
+      <div className="px-4 py-2.5 border-b border-border/80 bg-surface/60 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <GitBranch size={13} className="text-text-secondary" />
-          <span className="font-mono text-sm text-accent-cyan">github.com/vercel/next.js</span>
+          <GitBranch size={13} className="text-accent-cyan shrink-0" />
+          <span className="font-mono text-xs font-medium text-text-primary">github.com/vercel/next.js</span>
         </div>
-        <div className="flex items-center gap-1 mt-0.5">
-          <span className="font-mono text-xs text-text-secondary">canary</span>
-          <span className="text-border mx-1">·</span>
-          <span className="font-mono text-xs text-text-secondary">TypeScript</span>
+        <div className="flex items-center gap-1.5 font-mono text-[11px] text-text-secondary">
+          <span className="px-1.5 py-0.5 rounded bg-elevated border border-border/60 text-[10px]">canary</span>
+          <span>TypeScript</span>
         </div>
       </div>
 
       {/* Metrics */}
-      <div className="px-4 py-3 border-b border-border grid grid-cols-4 gap-2">
+      <div className="px-4 py-2.5 border-b border-border/80 grid grid-cols-4 gap-2 bg-elevated/20">
         {[
           { label: 'FILES', value: metrics.files },
           { label: 'DEPS', value: metrics.deps },
           { label: 'ROUTES', value: metrics.routes },
           { label: 'CONFIG', value: metrics.config },
         ].map(({ label, value }) => (
-          <div key={label} className="text-center">
-            <div className="font-mono text-base font-semibold text-text-primary">
-              {value > 0 ? value.toLocaleString() : <span className="text-text-secondary animate-pulse">—</span>}
+          <div key={label} className="text-center py-0.5">
+            <div className="font-mono text-sm font-semibold text-text-primary transition-all">
+              {value > 0 ? (
+                value.toLocaleString()
+              ) : (
+                <span className="text-text-secondary/40 font-normal">⋯</span>
+              )}
             </div>
-            <div className="text-[9px] font-mono text-text-secondary tracking-widest mt-0.5">{label}</div>
+            <div className="text-[9px] font-mono text-text-secondary/70 tracking-wider mt-0.5">{label}</div>
           </div>
         ))}
       </div>
 
-      {/* Architecture (visible after analysis) */}
-      <AnimatePresence>
-        {phase === 'complete' && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            transition={{ duration: 0.4 }}
-            className="px-4 py-3 border-b border-border"
-          >
-            <div className="text-[10px] font-mono text-text-secondary tracking-widest mb-3">ARCHITECTURE</div>
-            <div className="flex flex-col items-center gap-1.5">
-              <ArchNode label="React Frontend" sub="App Router" delay={0.1} type="frontend" />
-              <div className="w-px h-3 bg-border" />
-              <ArchNode label="API Routes" sub="Edge + Node.js" delay={0.2} type="backend" />
-              <div className="flex gap-4">
-                <div className="w-px h-3 bg-border" />
-                <div className="w-px h-3 bg-border opacity-0" />
-              </div>
-              <div className="flex gap-3">
-                <ArchNode label="Auth Layer" sub="NextAuth.js" delay={0.3} type="auth" />
-                <ArchNode label="PostgreSQL" sub="via Prisma" delay={0.35} type="db" />
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Architecture diagram (always stable height) */}
+      <div className="px-4 py-3.5 border-b border-border/80 bg-gradient-to-b from-surface to-bg/30">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-mono text-text-secondary/80 tracking-widest uppercase">
+            Discovered Architecture
+          </span>
+          <span className="text-[10px] font-mono text-accent-cyan/80">
+            {phase === 'complete' ? 'Topology Mapped' : activeNodes.frontend ? 'Mapping...' : 'Detecting...'}
+          </span>
+        </div>
 
-      {/* Terminal log */}
-      <div className="px-4 py-3 max-h-28 overflow-hidden">
-        {log.filter(Boolean).map((line, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, x: -4 }}
-            animate={{ opacity: i === log.length - 1 ? 1 : 0.4, x: 0 }}
-            className={`font-mono text-[11px] leading-relaxed ${
-              line.includes('complete') ? 'text-success' :
-              line.includes('WARNING') || line.includes('⚠') ? 'text-warning' :
-              'text-text-secondary'
+        <div className="flex flex-col items-center">
+          {/* React Frontend */}
+          <ArchNode
+            label="React Frontend"
+            sub="Next.js App Router"
+            type="frontend"
+            active={activeNodes.frontend}
+          />
+
+          {/* Stem to API Routes */}
+          <div
+            className={`w-px h-3 transition-colors duration-400 ${
+              activeNodes.backend ? 'bg-accent-cyan/70' : 'bg-border/60'
             }`}
+          />
+
+          {/* API Routes */}
+          <ArchNode
+            label="API Routes"
+            sub="Edge & Node Runtime"
+            type="backend"
+            active={activeNodes.backend}
+          />
+
+          {/* Branching fork */}
+          <div className="w-52 h-4 relative flex items-center justify-center">
+            <svg className="w-52 h-4 overflow-visible" viewBox="0 0 208 16" fill="none">
+              <path
+                d="M 104 0 L 104 6 M 40 6 L 168 6 M 40 6 L 40 16 M 168 6 L 168 16"
+                stroke={activeNodes.leaves ? '#67E8F9' : '#242A35'}
+                strokeWidth="1.2"
+                strokeLinecap="round"
+                className="transition-colors duration-400"
+              />
+            </svg>
+          </div>
+
+          {/* Bottom leaves */}
+          <div className="flex gap-4">
+            <ArchNode
+              label="Auth Layer"
+              sub="NextAuth.js v5"
+              type="auth"
+              active={activeNodes.leaves}
+            />
+            <ArchNode
+              label="PostgreSQL"
+              sub="via Prisma ORM"
+              type="db"
+              active={activeNodes.leaves}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Terminal log console */}
+      <div className="p-3 bg-bg/50">
+        <div className="rounded-lg bg-[#07090E] border border-border/80 overflow-hidden shadow-inner flex flex-col">
+          {/* Console topbar */}
+          <div className="flex items-center justify-between px-3 py-1.5 bg-[#0B0F17] border-b border-border/50 text-[10px] font-mono text-text-secondary select-none">
+            <div className="flex items-center gap-1.5">
+              <Terminal size={11} className="text-accent-cyan" />
+              <span>analysis.log</span>
+            </div>
+            <span className="text-[9px] text-text-secondary/60">
+              {phase === 'complete' ? 'FINISHED' : 'STREAMING'}
+            </span>
+          </div>
+
+          {/* Console lines container */}
+          <div
+            ref={terminalRef}
+            className="p-2.5 h-24 overflow-y-auto space-y-1 font-mono text-[11px] scroll-smooth"
           >
-            {line}
-          </motion.div>
-        ))}
-        {phase !== 'complete' && (
-          <span className="inline-block w-2 h-3 bg-accent-cyan animate-blink ml-0.5" />
-        )}
+            {log.map((line, i) => {
+              const isLast = i === log.length - 1;
+              const isDone = line.includes('complete');
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -3 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={`flex items-start gap-1.5 leading-relaxed ${
+                    isDone
+                      ? 'text-success font-medium'
+                      : isLast && phase !== 'complete'
+                      ? 'text-accent-cyan'
+                      : 'text-text-secondary'
+                  }`}
+                >
+                  <span className={`shrink-0 select-none ${isDone ? 'text-success' : 'text-accent-cyan/80'}`}>
+                    {isDone ? '✓' : '›'}
+                  </span>
+                  <span className="break-all">{line}</span>
+                </motion.div>
+              );
+            })}
+            {phase !== 'complete' && (
+              <div className="flex items-center gap-1 pl-4 h-3.5">
+                <span className="inline-block w-1.5 h-3 bg-accent-cyan animate-pulse" />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {phase !== 'complete' && <ScanningLine />}
@@ -487,7 +636,7 @@ export function LandingPage() {
                 onSubmit={handleAnalyze}
                 className="flex gap-2 mb-4"
               >
-                <div className="flex-1 flex items-center gap-2 bg-surface border border-border rounded px-3 py-2.5 focus-within:border-accent-cyan/50 transition-colors">
+                <div className="flex-1 flex items-center gap-2 bg-surface border border-border rounded px-3 py-2.5 focus-within:border-accent-cyan/50 transition-colors h-11">
                   <GitBranch size={14} className="text-text-secondary shrink-0" />
                   <input
                     type="text"
@@ -497,10 +646,33 @@ export function LandingPage() {
                     className="flex-1 bg-transparent text-sm font-mono text-text-primary placeholder:text-text-secondary focus:outline-none"
                   />
                 </div>
-                <button type="submit" className="btn-primary whitespace-nowrap">
+                <button type="submit" className="btn-primary whitespace-nowrap h-11 flex items-center justify-center">
                   Analyze
                 </button>
               </motion.form>
+
+              {/* Sample repos */}
+              <div className="flex items-center gap-2 mb-6 text-xs flex-wrap">
+                <span className="font-mono text-[11px] text-text-secondary">Try:</span>
+                {[
+                  { label: 'vercel/next.js', url: 'github.com/vercel/next.js' },
+                  { label: 'facebook/react', url: 'github.com/facebook/react' },
+                  { label: 'expressjs/express', url: 'github.com/expressjs/express' },
+                ].map(sample => (
+                  <button
+                    key={sample.label}
+                    type="button"
+                    onClick={() => {
+                      setRepoInput(sample.url);
+                      setRepoUrl(sample.url);
+                      navigate('/analyzing', { state: { repoUrl: sample.url } });
+                    }}
+                    className="font-mono text-[11px] px-2 py-0.5 rounded bg-surface hover:bg-elevated border border-border/80 hover:border-accent-cyan/40 text-text-secondary hover:text-accent-cyan transition-colors cursor-pointer"
+                  >
+                    {sample.label}
+                  </button>
+                ))}
+              </div>
 
               <motion.div
                 initial={{ opacity: 0 }}
@@ -556,28 +728,6 @@ export function LandingPage() {
       <ProblemSection />
       <SolutionSection />
 
-      {/* CTA */}
-      <section className="py-24 px-6 border-t border-border">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="section-label mb-4">Ready to Start</div>
-          <h2 className="text-3xl md:text-4xl font-semibold text-text-primary mb-4 tracking-tight">
-            Open a repository.<br />
-            Understand it in seconds.
-          </h2>
-          <p className="text-text-secondary mb-10 leading-relaxed">
-            RepoPilot turns the anxiety of joining an unfamiliar codebase<br className="hidden md:block" />
-            into a structured, guided developer workflow.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/app" className="btn-primary px-8 py-3 text-base">
-              Open RepoPilot
-            </Link>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="btn-secondary px-8 py-3 text-base">
-              View on GitHub
-            </a>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t border-border py-8 px-6">

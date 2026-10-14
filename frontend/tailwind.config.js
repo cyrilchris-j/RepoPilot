@@ -20,7 +20,8 @@ export default {
         error: '#FF6B7A',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Calibri', 'Carlito', 'Candara', 'Segoe UI', 'Inter', 'system-ui', 'sans-serif'],
+        calibri: ['Calibri', 'Carlito', 'Candara', 'Segoe UI', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       animation: {

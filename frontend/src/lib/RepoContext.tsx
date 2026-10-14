@@ -1,6 +1,15 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-import type { Repository, RepositoryMetrics, ArchitectureNode, Dependency, EnvVariable, SetupStep, StarterTask } from '../types';
+import type {
+  Repository,
+  RepositoryMetrics,
+  ArchitectureNode,
+  Dependency,
+  EnvVariable,
+  SetupStep,
+  StarterTask,
+  GitInsights,
+} from '../types';
 
 export interface RepoAnalysisResult {
   repository: Repository;
@@ -10,6 +19,7 @@ export interface RepoAnalysisResult {
   envVariables: EnvVariable[];
   setupSteps: SetupStep[];
   starterTasks: StarterTask[];
+  gitInsights?: GitInsights;
   message?: string;
 }
 
@@ -42,6 +52,10 @@ export function RepoProvider({ children }: { children: ReactNode }) {
   });
 
   const setRepoUrl = (url: string) => {
+    if (url !== repoUrl) {
+      setRepoDataState(null);
+      localStorage.removeItem('repopilot_analysis_data');
+    }
     setRepoUrlState(url);
     localStorage.setItem('repopilot_active_url', url);
   };

@@ -4,6 +4,7 @@ This directory contains summaries of IBM Bob sessions used during RepoPilot deve
 
 ## Session Overview
 
+
 | Session | Task | Outcome |
 |---|---|---|
 | session-01 | Architecture planning — component structure design | Defined frontend/backend split, TypeScript interfaces, routing architecture |

@@ -8,6 +8,7 @@ import type {
   SetupStep,
   StarterTask,
   AnalysisActivity,
+  GitInsights,
 } from '../types';
 
 // Demo repository data — clearly labeled as sample/demo data
@@ -114,18 +115,18 @@ export const DEMO_ARCHITECTURE_EDGES: ArchitectureEdge[] = [
 ];
 
 export const DEMO_DEPENDENCIES: Dependency[] = [
-  { name: 'react', version: '18.3.1', type: 'production', status: 'ok', description: 'UI component library' },
-  { name: 'react-dom', version: '18.3.1', type: 'production', status: 'ok', description: 'React DOM renderer' },
-  { name: 'typescript', version: '5.1.6', type: 'development', status: 'outdated', latestVersion: '5.4.5', description: 'TypeScript compiler' },
-  { name: 'next', version: '15.0.0', type: 'production', status: 'ok', description: 'React framework' },
-  { name: 'prisma', version: '5.8.0', type: 'development', status: 'outdated', latestVersion: '5.11.0', description: 'Database ORM' },
-  { name: '@prisma/client', version: '5.8.0', type: 'production', status: 'outdated', latestVersion: '5.11.0', description: 'Prisma runtime client' },
-  { name: 'zod', version: '3.22.4', type: 'production', status: 'ok', description: 'Schema validation' },
-  { name: 'axios', version: '1.3.0', type: 'production', status: 'vulnerable', latestVersion: '1.6.8', description: 'HTTP client — known CVE in this version' },
-  { name: 'lodash', version: '4.17.21', type: 'production', status: 'unused', description: 'Utility library — no imports detected' },
-  { name: 'tailwindcss', version: '3.4.1', type: 'development', status: 'ok', description: 'Utility-first CSS' },
-  { name: 'eslint', version: '8.56.0', type: 'development', status: 'ok', description: 'Code linter' },
-  { name: 'jest', version: '29.7.0', type: 'development', status: 'ok', description: 'Testing framework' },
+  { name: 'react', version: '18.3.1', type: 'production', status: 'ok', description: 'UI component library', license: 'MIT' },
+  { name: 'react-dom', version: '18.3.1', type: 'production', status: 'ok', description: 'React DOM renderer', license: 'MIT' },
+  { name: 'typescript', version: '5.1.6', type: 'development', status: 'outdated', latestVersion: '5.4.5', description: 'TypeScript compiler', license: 'Apache-2.0' },
+  { name: 'next', version: '15.0.0', type: 'production', status: 'ok', description: 'React framework', license: 'MIT' },
+  { name: 'prisma', version: '5.8.0', type: 'development', status: 'outdated', latestVersion: '5.11.0', description: 'Database ORM', license: 'Apache-2.0' },
+  { name: '@prisma/client', version: '5.8.0', type: 'production', status: 'outdated', latestVersion: '5.11.0', description: 'Prisma runtime client', license: 'Apache-2.0' },
+  { name: 'zod', version: '3.22.4', type: 'production', status: 'ok', description: 'Schema validation', license: 'MIT' },
+  { name: 'axios', version: '1.3.0', type: 'production', status: 'vulnerable', latestVersion: '1.6.8', description: 'HTTP client — known CVE in this version', license: 'MIT', auditAdvisory: 'CVE-2023-45857: Cross-Site Request Forgery (CSRF) via data parameter' },
+  { name: 'lodash', version: '4.17.21', type: 'production', status: 'unused', description: 'Utility library — no imports detected', license: 'MIT' },
+  { name: 'tailwindcss', version: '3.4.1', type: 'development', status: 'ok', description: 'Utility-first CSS', license: 'MIT' },
+  { name: 'eslint', version: '8.56.0', type: 'development', status: 'ok', description: 'Code linter', license: 'MIT' },
+  { name: 'jest', version: '29.7.0', type: 'development', status: 'ok', description: 'Testing framework', license: 'MIT' },
 ];
 
 export const DEMO_ENV_VARIABLES: EnvVariable[] = [
@@ -138,6 +139,8 @@ export const DEMO_ENV_VARIABLES: EnvVariable[] = [
 ];
 
 export const DEMO_SETUP_STEPS: SetupStep[] = [
+  { id: 'git', label: 'Git Version Control', command: 'git --version', status: 'ok', description: 'Version control system', details: 'v2.42.0 detected' },
+  { id: 'clone', label: 'Clone repository', command: 'git clone https://github.com/cyrilchris-j/RepoPilot.git', status: 'ok', description: 'Repository checkout', details: 'main branch active' },
   { id: 'node', label: 'Node.js ≥ 18.17', status: 'ok', description: 'Runtime environment', details: 'v20.11.0 detected' },
   { id: 'pnpm', label: 'pnpm package manager', status: 'ok', description: 'Dependency manager', details: 'v8.14.0 detected' },
   { id: 'install', label: 'Install dependencies', command: 'pnpm install', status: 'ok', description: '147 packages resolved' },
@@ -224,3 +227,28 @@ export const DEMO_ACTIVITY: AnalysisActivity[] = [
   { id: '6', timestamp: '14s ago', message: 'Setup validation complete — 1 warning, 1 error', type: 'info' },
   { id: '7', timestamp: '18s ago', message: 'Developer workspace ready', type: 'success' },
 ];
+
+export const DEMO_GIT_INSIGHTS: GitInsights = {
+  hotspots: [
+    { path: 'packages/next/src/server/next-server.ts', commits: 48, churnScore: 'high' },
+    { path: 'packages/next/src/client/router.ts', commits: 36, churnScore: 'high' },
+    { path: 'packages/next/src/build/webpack-config.ts', commits: 24, churnScore: 'medium' },
+    { path: 'packages/next/src/export/index.ts', commits: 19, churnScore: 'medium' },
+    { path: 'packages/next/src/server/middleware-runner.ts', commits: 14, churnScore: 'low' },
+  ],
+  contributors: [
+    { name: 'Tim Neutkens', commits: 342, percentage: 42 },
+    { name: 'Shu Ding', commits: 184, percentage: 23 },
+    { name: 'Jiachi Liu', commits: 112, percentage: 14 },
+    { name: 'JJ Kasper', commits: 95, percentage: 12 },
+    { name: 'Community Contributors', commits: 74, percentage: 9 },
+  ],
+  recentCommits: [
+    { hash: 'a4f91b', message: 'fix(turbopack): correct app router streaming chunking logic', author: 'Tim Neutkens', date: '3 hours ago' },
+    { hash: '7c82de', message: 'feat(edge): optimize middleware evaluation latency', author: 'Shu Ding', date: 'Yesterday' },
+    { hash: 'e201aa', message: 'chore(deps): update swc-loader to v1.3.102', author: 'Jiachi Liu', date: '2 days ago' },
+    { hash: '3d90fc', message: 'docs: clarify custom server routing hooks', author: 'JJ Kasper', date: '3 days ago' },
+  ],
+  totalCommits: 807,
+};
+
