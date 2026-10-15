@@ -13,7 +13,6 @@ export function AppLayout() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
-  // Global keyboard shortcut: Cmd+K / Ctrl+K
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -25,7 +24,6 @@ export function AppLayout() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Parse repo name from live analysis or repoUrl
   const displayName = (() => {
     if (repoData?.repository) {
       return `${repoData.repository.owner}/${repoData.repository.name}`;
@@ -37,23 +35,21 @@ export function AppLayout() {
 
   const branch = repoData?.repository?.branch || 'main';
 
-  // Current page breadcrumb title
   const pageTitle = (() => {
     const p = location.pathname;
-    if (p.includes('/summary')) return 'Project Summary & User Flow';
+    if (p.includes('/summary'))      return 'Project Summary & User Flow';
     if (p.includes('/improvements')) return 'Improvement Feedback & Wishlist';
     if (p.includes('/architecture')) return 'Architecture';
-    if (p.includes('/setup')) return 'Environment & Setup';
+    if (p.includes('/setup'))        return 'Environment & Setup';
     if (p.includes('/dependencies')) return 'Dependencies';
-    if (p.includes('/debug')) return 'Debug Agent';
-    if (p.includes('/ask')) return 'Codebase Assistant';
-    if (p.includes('/tasks')) return 'Starter Tasks';
+    if (p.includes('/debug'))        return 'Debug Agent';
+    if (p.includes('/ask'))          return 'Codebase Assistant';
+    if (p.includes('/tasks'))        return 'Starter Tasks';
     return 'Overview';
   })();
 
-
   return (
-    <div className="flex h-screen bg-bg overflow-hidden">
+    <div className="flex h-screen overflow-hidden" style={{ background: '#080A0F' }}>
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:shrink-0">
         <AppSidebar
@@ -67,60 +63,115 @@ export function AppLayout() {
 
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Desktop Top Header Bar */}
-        <header className="hidden md:flex items-center justify-between px-6 py-2.5 bg-surface border-b border-border/80 shrink-0">
+        {/* Desktop Top Header */}
+        <header
+          className="hidden md:flex items-center justify-between px-5 py-2 shrink-0"
+          style={{
+            background: 'rgba(8, 10, 15, 0.7)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+          }}
+        >
+          {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-xs font-mono">
-            <span className="text-text-secondary">{displayName}</span>
-            <span className="text-text-secondary/50">/</span>
-            <span className="text-text-primary font-medium">{pageTitle}</span>
+            <span className="text-white/25">{displayName}</span>
+            <span className="text-white/15">/</span>
+            <span className="text-white/70 font-medium">{pageTitle}</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Command Palette Trigger Button */}
+          <div className="flex items-center gap-2">
+            {/* Search / Command Palette */}
             <button
               type="button"
               onClick={() => setIsCommandPaletteOpen(true)}
-              className="flex items-center gap-3 px-3 py-1.5 rounded-lg bg-elevated/70 hover:bg-elevated border border-border/70 hover:border-accent-cyan/40 text-text-secondary hover:text-text-primary text-xs transition-colors group shadow-sm"
-              title="Search files, tasks, actions (⌘K)"
+              className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs transition-all duration-150 group cursor-pointer"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.07)',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.12)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)';
+              }}
             >
-              <div className="flex items-center gap-2">
-                <Search size={13} className="text-text-secondary group-hover:text-accent-cyan transition-colors" />
-                <span className="text-[12px] font-sans">Search codebase, actions, tasks...</span>
-              </div>
-              <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface border border-border text-text-secondary shadow-xs">
+              <Search size={12} className="text-white/30 group-hover:text-blue-400 transition-colors" />
+              <span className="text-white/30 group-hover:text-white/60 transition-colors text-[11px]">Search codebase, actions...</span>
+              <kbd
+                className="text-[9px] font-mono px-1.5 py-0.5 rounded-md text-white/20 ml-1"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}
+              >
                 ⌘K
               </kbd>
             </button>
 
-            {/* Quick Ask AI button */}
+            {/* Ask AI */}
             <Link
               to="/app/ask"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent-cyan/10 hover:bg-accent-cyan/20 border border-accent-cyan/30 hover:border-accent-cyan/50 text-accent-cyan text-xs transition-colors"
-              title="Ask Codebase AI"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium transition-all duration-150"
+              style={{
+                background: 'rgba(59,130,246,0.1)',
+                border: '1px solid rgba(59,130,246,0.2)',
+                color: '#60A5FA',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(59,130,246,0.18)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(59,130,246,0.1)';
+              }}
             >
-              <MessageCircle size={13} />
-              <span className="hidden lg:inline text-[11px] font-mono font-medium">Ask AI</span>
+              <MessageCircle size={12} />
+              <span className="hidden lg:inline">Ask AI</span>
             </Link>
 
-            {/* Quick Export Handbook */}
+            {/* Export */}
             <button
               type="button"
               onClick={() => setIsExportModalOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-elevated/50 hover:bg-elevated border border-border/60 hover:border-border text-text-secondary hover:text-text-primary text-xs transition-colors"
-              title="Export ONBOARDING.md handbook"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs transition-all duration-150 cursor-pointer"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                color: 'rgba(255,255,255,0.4)',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)';
+                (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
+                (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.4)';
+              }}
             >
-              <BookOpen size={13} className="text-accent-cyan" />
-              <span className="hidden lg:inline text-[11px] font-mono">Export Handbook</span>
+              <BookOpen size={12} className="text-blue-400" />
+              <span className="hidden lg:inline font-mono text-[11px]">Export Handbook</span>
             </button>
 
-            {/* GitHub external link if valid URL */}
+            {/* GitHub link */}
             {repoUrl && (
               <a
                 href={repoUrl.startsWith('http') ? repoUrl : `https://${repoUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-1.5 rounded-lg bg-elevated/50 hover:bg-elevated border border-border/60 text-text-secondary hover:text-text-primary transition-colors"
-                title="Open GitHub repository"
+                className="p-1.5 rounded-xl transition-all duration-150"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  color: 'rgba(255,255,255,0.35)',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)';
+                  (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
+                  (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)';
+                }}
               >
                 <ExternalLink size={13} />
               </a>
@@ -138,19 +189,17 @@ export function AppLayout() {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-bg">
+        <main className="flex-1 overflow-y-auto" style={{ background: '#080A0F' }}>
           <Outlet />
         </main>
       </div>
 
-      {/* Global Command Palette */}
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
         onTriggerExport={() => setIsExportModalOpen(true)}
       />
 
-      {/* Global Onboarding Export Modal */}
       <OnboardingExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}

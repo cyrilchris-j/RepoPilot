@@ -41,12 +41,23 @@ function MetricCard({ label, value, sub, accent = false }: {
   label: string; value: number | string; sub?: string; accent?: boolean;
 }) {
   return (
-    <div className={`card p-4 ${accent ? 'border-accent-cyan/20' : ''}`}>
-      <div className={`text-2xl font-mono font-semibold ${accent ? 'text-accent-cyan' : 'text-text-primary'}`}>
+    <div
+      className="rounded-2xl p-4"
+      style={{
+        background: accent ? 'rgba(59,130,246,0.06)' : 'rgba(255,255,255,0.03)',
+        border: accent ? '1px solid rgba(59,130,246,0.15)' : '1px solid rgba(255,255,255,0.06)',
+        backdropFilter: 'blur(8px)',
+        boxShadow: accent ? '0 0 20px rgba(59,130,246,0.06)' : 'none',
+      }}
+    >
+      <div
+        className="text-2xl font-mono font-bold mb-1"
+        style={{ color: accent ? '#60A5FA' : 'rgba(255,255,255,0.85)' }}
+      >
         {typeof value === 'number' ? <Counter target={value} /> : value}
       </div>
-      <div className="text-xs font-mono tracking-widest uppercase text-text-secondary mt-1">{label}</div>
-      {sub && <div className="text-xs text-text-secondary mt-0.5">{sub}</div>}
+      <div className="text-[9px] font-mono tracking-widest uppercase mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>{label}</div>
+      {sub && <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{sub}</div>}
     </div>
   );
 }
@@ -152,7 +163,7 @@ export function DashboardPage() {
   const errors = issues.filter(s => s.status === 'error');
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-6 max-w-6xl mx-auto space-y-5">
       {/* Repository identity */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -162,17 +173,17 @@ export function DashboardPage() {
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <GitBranch size={14} className="text-text-secondary" />
-            <span className="font-mono text-sm text-text-secondary">{repo.owner}/</span>
-            <span className="font-mono text-sm font-semibold text-text-primary">{repo.name}</span>
-            <span className="font-mono text-xs text-text-secondary border border-border px-1.5 py-0.5 rounded">
+            <GitBranch size={14} style={{ color: 'rgba(255,255,255,0.25)' }} />
+            <span className="font-mono text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>{repo.owner}/</span>
+            <span className="font-mono text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>{repo.name}</span>
+            <span className="font-mono text-xs px-2 py-0.5 rounded-lg" style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
               {repo.branch}
             </span>
           </div>
-          <p className="text-sm text-text-secondary">{repo.description}</p>
+          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>{repo.description}</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-xs font-mono text-text-secondary flex items-center gap-1">
+          <div className="text-xs font-mono flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
             <Clock size={11} />
             Analyzed {repoData ? 'from live repository' : 'demo mode'}
           </div>
@@ -186,20 +197,26 @@ export function DashboardPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="relative overflow-hidden rounded-xl border border-accent-cyan/30 bg-gradient-to-r from-accent-cyan/15 via-surface to-accent-violet/10 p-4 sm:p-5 shadow-lg group"
+        className="relative overflow-hidden rounded-2xl p-4 sm:p-5 group"
+        style={{
+          background: 'linear-gradient(135deg, rgba(34,211,238,0.06) 0%, rgba(13,17,23,0.8) 50%, rgba(139,92,246,0.05) 100%)',
+          border: '1px solid rgba(34,211,238,0.15)',
+          backdropFilter: 'blur(16px)',
+          boxShadow: '0 0 32px rgba(34,211,238,0.05), inset 0 1px 0 rgba(255,255,255,0.06)',
+        }}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/40">
+              <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-lg" style={{ background: 'rgba(34,211,238,0.12)', color: '#22D3EE', border: '1px solid rgba(34,211,238,0.25)' }}>
                 RECOMMENDED FIRST STEP
               </span>
-              <span className="text-xs font-mono text-text-secondary">Architecture Blueprint</span>
+              <span className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>Architecture Blueprint</span>
             </div>
-            <h2 className="text-base font-bold text-text-primary flex items-center gap-2">
+            <h2 className="text-base font-bold flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.9)' }}>
               <span>Deep Project Summary &amp; End-to-End User Flow</span>
             </h2>
-            <p className="text-xs text-text-secondary max-w-2xl leading-relaxed">
+            <p className="text-xs max-w-2xl leading-relaxed" style={{ color: 'rgba(255,255,255,0.35)' }}>
               Explore how this project operates under the hood, view the 5-stage interactive user journey, and review the dual-benefit matrix for both engineers and real users.
             </p>
           </div>
@@ -219,21 +236,27 @@ export function DashboardPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.08, duration: 0.35 }}
-        className="card p-4 sm:p-5 border-accent-cyan/35 bg-gradient-to-r from-accent-cyan/10 via-surface to-accent-violet/10 relative overflow-hidden shadow-lg shadow-black/20"
+        className="rounded-2xl p-4 sm:p-5 relative overflow-hidden"
+        style={{
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid rgba(255,255,255,0.07)',
+          backdropFilter: 'blur(16px)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+        }}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-accent-cyan/15 border border-accent-cyan/30 flex items-center justify-center text-accent-cyan shadow-sm shrink-0">
-              <MessageSquareCode size={18} />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.2)', color: '#60A5FA' }}>
+              <MessageSquareCode size={16} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-text-primary tracking-tight">ASK YOUR CODEBASE</h2>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30 font-medium">
+                <h2 className="text-sm font-semibold tracking-tight" style={{ color: 'rgba(255,255,255,0.9)' }}>ASK YOUR CODEBASE</h2>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-lg font-medium" style={{ background: 'rgba(59,130,246,0.12)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.2)' }}>
                   AI ASSISTANT
                 </span>
               </div>
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
                 Ask natural language questions about architecture, files, logic, or dependencies.
               </p>
             </div>
@@ -250,20 +273,21 @@ export function DashboardPage() {
 
         {/* Input form */}
         <form onSubmit={handleAskSubmit} className="flex gap-2 mb-3">
-          <div className="flex-1 flex items-center gap-2.5 bg-bg/90 border border-border/80 focus-within:border-accent-cyan/70 rounded-lg px-3.5 py-2.5 shadow-inner transition-colors">
+          <div className="flex-1 flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 transition-all" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.07)' }}>
             <Search size={15} className="text-accent-cyan shrink-0" />
             <input
               type="text"
               value={askInput}
               onChange={e => setAskInput(e.target.value)}
               placeholder="Ask anything (e.g., 'How does authentication work?', 'Where are database models defined?')"
-              className="flex-1 bg-transparent text-xs sm:text-sm font-mono text-text-primary placeholder:text-text-secondary/70 focus:outline-none"
+              className="flex-1 bg-transparent text-xs sm:text-sm font-mono focus:outline-none"
+              style={{ color: 'rgba(255,255,255,0.8)' }}
             />
           </div>
           <button
             type="submit"
             disabled={!askInput.trim()}
-            className="btn-primary px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-medium flex items-center gap-1.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md"
+            className="btn-primary px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-medium flex items-center gap-1.5 whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer rounded-xl"
           >
             <Send size={13} />
             <span>Ask</span>
@@ -272,8 +296,8 @@ export function DashboardPage() {
 
         {/* Quick prompt suggestions */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-mono text-text-secondary flex items-center gap-1">
-            <Sparkles size={11} className="text-accent-cyan" /> Try asking:
+          <span className="text-[11px] font-mono flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            <Sparkles size={11} style={{ color: '#60A5FA' }} /> Try asking:
           </span>
           {[
             'How is authentication handled?',
@@ -286,7 +310,10 @@ export function DashboardPage() {
               key={i}
               type="button"
               onClick={() => handleAskPrompt(prompt)}
-              className="text-[11px] font-mono px-2.5 py-1 rounded-md bg-elevated/70 hover:bg-elevated border border-border/80 hover:border-accent-cyan/50 text-text-secondary hover:text-accent-cyan transition-colors cursor-pointer text-left truncate max-w-[260px] sm:max-w-none"
+              className="text-[11px] font-mono px-2.5 py-1 rounded-lg transition-all cursor-pointer text-left truncate max-w-[260px] sm:max-w-none"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.35)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#60A5FA'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(59,130,246,0.3)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)'; }}
             >
               {prompt}
             </button>
@@ -312,30 +339,31 @@ export function DashboardPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.12, duration: 0.35 }}
-        className="card p-4 sm:p-5 border-accent-cyan/30 bg-gradient-to-r from-accent-cyan/10 via-surface to-accent-violet/10 relative overflow-hidden shadow-lg"
+        className="rounded-2xl p-4 sm:p-5 relative overflow-hidden"
+        style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}
       >
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/40 font-semibold flex items-center gap-1">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg font-semibold flex items-center gap-1" style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.2)' }}>
                 <Sparkles size={11} />
                 REPOPILOT SPECIAL COMMAND
               </span>
-              <span className="text-xs text-text-secondary font-mono">
+              <span className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
                 Codebase Evolution Engine
               </span>
             </div>
-            <h3 className="text-sm font-semibold text-text-primary">
+            <h3 className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>
               Improve, Modernize &amp; Merge Components with 1 Command
             </h3>
-            <p className="text-xs text-text-secondary max-w-xl">
+            <p className="text-xs max-w-xl" style={{ color: 'rgba(255,255,255,0.35)' }}>
               Anyone with this repository can run our signature CLI command to automatically audit code, deploy CI/CD pipelines, and merge battle-tested components.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
-            <div className="flex items-center gap-2 bg-bg/90 border border-border rounded-lg px-3 py-2 font-mono text-xs text-text-primary shadow-inner">
-              <Terminal size={13} className="text-accent-cyan shrink-0" />
+            <div className="flex items-center gap-2 rounded-xl px-3 py-2 font-mono text-xs" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)' }}>
+              <Terminal size={13} style={{ color: '#22D3EE', flexShrink: 0 }} />
               <span className="select-all">npx repopilot@latest scan .</span>
               <button
                 type="button"
@@ -372,14 +400,15 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="md:col-span-3 card p-5"
+          className="md:col-span-3 rounded-2xl p-5"
+          style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(8px)' }}
         >
           <div className="flex items-center justify-between mb-5">
             <div>
               <div className="section-label mb-0.5">Architecture</div>
-              <div className="text-xs text-text-secondary">Detected component relationships</div>
+              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Detected component relationships</div>
             </div>
-            <Link to="/app/architecture" className="text-xs text-accent-cyan hover:underline flex items-center gap-1">
+            <Link to="/app/architecture" className="text-xs flex items-center gap-1 transition-colors" style={{ color: '#60A5FA' }}>
               Full view <ChevronRight size={12} />
             </Link>
           </div>
@@ -394,13 +423,13 @@ export function DashboardPage() {
                 transition={{ delay: 0.3 + i * 0.07 }}
                 className="w-full max-w-xs"
               >
-                <div className={`border rounded px-4 py-2.5 text-center ${node.color}`}>
-                  <div className="text-xs font-semibold">{node.label}</div>
-                  <div className="text-[10px] opacity-60 font-mono mt-0.5">{node.sub}</div>
+                <div className="rounded-xl px-4 py-2.5 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <div className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.75)' }}>{node.label}</div>
+                  <div className="text-[10px] opacity-60 font-mono mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{node.sub}</div>
                 </div>
                 {i < miniArchNodes.length - 1 && (
                   <div className="flex justify-center">
-                    <div className="w-px h-3 bg-border" />
+                    <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.08)' }} />
                   </div>
                 )}
               </motion.div>
@@ -416,42 +445,42 @@ export function DashboardPage() {
           className="md:col-span-2 space-y-3"
         >
           {/* Setup health */}
-          <div className="card p-5">
+          <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(8px)' }}>
             <div className="section-label mb-3">Setup Health</div>
             {setupSteps.slice(0, 4).map((step) => (
-              <div key={step.id} className="flex items-center gap-2.5 py-1.5 border-b border-border/50 last:border-0">
-                {step.status === 'ok' && <CheckCircle size={13} className="text-success shrink-0" />}
-                {step.status === 'warning' && <AlertTriangle size={13} className="text-warning shrink-0" />}
-                {step.status === 'error' && <XCircle size={13} className="text-error shrink-0" />}
-                {step.status === 'pending' && <div className="w-3 h-3 rounded-full border border-border shrink-0" />}
-                <span className="text-xs text-text-primary flex-1">{step.label}</span>
-                {step.details && <span className="text-[10px] font-mono text-text-secondary truncate max-w-[80px]">{step.details}</span>}
+              <div key={step.id} className="flex items-center gap-2.5 py-1.5 last:border-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                {step.status === 'ok' && <CheckCircle size={13} style={{ color: '#10B981', flexShrink: 0 }} />}
+                {step.status === 'warning' && <AlertTriangle size={13} style={{ color: '#F59E0B', flexShrink: 0 }} />}
+                {step.status === 'error' && <XCircle size={13} style={{ color: '#EF4444', flexShrink: 0 }} />}
+                {step.status === 'pending' && <div className="w-3 h-3 rounded-full border shrink-0" style={{ borderColor: 'rgba(255,255,255,0.1)' }} />}
+                <span className="text-xs flex-1" style={{ color: 'rgba(255,255,255,0.7)' }}>{step.label}</span>
+                {step.details && <span className="text-[10px] font-mono truncate max-w-[80px]" style={{ color: 'rgba(255,255,255,0.25)' }}>{step.details}</span>}
               </div>
             ))}
-            <Link to="/app/setup" className="mt-3 flex items-center gap-1 text-xs text-accent-cyan hover:underline">
+            <Link to="/app/setup" className="mt-3 flex items-center gap-1 text-xs transition-colors" style={{ color: '#60A5FA' }}>
               View setup guide <ChevronRight size={11} />
             </Link>
           </div>
 
           {/* Detected issues */}
-          <div className="card p-5">
+          <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(8px)' }}>
             <div className="section-label mb-3">Detected Issues</div>
             <div className="space-y-2">
               {errors.length > 0 && errors.map(e => (
-                <div key={e.id} className="flex items-start gap-2 p-2 rounded bg-error/5 border border-error/20">
-                  <XCircle size={12} className="text-error mt-0.5 shrink-0" />
+                <div key={e.id} className="flex items-start gap-2 p-2 rounded-xl" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                  <XCircle size={12} style={{ color: '#EF4444', marginTop: '2px', flexShrink: 0 }} />
                   <div>
-                    <div className="text-xs text-error font-medium">{e.label}</div>
-                    <div className="text-[10px] text-text-secondary mt-0.5">{e.details}</div>
+                    <div className="text-xs font-medium" style={{ color: '#FC8181' }}>{e.label}</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{e.details}</div>
                   </div>
                 </div>
               ))}
               {warnings.length > 0 && warnings.map(w => (
-                <div key={w.id} className="flex items-start gap-2 p-2 rounded bg-warning/5 border border-warning/20">
-                  <AlertTriangle size={12} className="text-warning mt-0.5 shrink-0" />
+                <div key={w.id} className="flex items-start gap-2 p-2 rounded-xl" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}>
+                  <AlertTriangle size={12} style={{ color: '#F59E0B', marginTop: '2px', flexShrink: 0 }} />
                   <div>
-                    <div className="text-xs text-warning font-medium">{w.label}</div>
-                    <div className="text-[10px] text-text-secondary mt-0.5">{w.details}</div>
+                    <div className="text-xs font-medium" style={{ color: '#FCD34D' }}>{w.label}</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{w.details}</div>
                   </div>
                 </div>
               ))}
@@ -468,7 +497,7 @@ export function DashboardPage() {
         className="grid md:grid-cols-2 gap-4"
       >
         {/* Hotspots Card */}
-        <div className="card p-5">
+        <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(8px)' }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Flame size={16} className="text-warning shrink-0" />
@@ -477,27 +506,27 @@ export function DashboardPage() {
                 <div className="text-xs text-text-secondary">High-churn files with frequent modifications</div>
               </div>
             </div>
-            <span className="text-[10px] font-mono text-text-secondary border border-border px-2 py-0.5 rounded">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg" style={{ color: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
               {gitInsights.totalCommits} commits analyzed
             </span>
           </div>
 
           <div className="space-y-2">
             {gitInsights.hotspots.slice(0, 4).map((spot, i) => (
-              <div key={i} className="flex items-center justify-between p-2 rounded bg-elevated/40 border border-border/50 text-xs">
+              <div key={i} className="flex items-center justify-between p-2 rounded-xl text-xs" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                    spot.churnScore === 'high' ? 'bg-error' : spot.churnScore === 'medium' ? 'bg-warning' : 'bg-success'
-                  }`} />
-                  <span className="font-mono text-text-primary truncate">{spot.path}</span>
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{
+                    background: spot.churnScore === 'high' ? '#EF4444' : spot.churnScore === 'medium' ? '#F59E0B' : '#10B981'
+                  }} />
+                  <span className="font-mono truncate" style={{ color: 'rgba(255,255,255,0.7)' }}>{spot.path}</span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-2">
-                  <span className="text-[10px] font-mono text-text-secondary">{spot.commits} edits</span>
-                  <span className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded border ${
-                    spot.churnScore === 'high' ? 'text-error border-error/30 bg-error/10' :
-                    spot.churnScore === 'medium' ? 'text-warning border-warning/30 bg-warning/10' :
-                    'text-success border-success/30 bg-success/10'
-                  }`}>
+                  <span className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>{spot.commits} edits</span>
+                  <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded-lg" style={{
+                    color: spot.churnScore === 'high' ? '#EF4444' : spot.churnScore === 'medium' ? '#F59E0B' : '#10B981',
+                    background: spot.churnScore === 'high' ? 'rgba(239,68,68,0.1)' : spot.churnScore === 'medium' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)',
+                    border: `1px solid ${spot.churnScore === 'high' ? 'rgba(239,68,68,0.2)' : spot.churnScore === 'medium' ? 'rgba(245,158,11,0.2)' : 'rgba(16,185,129,0.2)'}`,
+                  }}>
                     {spot.churnScore}
                   </span>
                 </div>
@@ -507,7 +536,7 @@ export function DashboardPage() {
         </div>
 
         {/* Contributors & Recent Commits */}
-        <div className="card p-5">
+        <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(8px)' }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Users size={16} className="text-accent-cyan shrink-0" />
@@ -522,13 +551,13 @@ export function DashboardPage() {
             {gitInsights.contributors.slice(0, 3).map((contrib, i) => (
               <div key={i} className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-text-primary font-medium">{contrib.name}</span>
-                  <span className="text-text-secondary text-[11px]">{contrib.commits} commits ({contrib.percentage}%)</span>
+                  <span className="font-medium" style={{ color: 'rgba(255,255,255,0.75)' }}>{contrib.name}</span>
+                  <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{contrib.commits} commits ({contrib.percentage}%)</span>
                 </div>
-                <div className="h-1.5 rounded-full bg-elevated overflow-hidden">
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
                   <div
-                    className="h-full rounded-full bg-accent-cyan"
-                    style={{ width: `${contrib.percentage}%` }}
+                    className="h-full rounded-full"
+                    style={{ width: `${contrib.percentage}%`, background: 'linear-gradient(90deg, #22D3EE, #3B82F6)' }}
                   />
                 </div>
               </div>
@@ -536,16 +565,16 @@ export function DashboardPage() {
           </div>
 
           {gitInsights.recentCommits.length > 0 && (
-            <div className="pt-3 border-t border-border/50">
-              <div className="text-[10px] font-mono text-text-secondary tracking-widest mb-2 flex items-center gap-1.5">
-                <GitCommit size={11} className="text-accent-violet" />
+            <div className="pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="text-[10px] font-mono tracking-widest mb-2 flex items-center gap-1.5" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                <GitCommit size={11} style={{ color: '#818CF8' }} />
                 RECENT REPOSITORY ACTIVITY
               </div>
               <div className="space-y-1.5">
                 {gitInsights.recentCommits.slice(0, 2).map((c, i) => (
-                  <div key={i} className="flex items-baseline justify-between text-xs font-mono text-text-secondary gap-2">
-                    <span className="text-text-primary truncate">{c.message}</span>
-                    <span className="text-[10px] shrink-0 text-[#6b7280]">{c.date}</span>
+                  <div key={i} className="flex items-baseline justify-between text-xs font-mono gap-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    <span className="truncate" style={{ color: 'rgba(255,255,255,0.65)' }}>{c.message}</span>
+                    <span className="text-[10px] shrink-0" style={{ color: 'rgba(255,255,255,0.2)' }}>{c.date}</span>
                   </div>
                 ))}
               </div>
@@ -573,37 +602,44 @@ export function DashboardPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, duration: 0.4 }}
-        className="card p-5"
+        className="rounded-2xl p-5"
+        style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(8px)' }}
       >
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="section-label mb-0.5">Starter Tasks</div>
-            <div className="text-xs text-text-secondary">AI-recommended first steps for this repository</div>
+            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>AI-recommended first steps for this repository</div>
           </div>
-          <Link to="/app/tasks" className="text-xs text-accent-cyan hover:underline flex items-center gap-1">
+          <Link to="/app/tasks" className="text-xs flex items-center gap-1 transition-colors" style={{ color: '#60A5FA' }}>
             All tasks <ChevronRight size={12} />
           </Link>
         </div>
         <div className="grid md:grid-cols-3 gap-3">
           {starterTasks.slice(0, 3).map((task) => (
-            <Link to="/app/tasks" key={task.id} className="card-elevated p-4 block hover:border-accent-cyan/30 transition-colors group">
+            <Link
+              to="/app/tasks" key={task.id}
+              className="block p-4 rounded-2xl transition-all group"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(59,130,246,0.2)'; (e.currentTarget as HTMLElement).style.background = 'rgba(59,130,246,0.05)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'; }}
+            >
               <div className="flex items-center gap-2 mb-2">
-                <span className={`tag ${
-                  task.difficulty === 'beginner' ? 'bg-success/10 text-success' :
-                  task.difficulty === 'intermediate' ? 'bg-warning/10 text-warning' :
-                  'bg-error/10 text-error'
-                }`}>
+                <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded-md" style={{
+                  background: task.difficulty === 'beginner' ? 'rgba(16,185,129,0.1)' : task.difficulty === 'intermediate' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
+                  color: task.difficulty === 'beginner' ? '#34D399' : task.difficulty === 'intermediate' ? '#FCD34D' : '#FC8181',
+                  border: `1px solid ${task.difficulty === 'beginner' ? 'rgba(16,185,129,0.2)' : task.difficulty === 'intermediate' ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                }}>
                   {task.difficulty.toUpperCase()}
                 </span>
                 {task.estimatedTime && (
-                  <span className="text-[10px] font-mono text-text-secondary">{task.estimatedTime}</span>
+                  <span className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.25)' }}>{task.estimatedTime}</span>
                 )}
               </div>
-              <div className="text-sm font-medium text-text-primary mb-1.5 group-hover:text-accent-cyan transition-colors">
+              <div className="text-sm font-medium mb-1.5 transition-colors group-hover:text-blue-400" style={{ color: 'rgba(255,255,255,0.8)' }}>
                 {task.title}
               </div>
-              <div className="text-xs text-text-secondary leading-relaxed line-clamp-2">{task.description}</div>
-              <div className="mt-2 flex items-center gap-1 text-[10px] font-mono text-text-secondary">
+              <div className="text-xs leading-relaxed line-clamp-2" style={{ color: 'rgba(255,255,255,0.35)' }}>{task.description}</div>
+              <div className="mt-2 flex items-center gap-1 text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.25)' }}>
                 <ArrowRight size={10} />
                 {task.nextStep.slice(0, 50)}…
               </div>
@@ -617,27 +653,25 @@ export function DashboardPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.4 }}
-        className="card p-5"
+        className="rounded-2xl p-5"
+        style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(8px)' }}
       >
         <div className="section-label mb-4">Analysis Activity</div>
         <div className="space-y-1">
           {dynamicActivity.map((entry) => (
-            <div key={entry.id} className="flex items-start gap-3 py-1.5 border-b border-border/40 last:border-0">
-              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
-                entry.type === 'success' ? 'bg-success' :
-                entry.type === 'warning' ? 'bg-warning' :
-                entry.type === 'error' ? 'bg-error' : 'bg-text-secondary'
-              }`} />
+            <div key={entry.id} className="flex items-start gap-3 py-1.5 last:border-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{
+                background: entry.type === 'success' ? '#10B981' : entry.type === 'warning' ? '#F59E0B' : entry.type === 'error' ? '#EF4444' : 'rgba(255,255,255,0.2)',
+                boxShadow: entry.type === 'success' ? '0 0 4px rgba(16,185,129,0.5)' : 'none',
+              }} />
               <div className="flex-1 min-w-0">
-                <span className={`text-xs font-mono ${
-                  entry.type === 'error' ? 'text-error' :
-                  entry.type === 'warning' ? 'text-warning' :
-                  entry.type === 'success' ? 'text-text-primary' : 'text-text-secondary'
-                }`}>
+                <span className="text-xs font-mono" style={{
+                  color: entry.type === 'error' ? '#FC8181' : entry.type === 'warning' ? '#FCD34D' : entry.type === 'success' ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.4)',
+                }}>
                   {entry.message}
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-text-secondary shrink-0">{entry.timestamp}</span>
+              <span className="text-[10px] font-mono shrink-0" style={{ color: 'rgba(255,255,255,0.2)' }}>{entry.timestamp}</span>
             </div>
           ))}
         </div>

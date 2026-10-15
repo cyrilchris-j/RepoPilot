@@ -110,42 +110,63 @@ export function AnalyzingPage() {
   }, [activeRepo, navigate, setRepoData]);
 
   return (
-    <div className="min-h-screen bg-bg flex items-center justify-center p-6">
-      <div className="w-full max-w-lg">
+    <div
+      className="min-h-screen flex items-center justify-center p-6 relative"
+      style={{ background: '#080A0F' }}
+    >
+      {/* Background orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div style={{ position: 'absolute', top: '-100px', left: '50%', transform: 'translateX(-40%)', width: '600px', height: '600px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(34,211,238,0.06) 0%, transparent 70%)', filter: 'blur(40px)' }} />
+        <div style={{ position: 'absolute', bottom: '0', right: '-50px', width: '400px', height: '400px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 70%)', filter: 'blur(40px)' }} />
+      </div>
+
+      <div className="w-full max-w-lg relative">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="card p-8 space-y-6 border-accent-cyan/30 shadow-2xl"
+          initial={{ opacity: 0, y: 24, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="p-8 space-y-6 rounded-3xl"
+          style={{
+            background: 'rgba(10, 14, 22, 0.85)',
+            backdropFilter: 'blur(24px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 32px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)',
+          }}
         >
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] font-mono text-text-secondary tracking-widest mb-1 uppercase">
+              <div className="text-[9px] font-mono tracking-widest mb-1.5 uppercase" style={{ color: 'rgba(255,255,255,0.2)' }}>
                 INDEXING &amp; ANALYZING REPOSITORY
               </div>
-              <div className="font-mono text-sm font-semibold text-accent-cyan truncate max-w-xs">
+              <div className="font-mono text-sm font-semibold truncate max-w-xs" style={{ color: '#22D3EE' }}>
                 {activeRepo}
               </div>
             </div>
-            <div className={`text-sm font-mono font-semibold ${completed ? 'text-success' : 'text-accent-cyan'}`}>
+            <div
+              className="text-lg font-mono font-bold"
+              style={{ color: completed ? '#10B981' : '#22D3EE' }}
+            >
               {progress}%
             </div>
           </div>
 
           {/* Progress bar */}
-          <div className="h-1.5 bg-elevated rounded-full overflow-hidden border border-border/40">
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
             <motion.div
-              className={`h-full rounded-full ${completed ? 'bg-success' : 'bg-gradient-to-r from-accent-cyan to-accent-violet'}`}
+              className="h-full rounded-full"
+              style={{ background: completed ? '#10B981' : 'linear-gradient(90deg, #22D3EE, #6366F1)' }}
               initial={{ width: '15%' }}
               animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
             />
           </div>
 
           {/* Scanning line */}
           {!completed && <ScanningLine />}
 
-          {/* Dynamic real-time step log */}
+          {/* Log */}
           <div className="space-y-2 min-h-[180px]">
             <AnimatePresence>
               {logs.map((logMsg, i) => {
@@ -155,19 +176,20 @@ export function AnalyzingPage() {
                   <motion.div
                     key={`${i}-${logMsg}`}
                     initial={{ opacity: 0, x: -6 }}
-                    animate={{ opacity: isLast ? 1 : 0.45, x: 0 }}
-                    className={`flex items-center gap-2.5 font-mono text-xs ${
-                      isReady ? 'text-success font-semibold' :
-                      isLast && !completed ? 'text-accent-cyan' :
-                      'text-text-secondary'
-                    }`}
+                    animate={{ opacity: isLast ? 1 : 0.35, x: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-2.5 font-mono text-xs"
+                    style={{
+                      color: isReady ? '#10B981' : isLast && !completed ? '#22D3EE' : 'rgba(255,255,255,0.3)',
+                      fontWeight: isReady ? 600 : 400,
+                    }}
                   >
-                    <span className={`shrink-0 ${isReady ? 'text-success' : isLast ? 'text-accent-cyan' : 'text-text-secondary'}`}>
+                    <span style={{ flexShrink: 0, color: isReady ? '#10B981' : isLast ? '#22D3EE' : 'rgba(255,255,255,0.2)' }}>
                       {isReady ? '✓' : isLast ? '›' : '•'}
                     </span>
                     <span className="truncate">{logMsg}</span>
                     {isLast && !completed && (
-                      <span className="inline-block w-1.5 h-3 bg-accent-cyan animate-blink shrink-0" />
+                      <span className="inline-block w-1.5 h-3 rounded-sm shrink-0 animate-blink" style={{ background: '#22D3EE' }} />
                     )}
                   </motion.div>
                 );
@@ -179,9 +201,10 @@ export function AnalyzingPage() {
             <motion.div
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-3 bg-error/10 border border-error/30 p-3.5 rounded text-xs font-mono"
+              className="space-y-3 p-4 rounded-2xl text-xs font-mono"
+              style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
             >
-              <div className="flex items-start gap-2 text-error">
+              <div className="flex items-start gap-2" style={{ color: '#FC8181' }}>
                 <span className="font-bold shrink-0">✕</span>
                 <span className="leading-relaxed">{errorMessage}</span>
               </div>
@@ -189,14 +212,16 @@ export function AnalyzingPage() {
                 <button
                   type="button"
                   onClick={() => navigate('/')}
-                  className="px-3 py-1.5 rounded bg-surface border border-border text-text-primary hover:bg-elevated transition-colors text-xs"
+                  className="px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}
                 >
                   ← Back to Home
                 </button>
                 <button
                   type="button"
                   onClick={() => window.location.reload()}
-                  className="px-3 py-1.5 rounded bg-accent-cyan/15 border border-accent-cyan/40 text-accent-cyan hover:bg-accent-cyan/25 transition-colors text-xs"
+                  className="px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer"
+                  style={{ background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.25)', color: '#22D3EE' }}
                 >
                   Retry Analysis
                 </button>
@@ -208,9 +233,10 @@ export function AnalyzingPage() {
             <motion.div
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 text-success text-xs font-mono bg-success/10 border border-success/30 p-2.5 rounded"
+              className="flex items-center gap-2.5 text-xs font-mono p-3 rounded-2xl"
+              style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34D399' }}
             >
-              <span className="w-2 h-2 rounded-full bg-success shrink-0" />
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#10B981', boxShadow: '0 0 6px rgba(16,185,129,0.8)' }} />
               <span>Real repository architecture indexed — redirecting to workspace...</span>
             </motion.div>
           )}
