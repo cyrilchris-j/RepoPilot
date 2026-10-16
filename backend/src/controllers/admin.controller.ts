@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
+import { issueAdminToken } from '../middleware/auth';
 
 export interface TrackedRepository {
   id: string;
@@ -111,7 +113,8 @@ export function getTrackedRepositories(_req: Request, res: Response) {
       repositories: repos,
     });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to fetch repositories', details: err.message });
+    console.error('[admin.controller] Failed to fetch repositories:', err);
+    res.status(500).json({ error: 'Failed to fetch repositories' });
   }
 }
 
@@ -124,19 +127,24 @@ export function recordTrackedRepository(req: Request, res: Response) {
     const saved = saveTrackedRepoInternal(repo);
     return res.json({ status: 'ok', repository: saved });
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to save repository', details: err.message });
+    console.error('[admin.controller] Failed to save repository:', err);
+    return res.status(500).json({ error: 'Failed to save repository' });
   }
 }
 
 export function deleteTrackedRepository(req: Request, res: Response) {
   try {
     const id = req.params.id;
+    if (!id || typeof id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(id)) {
+      return res.status(400).json({ error: 'Invalid repository identifier' });
+    }
     const current = readRepos();
     const filtered = current.filter(r => r.id !== id);
     writeRepos(filtered);
     res.json({ status: 'ok', total: filtered.length, repositories: filtered });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to delete repository', details: err.message });
+    console.error('[admin.controller] Failed to delete repository:', err);
+    res.status(500).json({ error: 'Failed to delete repository' });
   }
 }
 
@@ -166,21 +174,42 @@ export function getAdminStats(_req: Request, res: Response) {
       },
     });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to get stats', details: err.message });
+    console.error('[admin.controller] Failed to get stats:', err);
+    res.status(500).json({ error: 'Failed to get stats' });
   }
 }
 
 export function verifyAdminPassword(req: Request, res: Response) {
   try {
     const { password } = req.body || {};
-    const expected = process.env.ADMIN_PASSWORD || 'MaxVerstappenTheDutchKing';
-    if (!password || password !== expected) {
+    const expected = process.env.ADMIN_PASSWORD;
+
+    if (!expected) {
+      console.warn('[admin.controller] ADMIN_PASSWORD environment variable is not configured');
+      return res.status(503).json({
+        authenticated: false,
+        error: 'Admin authentication is not configured on this server',
+      });
+    }
+
+    if (typeof password !== 'string' || !password) {
+      return res.status(401).json({ authenticated: false, error: 'Password is required' });
+    }
+
+    const inputBuf = Buffer.from(password);
+    const expectedBuf = Buffer.from(expected);
+
+    // Constant-time comparison to prevent timing attacks
+    if (inputBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(inputBuf, expectedBuf)) {
       return res.status(401).json({ authenticated: false, error: 'Invalid administrator password' });
     }
-    const token = 'rp_admin_' + Buffer.from(`${Date.now()}:${Math.random()}`).toString('base64');
+
+    const token = issueAdminToken();
     return res.json({ authenticated: true, token });
   } catch (err: any) {
-    return res.status(500).json({ error: 'Verification failed', details: err.message });
+    console.error('[admin.controller] Verification error:', err);
+    return res.status(500).json({ error: 'Verification failed' });
   }
 }
+
 

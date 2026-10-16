@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 export interface UserFeedback {
   id: string;
@@ -18,9 +19,9 @@ export interface UserFeedback {
 
 const FEEDBACK_FILE = path.resolve(__dirname, '../../cache/user_feedback.json');
 
-const SEED_FEEDBACK: UserFeedback[] = [];
-
-const LEGACY_MOCK_FEEDBACK_IDS = new Set(['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5', 'fb-6']);
+const VALID_CATEGORIES = new Set(['bug', 'feature', 'improvement', 'other']);
+const VALID_STATUSES = new Set(['under_review', 'planned', 'in_progress', 'completed']);
+const VALID_PRIORITIES = new Set(['low', 'medium', 'high']);
 
 function readFeedback(): UserFeedback[] {
   try {
@@ -33,7 +34,7 @@ function readFeedback(): UserFeedback[] {
     const data = fs.readFileSync(FEEDBACK_FILE, 'utf8');
     const parsed = JSON.parse(data);
     if (Array.isArray(parsed)) {
-      return parsed.filter((f: any) => f && !LEGACY_MOCK_FEEDBACK_IDS.has(f.id));
+      return parsed.filter((f: any) => f && typeof f.id === 'string');
     }
     return [];
   } catch {
@@ -56,30 +57,61 @@ export function getAllFeedback(_req: Request, res: Response) {
     const list = readFeedback();
     res.json({ status: 'ok', total: list.length, feedback: list });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to read feedback', details: err.message });
+    console.error('[feedback.controller] Failed to read feedback:', err);
+    res.status(500).json({ error: 'Failed to read feedback' });
   }
 }
 
 export function createFeedback(req: Request, res: Response) {
   try {
     const body = req.body;
-    if (!body || !body.title || !body.description) {
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({ error: 'Request body must be a valid JSON object' });
+    }
+
+    const rawTitle = typeof body.title === 'string' ? body.title.trim() : '';
+    const rawDesc = typeof body.description === 'string' ? body.description.trim() : '';
+
+    if (!rawTitle || !rawDesc) {
       return res.status(400).json({ error: 'Title and description are required' });
     }
 
+    if (rawTitle.length > 200) {
+      return res.status(400).json({ error: 'Title cannot exceed 200 characters' });
+    }
+
+    if (rawDesc.length > 2500) {
+      return res.status(400).json({ error: 'Description cannot exceed 2500 characters' });
+    }
+
+    const category = typeof body.category === 'string' && VALID_CATEGORIES.has(body.category)
+      ? body.category
+      : 'feature';
+
+    const submittedBy = typeof body.submittedBy === 'string'
+      ? body.submittedBy.trim().slice(0, 50) || 'Anonymous Developer'
+      : 'Anonymous Developer';
+
+    const userHandle = typeof body.userHandle === 'string'
+      ? body.userHandle.trim().slice(0, 30) || '@developer'
+      : '@developer';
+
     const current = readFeedback();
+
+    // Server-enforced secure properties:
+    // Attacker cannot override ID, set arbitrary initial votes, set status, set priority, or inject adminNote
     const newFeedback: UserFeedback = {
-      id: body.id || `fb-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-      title: body.title.trim(),
-      description: body.description.trim(),
-      category: body.category || 'feature',
-      submittedBy: body.submittedBy?.trim() || 'Anonymous Developer',
-      userHandle: body.userHandle?.trim() || '@developer',
-      createdAt: body.createdAt || new Date().toISOString(),
-      votes: body.votes !== undefined ? body.votes : 1,
-      status: body.status || 'under_review',
-      priority: body.priority || 'medium',
-      adminNote: body.adminNote,
+      id: `fb-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,
+      title: rawTitle,
+      description: rawDesc,
+      category,
+      submittedBy,
+      userHandle,
+      createdAt: new Date().toISOString(),
+      votes: 1,
+      status: 'under_review',
+      priority: 'medium',
+      adminNote: undefined,
     };
 
     current.unshift(newFeedback);
@@ -87,20 +119,26 @@ export function createFeedback(req: Request, res: Response) {
 
     return res.status(201).json({ status: 'ok', feedback: newFeedback });
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to create feedback', details: err.message });
+    console.error('[feedback.controller] Failed to create feedback:', err);
+    return res.status(500).json({ error: 'Failed to create feedback' });
   }
 }
 
 export function voteFeedback(req: Request, res: Response) {
   try {
     const id = req.params.id;
-    const { increment = true } = req.body;
+    if (!id || typeof id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(id)) {
+      return res.status(400).json({ error: 'Invalid feedback ID' });
+    }
+
+    const { increment = true } = req.body || {};
+    const shouldIncrement = Boolean(increment);
     const current = readFeedback();
 
     let targetItem: UserFeedback | null = null;
     const updated = current.map(item => {
       if (item.id === id) {
-        const delta = increment ? 1 : -1;
+        const delta = shouldIncrement ? 1 : -1;
         const votes = Math.max(0, item.votes + delta);
         targetItem = { ...item, votes };
         return targetItem;
@@ -115,23 +153,41 @@ export function voteFeedback(req: Request, res: Response) {
     writeFeedback(updated);
     return res.json({ status: 'ok', feedback: targetItem });
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to update vote', details: err.message });
+    console.error('[feedback.controller] Failed to update vote:', err);
+    return res.status(500).json({ error: 'Failed to update vote' });
   }
 }
 
 export function updateFeedback(req: Request, res: Response) {
   try {
     const id = req.params.id;
-    const { status, adminNote } = req.body;
+    if (!id || typeof id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(id)) {
+      return res.status(400).json({ error: 'Invalid feedback ID' });
+    }
+
+    const { status, adminNote, priority } = req.body || {};
     const current = readFeedback();
 
     let updatedItem: UserFeedback | null = null;
     const updated = current.map(item => {
       if (item.id === id) {
+        const newStatus = typeof status === 'string' && VALID_STATUSES.has(status)
+          ? (status as UserFeedback['status'])
+          : item.status;
+
+        const newPriority = typeof priority === 'string' && VALID_PRIORITIES.has(priority)
+          ? (priority as UserFeedback['priority'])
+          : item.priority;
+
+        const newAdminNote = typeof adminNote === 'string'
+          ? adminNote.trim().slice(0, 1000)
+          : item.adminNote;
+
         updatedItem = {
           ...item,
-          ...(status ? { status } : {}),
-          ...(adminNote !== undefined ? { adminNote } : {}),
+          status: newStatus,
+          priority: newPriority,
+          adminNote: newAdminNote,
         };
         return updatedItem;
       }
@@ -145,18 +201,24 @@ export function updateFeedback(req: Request, res: Response) {
     writeFeedback(updated);
     return res.json({ status: 'ok', feedback: updatedItem });
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to update feedback', details: err.message });
+    console.error('[feedback.controller] Failed to update feedback:', err);
+    return res.status(500).json({ error: 'Failed to update feedback' });
   }
 }
 
 export function deleteFeedback(req: Request, res: Response) {
   try {
     const id = req.params.id;
+    if (!id || typeof id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(id)) {
+      return res.status(400).json({ error: 'Invalid feedback ID' });
+    }
+
     const current = readFeedback();
     const filtered = current.filter(item => item.id !== id);
     writeFeedback(filtered);
     return res.json({ status: 'ok', total: filtered.length });
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to delete feedback', details: err.message });
+    console.error('[feedback.controller] Failed to delete feedback:', err);
+    return res.status(500).json({ error: 'Failed to delete feedback' });
   }
 }

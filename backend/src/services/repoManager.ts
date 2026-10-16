@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import { exec, execSync } from 'child_process';
+import { execFile, execFileSync } from 'child_process';
 import util from 'util';
 import type { GitInsights, GitHotspot, ContributorInfo, CommitSummary } from '../types';
 
-const execAsync = util.promisify(exec);
+const execFileAsync = util.promisify(execFile);
 
 export interface IndexedFile {
   relativePath: string;
@@ -105,42 +105,121 @@ const TEXT_EXTENSIONS = new Set([
   '.sh', '.bash', '.sql', '.prisma', '.graphql', '.c', '.cpp', '.h', '.rb',
 ]);
 
+const ALLOWED_GIT_HOSTS = new Set([
+  'github.com',
+  'gitlab.com',
+  'bitbucket.org',
+]);
+
+function isPrivateIpOrHost(hostname: string): boolean {
+  const lower = hostname.toLowerCase();
+  if (lower === 'localhost' || lower === '127.0.0.1' || lower === '::1' || lower === '0.0.0.0') {
+    return true;
+  }
+  // AWS/GCP/Azure instance metadata endpoint
+  if (lower === '169.254.169.254') return true;
+  // Private IPv4 ranges
+  if (/^10\./.test(lower)) return true;
+  if (/^192\.168\./.test(lower)) return true;
+  if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(lower)) return true;
+  return false;
+}
+
 function normalizeRepoInput(input: string): { isLocal: boolean; pathOrUrl: string; owner: string; name: string } {
+  if (typeof input !== 'string') {
+    throw new Error('Invalid repository input: expected string');
+  }
   const trimmed = input.trim();
 
-  // Check if it's an existing local directory
-  if (fs.existsSync(trimmed) && fs.statSync(trimmed).isDirectory()) {
-    const absPath = path.resolve(trimmed);
-    const name = path.basename(absPath);
-    return { isLocal: true, pathOrUrl: absPath, owner: 'local', name };
+  // Guard against excessive input length or control characters
+  if (!trimmed || trimmed.length > 255 || /[\r\n\0\x00-\x1f]/.test(trimmed)) {
+    throw new Error('Invalid repository input: invalid characters or length exceeded');
   }
 
-  // Handle GitHub shorthands: "owner/repo" or "github.com/owner/repo"
-  let url = trimmed;
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    if (url.startsWith('github.com/')) {
-      url = `https://${url}`;
-    } else if (url.split('/').length === 2 && !url.includes('.')) {
-      url = `https://github.com/${url}`;
+  // Check if it's an existing local directory (only allowed in non-production or if explicit ALLOW_LOCAL_REPOS=true)
+  const isLocalAllowed = process.env.NODE_ENV !== 'production' || process.env.ALLOW_LOCAL_REPOS === 'true';
+  const looksLikeLocal = trimmed.startsWith('.') || trimmed.startsWith('/') || trimmed.startsWith('~') || /^[a-zA-Z]:[\\/]/.test(trimmed);
+
+  if (looksLikeLocal) {
+    if (!isLocalAllowed) {
+      throw new Error('Local directory analysis is disabled in production environment');
+    }
+    const absPath = path.resolve(trimmed);
+    const resolvedLower = absPath.toLowerCase();
+
+    // Block sensitive system directories
+    const blockedDirs = [
+      '/etc', '/var', '/root', '/proc', '/sys', '/dev', '/boot', '/bin', '/sbin',
+      '/usr', '/system', '/library', 'c:\\windows', 'c:\\program files'
+    ];
+    if (blockedDirs.some(b => resolvedLower === b || resolvedLower.startsWith(b + path.sep))) {
+      throw new Error('Access to system directories is forbidden');
+    }
+
+    if (fs.existsSync(absPath) && fs.statSync(absPath).isDirectory()) {
+      const name = path.basename(absPath);
+      return { isLocal: true, pathOrUrl: absPath, owner: 'local', name };
     } else {
-      url = `https://${url}`;
+      throw new Error('Specified local directory does not exist or is not a directory');
     }
   }
 
-  // Parse owner and repo name from URL
-  const match = url.match(/github\.com\/([^/]+)\/([^/]+?)(?:\.git|\/|$)/);
-  if (match) {
-    const owner = match[1];
-    const name = match[2];
-    return { isLocal: false, pathOrUrl: `https://github.com/${owner}/${name}.git`, owner, name };
+  // GitHub shorthand: "owner/repo"
+  const shorthandMatch = trimmed.match(/^([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)$/);
+  if (shorthandMatch) {
+    const owner = shorthandMatch[1];
+    const name = shorthandMatch[2].replace(/\.git$/, '');
+    return {
+      isLocal: false,
+      pathOrUrl: `https://github.com/${owner}/${name}.git`,
+      owner,
+      name,
+    };
   }
 
-  const parts = url.replace(/\/$/, '').split('/');
-  const name = parts[parts.length - 1]?.replace(/\.git$/, '') || 'repository';
-  const owner = parts[parts.length - 2] || 'owner';
+  // Full URL parsing and SSRF validation
+  let parsedUrl: URL;
+  try {
+    let urlCandidate = trimmed;
+    if (!urlCandidate.startsWith('http://') && !urlCandidate.startsWith('https://')) {
+      urlCandidate = `https://${urlCandidate}`;
+    }
+    parsedUrl = new URL(urlCandidate);
+  } catch {
+    throw new Error('Invalid repository URL structure');
+  }
 
-  return { isLocal: false, pathOrUrl: url, owner, name };
+  if (parsedUrl.protocol !== 'https:') {
+    throw new Error('Only secure HTTPS repository URLs are allowed');
+  }
+
+  const hostname = parsedUrl.hostname.toLowerCase();
+  if (isPrivateIpOrHost(hostname)) {
+    throw new Error('Access to private network or metadata services is blocked (SSRF protection)');
+  }
+
+  if (!ALLOWED_GIT_HOSTS.has(hostname)) {
+    throw new Error(`Repository host '${hostname}' is not in the allowed list (github.com, gitlab.com, bitbucket.org)`);
+  }
+
+  // Parse path /owner/repo
+  const cleanPath = parsedUrl.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
+  const segments = cleanPath.split('/');
+  if (segments.length < 2) {
+    throw new Error('Repository URL must include owner and repository name');
+  }
+
+  const owner = segments[0];
+  const name = segments[1].replace(/\.git$/, '');
+
+  if (!/^[a-zA-Z0-9_.-]+$/.test(owner) || !/^[a-zA-Z0-9_.-]+$/.test(name)) {
+    throw new Error('Repository owner or name contains invalid characters');
+  }
+
+  const safeUrl = `https://${hostname}/${owner}/${name}.git`;
+  return { isLocal: false, pathOrUrl: safeUrl, owner, name };
 }
+
 
 export async function getOrCloneRepository(repoInput: string): Promise<AnalyzedRepoData> {
   const normalized = normalizeRepoInput(repoInput);
@@ -166,14 +245,15 @@ export async function getOrCloneRepository(repoInput: string): Promise<AnalyzedR
     if (!fs.existsSync(repoDir)) {
       console.log(`[RepoManager] Cloning ${normalized.pathOrUrl} into ${repoDir}...`);
       try {
-        await execAsync(`git clone --depth 1 "${normalized.pathOrUrl}" "${repoDir}"`, {
+        await execFileAsync('git', ['clone', '--depth', '1', '--', normalized.pathOrUrl, repoDir], {
           timeout: 45000,
         });
         console.log(`[RepoManager] Clone successful for ${normalized.owner}/${normalized.name}`);
       } catch (err) {
         console.error(`[RepoManager] Git clone failed:`, err);
-        throw new Error(`Failed to clone repository ${normalized.owner}/${normalized.name}: ${(err as Error).message}`);
+        throw new Error(`Failed to clone repository ${normalized.owner}/${normalized.name}`);
       }
+
     } else {
       console.log(`[RepoManager] Using cached clone at ${repoDir}`);
     }
@@ -190,7 +270,7 @@ export async function getOrCloneRepository(repoInput: string): Promise<AnalyzedR
 
 function extractGitInsights(dir: string, files: IndexedFile[]): GitInsights {
   try {
-    const rawCommits = execSync('git log -n 100 --pretty=format:"%h|%an|%cr|%s"', {
+    const rawCommits = execFileSync('git', ['log', '-n', '100', '--pretty=format:%h|%an|%cr|%s'], {
       cwd: dir,
       encoding: 'utf-8',
       timeout: 3000,
@@ -227,7 +307,7 @@ function extractGitInsights(dir: string, files: IndexedFile[]): GitInsights {
       .sort((a, b) => b.commits - a.commits)
       .slice(0, 5);
 
-    const rawChurn = execSync('git log -n 100 --name-only --pretty=format:""', {
+    const rawChurn = execFileSync('git', ['log', '-n', '100', '--name-only', '--pretty=format:'], {
       cwd: dir,
       encoding: 'utf-8',
       timeout: 3000,

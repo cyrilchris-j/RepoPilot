@@ -37,12 +37,18 @@ export async function getFileContent(req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Sanitize path — prevent directory traversal
-    const normalizedPath = path.normalize(filePath).replace(/^(\.\.(\/|\\|$))+/, '');
-    const fullPath = path.join(repoData.localPath, normalizedPath);
+    // Sanitize path — prevent directory traversal and null bytes
+    if (typeof filePath !== 'string' || /[\0\r\n]/.test(filePath)) {
+      res.status(400).json({ error: 'Invalid file path' });
+      return;
+    }
 
-    // Ensure the resolved path is within the repo directory
-    if (!fullPath.startsWith(path.resolve(repoData.localPath))) {
+    const normalizedPath = path.normalize(filePath).replace(/^(\.\.(\/|\\|$))+/, '');
+    const rootPath = path.resolve(repoData.localPath);
+    const fullPath = path.resolve(repoData.localPath, normalizedPath);
+
+    // Ensure the resolved path is strictly within the repo directory
+    if (!fullPath.startsWith(rootPath + path.sep) && fullPath !== rootPath) {
       res.status(403).json({ error: 'Access denied: path traversal detected' });
       return;
     }
@@ -77,7 +83,7 @@ export async function getFileContent(req: Request, res: Response): Promise<void>
     });
   } catch (err) {
     console.error('[ai.controller] getFileContent error:', err);
-    res.status(500).json({ error: 'Failed to read file', details: (err as Error).message });
+    res.status(500).json({ error: 'Failed to read file' });
   }
 }
 
@@ -150,7 +156,6 @@ export async function analyzeRepository(req: Request, res: Response): Promise<vo
     console.error('[ai.controller] Repository analysis error:', err);
     res.status(500).json({
       error: 'Repository analysis failed',
-      details: (err as Error).message,
     });
   }
 }
@@ -356,7 +361,7 @@ The system coordinates incoming requests through designated controllers and serv
     res.json({ answer: { ...parsed, question } });
   } catch (err) {
     console.error('[ai.controller] Q&A error:', err);
-    res.status(500).json({ error: 'Q&A failed', details: (err as Error).message });
+    res.status(500).json({ error: 'Q&A failed' });
   }
 }
 
@@ -540,7 +545,7 @@ By decoupling the ingestion layers from core computational engines, **${name}** 
     res.json({ summary: summaryData });
   } catch (err: any) {
     console.error('[ai.controller] getProjectSummary error:', err);
-    res.status(500).json({ error: 'Failed to generate project summary', details: err.message });
+    res.status(500).json({ error: 'Failed to generate project summary' });
   }
 }
 
@@ -601,7 +606,7 @@ ${errorMessage}`;
     res.json({ analysis: parsed });
   } catch (err) {
     console.error('[ai.controller] Debug analysis error:', err);
-    res.status(500).json({ error: 'Analysis failed', details: (err as Error).message });
+    res.status(500).json({ error: 'Debug analysis failed' });
   }
 }
 
@@ -617,9 +622,25 @@ export async function explainFile(req: Request, res: Response): Promise<void> {
     const repoData = getCachedRepo(repo) || getCachedRepo();
     let content = codeSnippet || '';
     if (!content && repoData) {
-      const fullPath = path.join(repoData.localPath, filePath);
+      if (typeof filePath !== 'string' || /[\0\r\n]/.test(filePath)) {
+        res.status(400).json({ error: 'Invalid file path' });
+        return;
+      }
+      const normalizedPath = path.normalize(filePath).replace(/^(\.\.(\/|\\|$))+/, '');
+      const rootPath = path.resolve(repoData.localPath);
+      const fullPath = path.resolve(repoData.localPath, normalizedPath);
+
+      // Enforce path traversal protection
+      if (!fullPath.startsWith(rootPath + path.sep) && fullPath !== rootPath) {
+        res.status(403).json({ error: 'Access denied: path traversal detected' });
+        return;
+      }
+
       if (fs.existsSync(fullPath)) {
-        content = fs.readFileSync(fullPath, 'utf8');
+        const stat = fs.statSync(fullPath);
+        if (stat.isFile() && stat.size <= 500 * 1024) {
+          content = fs.readFileSync(fullPath, 'utf8');
+        }
       }
     }
 
@@ -675,7 +696,7 @@ ${truncatedContent}
     res.json({ explanation });
   } catch (err) {
     console.error('[ai.controller] explainFile error:', err);
-    res.status(500).json({ error: 'File explanation failed', details: (err as Error).message });
+    res.status(500).json({ error: 'File explanation failed' });
   }
 }
 
@@ -758,7 +779,7 @@ ${fileContexts || 'No file snippets available.'}`;
     res.json({ plan });
   } catch (err) {
     console.error('[ai.controller] generateTaskPlan error:', err);
-    res.status(500).json({ error: 'Task plan generation failed', details: (err as Error).message });
+    res.status(500).json({ error: 'Task plan generation failed' });
   }
 }
 
@@ -774,7 +795,7 @@ export async function getGitInsights(req: Request, res: Response): Promise<void>
     res.json({ insights, repoName: repoData.name });
   } catch (err) {
     console.error('[ai.controller] getGitInsights error:', err);
-    res.status(500).json({ error: 'Failed to get git insights', details: (err as Error).message });
+    res.status(500).json({ error: 'Failed to get git insights' });
   }
 }
 

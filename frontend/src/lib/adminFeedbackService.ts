@@ -167,10 +167,10 @@ export function recordRepositoryAnalysis(
 
   saveTrackedRepositories(currentList);
 
-  // Also opportunistically notify backend if available
+  // Also notify backend if admin authenticated
   fetch(`${API_BASE}/api/admin/repositories`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...getAdminAuthHeaders() },
     body: JSON.stringify(updatedRecord),
   }).catch(() => {});
 
@@ -181,6 +181,12 @@ export function deleteTrackedRepository(id: string): TrackedRepository[] {
   const current = getTrackedRepositories();
   const filtered = current.filter(r => r.id !== id);
   saveTrackedRepositories(filtered);
+
+  fetch(`${API_BASE}/api/admin/repositories/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { ...getAdminAuthHeaders() },
+  }).catch(() => {});
+
   return filtered;
 }
 
@@ -314,9 +320,9 @@ export function updateFeedbackStatus(id: string, status: FeedbackStatus, adminNo
   });
   saveUserFeedbacks(updated);
 
-  fetch(`${API_BASE}/api/admin/feedback/${id}`, {
+  fetch(`${API_BASE}/api/admin/feedback/${encodeURIComponent(id)}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...getAdminAuthHeaders() },
     body: JSON.stringify({ status, adminNote }),
   }).catch(() => {});
 
@@ -328,8 +334,9 @@ export function deleteFeedback(id: string): UserFeedback[] {
   const updated = list.filter(item => item.id !== id);
   saveUserFeedbacks(updated);
 
-  fetch(`${API_BASE}/api/admin/feedback/${id}`, {
+  fetch(`${API_BASE}/api/admin/feedback/${encodeURIComponent(id)}`, {
     method: 'DELETE',
+    headers: { ...getAdminAuthHeaders() },
   }).catch(() => {});
 
   return updated;
@@ -387,12 +394,20 @@ export function clearAllAdminData(): void {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ADMIN_AUTH_KEY = 'repopilot_admin_auth_v1';
-// One-way SHA-256 hash of the admin password for offline fallback; plaintext is NEVER in frontend
-const ADMIN_PASSWORD_HASH = 'e5816952249bd75a8c6d18e16749045d003aaa7892cba68f6f85941702993097';
+const ADMIN_TOKEN_KEY = 'repopilot_admin_token';
+
+export function getAdminAuthHeaders(): Record<string, string> {
+  try {
+    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+}
 
 export function isAdminAuthenticated(): boolean {
   try {
-    return sessionStorage.getItem(ADMIN_AUTH_KEY) === 'true';
+    return Boolean(sessionStorage.getItem(ADMIN_AUTH_KEY) === 'true' && sessionStorage.getItem(ADMIN_TOKEN_KEY));
   } catch {
     return false;
   }
@@ -402,7 +417,6 @@ export async function verifyAdminPassword(password: string): Promise<boolean> {
   const trimmed = (password || '').trim();
   if (!trimmed) return false;
 
-  // 1. Try secure backend verification first (password is checked entirely on server)
   try {
     const res = await fetch(`${API_BASE}/api/admin/verify`, {
       method: 'POST',
@@ -412,39 +426,27 @@ export async function verifyAdminPassword(password: string): Promise<boolean> {
 
     if (res.ok) {
       const data = await res.json();
-      if (data.authenticated) {
+      if (data.authenticated && data.token) {
         sessionStorage.setItem(ADMIN_AUTH_KEY, 'true');
+        sessionStorage.setItem(ADMIN_TOKEN_KEY, data.token);
         return true;
       }
     }
   } catch (err) {
-    console.warn('[adminFeedbackService] Backend verify offline, falling back to cryptographic hash check:', err);
+    console.warn('[adminFeedbackService] Backend verify offline or unreachable:', err);
   }
 
-  // 2. Cryptographic SHA-256 digest fallback (only hash is checked, plaintext password is never stored in JS)
-  try {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(trimmed);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-    if (hashHex === ADMIN_PASSWORD_HASH) {
-      sessionStorage.setItem(ADMIN_AUTH_KEY, 'true');
-      return true;
-    }
-  } catch (err) {
-    console.error('Hash calculation failed:', err);
-  }
-
+  logoutAdmin();
   return false;
 }
 
 export function logoutAdmin() {
   try {
     sessionStorage.removeItem(ADMIN_AUTH_KEY);
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
   } catch {
     // ignore
   }
 }
+
 

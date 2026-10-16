@@ -24,9 +24,11 @@ import {
   updateFeedback,
   deleteFeedback,
 } from '../controllers/feedback.controller';
+import { requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
+// Public Developer AI & Repository Exploration routes
 router.post('/analyze', analyzeRepository);
 router.post('/debug', analyzeDebug);
 router.post('/ask', answerQuestion);
@@ -38,19 +40,20 @@ router.get('/diagnostics', getDiagnostics);
 router.post('/project-summary', getProjectSummary);
 router.get('/project-summary', getProjectSummary);
 
-
-// Admin & Usage tracking routes
-router.post('/admin/verify', verifyAdminPassword);
-router.get('/admin/repositories', getTrackedRepositories);
-router.post('/admin/repositories', recordTrackedRepository);
-router.delete('/admin/repositories/:id', deleteTrackedRepository);
-router.get('/admin/stats', getAdminStats);
-
-// Community Improvement Suggestions & Feedback routes
+// Public Feedback routes
 router.get('/feedback', getAllFeedback);
 router.post('/feedback', createFeedback);
 router.post('/feedback/:id/vote', voteFeedback);
-router.patch('/admin/feedback/:id', updateFeedback);
-router.delete('/admin/feedback/:id', deleteFeedback);
+
+// Admin Authentication endpoint (rate-limited, issues crypto session token)
+router.post('/admin/verify', verifyAdminPassword);
+
+// Protected Admin Routes (Requires valid Authorization: Bearer <token>)
+router.get('/admin/repositories', requireAdmin, getTrackedRepositories);
+router.post('/admin/repositories', requireAdmin, recordTrackedRepository);
+router.delete('/admin/repositories/:id', requireAdmin, deleteTrackedRepository);
+router.get('/admin/stats', requireAdmin, getAdminStats);
+router.patch('/admin/feedback/:id', requireAdmin, updateFeedback);
+router.delete('/admin/feedback/:id', requireAdmin, deleteFeedback);
 
 export default router;

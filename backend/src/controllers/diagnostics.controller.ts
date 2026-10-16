@@ -161,7 +161,7 @@ export async function getDiagnostics(_req: Request, res: Response): Promise<void
       installed: true,
       version: gitRaw.replace(/^git version\s*/i, 'v'),
       details: hasIdentity
-        ? `Configured as ${gitUser} <${gitEmail}>`
+        ? 'Git author credentials configured and ready.'
         : 'Git is installed, but user.name / user.email are not set.',
       status: hasIdentity ? 'passed' : 'warning',
       recommendation: hasIdentity
