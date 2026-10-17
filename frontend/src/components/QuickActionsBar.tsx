@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Sliders,
+  SlidersHorizontal,
   GitGraph,
-  CheckSquare,
+  ListTodo,
   MessageSquareCode,
-  Bug,
+  Activity,
   ArrowUpRight,
-  Sparkles,
+  GitPullRequest,
+  Terminal,
 } from 'lucide-react';
 
 const ACTIONS = [
@@ -26,7 +27,7 @@ const ACTIONS = [
     title: 'Environment & .env',
     subtitle: 'Live toolchain diagnostics & interactive .env generator',
     to: '/app/setup',
-    icon: Sliders,
+    icon: SlidersHorizontal,
     badge: 'Setup',
     color: '#34D399',
     glow: 'rgba(52,211,153,0.12)',
@@ -48,7 +49,7 @@ const ACTIONS = [
     title: 'Starter Tasks',
     subtitle: 'Hands-on good first issues with file references',
     to: '/app/tasks',
-    icon: CheckSquare,
+    icon: ListTodo,
     badge: 'Begin',
     color: '#FCD34D',
     glow: 'rgba(252,211,77,0.12)',
@@ -59,7 +60,7 @@ const ACTIONS = [
     title: 'Error Debugger',
     subtitle: 'Root-cause analysis for stack traces & runtime bugs',
     to: '/app/debug',
-    icon: Bug,
+    icon: Activity,
     badge: 'Debug',
     color: '#FC8181',
     glow: 'rgba(252,129,129,0.12)',
@@ -70,7 +71,7 @@ const ACTIONS = [
     title: 'Feedback & Ideas',
     subtitle: 'Suggest improvements, request features & vote on roadmap',
     to: '/app/improvements',
-    icon: Sparkles,
+    icon: GitPullRequest,
     badge: 'Ideas',
     color: '#A78BFA',
     glow: 'rgba(167,139,250,0.12)',
@@ -90,7 +91,7 @@ export function QuickActionsBar() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="section-label">QUICK WORKSPACE ACTIONS</span>
-          <Sparkles size={11} style={{ color: '#60A5FA' }} />
+          <Terminal size={11} style={{ color: '#60A5FA' }} />
         </div>
         <span className="text-[11px] font-mono" style={{ color: 'rgba(255,255,255,0.2)' }}>
           Click any module to jump directly
@@ -98,7 +99,7 @@ export function QuickActionsBar() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {ACTIONS.map((action, i) => {
+        {ACTIONS.map((action) => {
           const Icon = action.icon;
           return (
             <Link

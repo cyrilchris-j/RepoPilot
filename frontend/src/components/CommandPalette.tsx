@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
-  LayoutDashboard,
-  Settings,
+  LayoutGrid,
+  SlidersHorizontal,
   GitGraph,
-  CheckSquare,
+  ListTodo,
   MessageSquareCode,
-  Bug,
+  Activity,
   FileCode,
   Download,
   Copy,
@@ -19,9 +19,8 @@ import {
   GitCommit,
   GitPullRequest,
   FolderGit2,
-  Sparkles,
   ShieldCheck,
-  BookOpen,
+  FileCode2,
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
 import { useCodeViewer } from '../lib/CodeViewerContext';
@@ -81,7 +80,7 @@ export function CommandPalette({
         category: 'Navigation',
         title: 'Dashboard Overview',
         subtitle: 'Metrics, component health & summary',
-        icon: LayoutDashboard,
+        icon: LayoutGrid,
         badge: 'Page',
         action: () => {
           navigate('/app');
@@ -93,7 +92,7 @@ export function CommandPalette({
         category: 'Navigation',
         title: 'Project Summary & User Flow Walkthrough',
         subtitle: 'Comprehensive executive summary, user journey & developer benefits',
-        icon: BookOpen,
+        icon: FileCode2,
         badge: 'Flow',
         action: () => {
           navigate('/app/summary');
@@ -106,7 +105,7 @@ export function CommandPalette({
         category: 'Navigation',
         title: 'Improvement Wishlist & Feedback',
         subtitle: 'Suggest features, vote on roadmap & submit feedback',
-        icon: Sparkles,
+        icon: GitPullRequest,
         badge: 'Community',
         action: () => {
           navigate('/app/improvements');
@@ -130,7 +129,7 @@ export function CommandPalette({
         category: 'Navigation',
         title: 'Environment & Prerequisites',
         subtitle: 'Live toolchain diagnostics & .env generator',
-        icon: Settings,
+        icon: SlidersHorizontal,
         badge: 'Page',
         action: () => {
           navigate('/app/setup');
@@ -154,7 +153,7 @@ export function CommandPalette({
         category: 'Navigation',
         title: 'Starter Tasks & First Issues',
         subtitle: 'Guided beginner assignments with test files',
-        icon: CheckSquare,
+        icon: ListTodo,
         badge: 'Page',
         action: () => {
           navigate('/app/tasks');
@@ -178,7 +177,7 @@ export function CommandPalette({
         category: 'Navigation',
         title: 'AI Debugger & Error Diagnosis',
         subtitle: 'Analyze stack traces and runtime failures',
-        icon: Bug,
+        icon: Activity,
         badge: 'Page',
         action: () => {
           navigate('/app/debug');
@@ -206,7 +205,7 @@ export function CommandPalette({
         category: 'Actions',
         title: 'Run RepoPilot Improvement CLI',
         subtitle: `npx repopilot@latest improve ${repoUrl || 'https://github.com/cyrilchris-j/RepoPilot.git'}`,
-        icon: copiedCmdId === 'act-repopilot-improve' ? Check : Sparkles,
+        icon: copiedCmdId === 'act-repopilot-improve' ? Check : Terminal,
         badge: copiedCmdId === 'act-repopilot-improve' ? 'Copied!' : 'CLI',
         action: () => {
           const url = repoUrl || 'https://github.com/cyrilchris-j/RepoPilot.git';
@@ -386,7 +385,7 @@ export function CommandPalette({
         category: 'Tasks',
         title: task.title,
         subtitle: `${task.difficulty.toUpperCase()}${task.estimatedTime ? ` • ${task.estimatedTime}` : ''}`,
-        icon: CheckSquare,
+        icon: ListTodo,
         badge: task.difficulty,
         action: () => {
           navigate('/app/tasks');

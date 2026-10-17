@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileDown, X, Eye, Download, Check, BookOpen, Terminal, FileCode } from 'lucide-react';
+import { FileDown, X, Eye, Download, Check, FileCode2, Terminal, FileCode } from 'lucide-react';
 import { useOnboardingExport } from '../lib/useOnboardingExport';
 
 interface OnboardingExportButtonProps {
@@ -271,7 +271,7 @@ export function OnboardingExportButton({ variant = 'sidebar' }: OnboardingExport
           className="w-full flex items-center gap-2 px-2.5 py-2 rounded text-sm text-text-secondary hover:text-text-primary hover:bg-elevated transition-all group"
           title="Export ONBOARDING.md"
         >
-          <BookOpen size={14} className="shrink-0 text-text-secondary group-hover:text-accent-cyan transition-colors" />
+          <FileCode2 size={14} className="shrink-0 text-text-secondary group-hover:text-accent-cyan transition-colors" />
           <span className="text-[13px] font-medium">Export Handbook</span>
           <span className="ml-auto text-[10px] font-mono text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity">.md</span>
         </button>

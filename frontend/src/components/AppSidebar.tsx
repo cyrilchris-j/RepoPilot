@@ -2,17 +2,17 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard,
+  LayoutGrid,
   GitBranch,
-  Settings,
-  Package,
-  Bug,
-  MessageCircle,
-  Compass,
+  SlidersHorizontal,
+  Boxes,
+  Activity,
+  MessageSquareCode,
+  ListTodo,
   Search,
-  Sparkles,
-  BookOpen,
-  Cpu,
+  GitPullRequest,
+  FileCode2,
+  Terminal,
 } from 'lucide-react';
 import { StatusBadge } from './ui/StatusBadge';
 import { RepoSwitcher } from './RepoSwitcher';
@@ -28,15 +28,15 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { id: 'overview',     label: 'Overview',        icon: <LayoutDashboard size={15} />, path: '/app' },
-  { id: 'summary',      label: 'Project Summary', icon: <BookOpen size={15} />,        path: '/app/summary',      badge: 'FLOW',  badgeColor: 'cyan' },
-  { id: 'ask',          label: 'Ask Codebase',    icon: <MessageCircle size={15} />,   path: '/app/ask',          badge: 'AI',    badgeColor: 'blue' },
-  { id: 'architecture', label: 'Architecture',    icon: <GitBranch size={15} />,       path: '/app/architecture' },
-  { id: 'setup',        label: 'Setup',           icon: <Settings size={15} />,        path: '/app/setup' },
-  { id: 'dependencies', label: 'Dependencies',    icon: <Package size={15} />,         path: '/app/dependencies' },
-  { id: 'debug',        label: 'Debug Agent',     icon: <Bug size={15} />,             path: '/app/debug' },
-  { id: 'tasks',        label: 'Starter Tasks',   icon: <Compass size={15} />,         path: '/app/tasks' },
-  { id: 'improvements', label: 'Improvements',   icon: <Sparkles size={15} />,        path: '/app/improvements', badge: 'IDEAS', badgeColor: 'violet' },
+  { id: 'overview',     label: 'Overview',        icon: <LayoutGrid size={15} />,        path: '/app' },
+  { id: 'summary',      label: 'Project Summary', icon: <FileCode2 size={15} />,         path: '/app/summary',      badge: 'FLOW',  badgeColor: 'cyan' },
+  { id: 'ask',          label: 'Ask Codebase',    icon: <MessageSquareCode size={15} />, path: '/app/ask',          badge: 'AI',    badgeColor: 'blue' },
+  { id: 'architecture', label: 'Architecture',    icon: <GitBranch size={15} />,         path: '/app/architecture' },
+  { id: 'setup',        label: 'Setup',           icon: <SlidersHorizontal size={15} />, path: '/app/setup' },
+  { id: 'dependencies', label: 'Dependencies',    icon: <Boxes size={15} />,             path: '/app/dependencies' },
+  { id: 'debug',        label: 'Debug Agent',     icon: <Activity size={15} />,          path: '/app/debug' },
+  { id: 'tasks',        label: 'Starter Tasks',   icon: <ListTodo size={15} />,          path: '/app/tasks' },
+  { id: 'improvements', label: 'Improvements',   icon: <GitPullRequest size={15} />,    path: '/app/improvements', badge: 'IDEAS', badgeColor: 'violet' },
 ];
 
 const badgeStyles: Record<string, string> = {
@@ -80,13 +80,12 @@ export function AppSidebar({
       <div className="px-4 py-5 border-b border-white/[0.05]">
         <Link to="/" className="flex items-center gap-3 group">
           <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center relative overflow-hidden"
+            className="w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden bg-white/[0.05] border border-white/10 text-blue-400 group-hover:border-blue-500/40 group-hover:text-blue-300 transition-colors"
             style={{
-              background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)',
-              boxShadow: '0 4px 12px rgba(59,130,246,0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
             }}
           >
-            <Cpu size={15} className="text-white relative z-10" />
+            <Terminal size={15} />
           </div>
           <div>
             <span className="text-sm font-semibold text-white tracking-tight block leading-none">RepoPilot</span>

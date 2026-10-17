@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Sparkles,
+  GitPullRequest,
   Send,
   Check,
   Tag,
@@ -150,7 +150,7 @@ export function ImprovementsPage() {
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan text-xs font-mono mb-2.5">
-              <Sparkles size={13} />
+              <GitPullRequest size={13} />
               <span>FEEDBACK &amp; FEATURE SUGGESTIONS</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-text-primary">

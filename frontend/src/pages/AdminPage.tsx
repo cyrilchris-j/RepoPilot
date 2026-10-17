@@ -5,7 +5,7 @@ import {
   GitBranch,
   ExternalLink,
   Search,
-  Sparkles,
+  GitPullRequest,
   ThumbsUp,
   Clock,
   ArrowRight,
@@ -387,7 +387,7 @@ export function AdminPage() {
               to="/app/improvements"
               className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface border border-border text-text-secondary hover:text-text-primary text-xs transition-colors"
             >
-              <Sparkles size={13} className="text-accent-violet" />
+              <GitPullRequest size={13} className="text-accent-violet" />
               <span>Feedback Wishlist</span>
             </Link>
 
@@ -479,7 +479,7 @@ export function AdminPage() {
           <div className="p-4 rounded-xl bg-surface border border-border/80 shadow-xs relative overflow-hidden group">
             <div className="text-[10px] font-mono text-text-secondary uppercase tracking-wider flex items-center justify-between">
               <span>SUGGESTIONS</span>
-              <Sparkles size={13} className="text-purple-400" />
+              <GitPullRequest size={13} className="text-purple-400" />
             </div>
             <div className="text-2xl font-bold font-mono text-purple-300 mt-2">
               {metrics.totalFeedback}
@@ -531,7 +531,7 @@ export function AdminPage() {
                 : 'border-transparent text-text-secondary hover:text-text-primary'
             }`}
           >
-            <Sparkles size={14} />
+            <GitPullRequest size={14} />
             <span>User Improvements &amp; Wishlist</span>
             <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-surface border border-border">
               {feedbacks.length}
@@ -842,7 +842,7 @@ export function AdminPage() {
                   {feedbacks.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-4 text-center">
                       <div className="w-12 h-12 rounded-full bg-accent-violet/10 border border-accent-violet/30 flex items-center justify-center text-accent-violet mb-3">
-                        <Sparkles size={22} />
+                        <GitPullRequest size={22} />
                       </div>
                       <h4 className="text-sm font-semibold text-text-primary">No Improvement Suggestions Yet</h4>
                       <p className="text-xs text-text-secondary max-w-sm mt-1">
@@ -905,7 +905,7 @@ export function AdminPage() {
                           {f.adminNote && (
                             <div className="mt-2.5 p-2.5 rounded-lg bg-accent-cyan/5 border border-accent-cyan/20 text-xs text-text-primary">
                               <div className="text-[10px] font-mono text-accent-cyan font-semibold uppercase flex items-center gap-1">
-                                <Sparkles size={11} />
+                                <GitPullRequest size={11} />
                                 <span>Official Developer Response</span>
                               </div>
                               <p className="text-[11px] text-text-secondary mt-0.5">
@@ -1143,7 +1143,7 @@ export function AdminPage() {
             >
               <div className="flex items-center justify-between border-b border-border/80 pb-3">
                 <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-                  <Sparkles size={16} className="text-accent-cyan" />
+                  <GitPullRequest size={16} className="text-accent-cyan" />
                   <span>Developer Response / Roadmap Note</span>
                 </h3>
                 <button

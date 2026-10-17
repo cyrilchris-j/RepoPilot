@@ -6,40 +6,18 @@ import {
   ArrowRight,
   GitBranch,
   Terminal,
-  Zap,
+  Activity,
   Shield,
   Eye,
   ChevronRight,
   ExternalLink,
   RotateCcw,
-  Cpu,
   Layers,
-  Sparkles,
+  GitPullRequest,
   Code2,
 } from 'lucide-react';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { ScanningLine } from '../components/ui/CodeBlock';
-
-// ── Animated counter ────────────────────────────────────────────────────────
-function Counter({ target, duration = 1.8 }: { target: number; duration?: number }) {
-  const [value, setValue] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true });
-
-  useEffect(() => {
-    if (!inView) return;
-    let start = 0;
-    const step = target / (duration * 60);
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= target) { setValue(target); clearInterval(timer); return; }
-      setValue(Math.floor(start));
-    }, 1000 / 60);
-    return () => clearInterval(timer);
-  }, [inView, target, duration]);
-
-  return <span ref={ref}>{value.toLocaleString()}</span>;
-}
 
 // ── Architecture Node ───────────────────────────────────────────────────────
 function ArchNode({
@@ -546,13 +524,12 @@ export function LandingPage() {
           <div className="flex items-center gap-6">
             <Link to="/" className="flex items-center gap-3">
               <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center"
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.05] border border-white/10 text-blue-400"
                 style={{
-                  background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)',
-                  boxShadow: '0 4px 12px rgba(59,130,246,0.4)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                 }}
               >
-                <Cpu size={14} className="text-white" />
+                <Terminal size={15} />
               </div>
               <span className="text-sm font-semibold text-white tracking-tight">RepoPilot</span>
             </Link>
@@ -651,7 +628,7 @@ export function LandingPage() {
                   />
                 </div>
                 <button type="submit" className="btn-primary whitespace-nowrap h-11 flex items-center justify-center gap-2 rounded-2xl px-5">
-                  Analyze <Zap size={13} />
+                  Analyze <ArrowRight size={13} />
                 </button>
               </motion.form>
 
@@ -736,12 +713,12 @@ export function LandingPage() {
             {[
               { icon: <Terminal size={13} />, label: 'Setup Analysis' },
               { icon: <GitBranch size={13} />, label: 'Architecture Mapping' },
-              { icon: <Zap size={13} />, label: 'Debug Intelligence' },
+              { icon: <Activity size={13} />, label: 'Debug Intelligence' },
               { icon: <Shield size={13} />, label: 'Dependency Audit' },
               { icon: <Eye size={13} />, label: 'Codebase Q&A' },
               { icon: <Layers size={13} />, label: 'Project Summary' },
               { icon: <Code2 size={13} />, label: 'Starter Tasks' },
-              { icon: <Sparkles size={13} />, label: 'AI Improvements' },
+              { icon: <GitPullRequest size={13} />, label: 'AI Improvements' },
             ].map(({ icon, label }) => (
               <div key={label} className="flex items-center gap-2 text-xs font-mono" style={{ color: 'rgba(255,255,255,0.25)' }}>
                 <span style={{ color: '#3B82F6' }}>{icon}</span>
@@ -763,10 +740,9 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)', boxShadow: '0 2px 8px rgba(59,130,246,0.3)' }}
+              className="w-6 h-6 rounded-md flex items-center justify-center bg-white/[0.05] border border-white/10 text-blue-400"
             >
-              <Cpu size={11} className="text-white" />
+              <Terminal size={12} />
             </div>
             <span className="text-sm font-mono" style={{ color: 'rgba(255,255,255,0.25)' }}>RepoPilot</span>
             <span style={{ color: 'rgba(255,255,255,0.1)' }}>·</span>

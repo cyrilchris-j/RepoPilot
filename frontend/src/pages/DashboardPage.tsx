@@ -15,7 +15,6 @@ import {
   MessageSquareCode,
   Search,
   Send,
-  Sparkles,
   Terminal,
   Copy,
   Check,
@@ -297,7 +296,7 @@ export function DashboardPage() {
         {/* Quick prompt suggestions */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[11px] font-mono flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
-            <Sparkles size={11} style={{ color: '#60A5FA' }} /> Try asking:
+            <MessageSquareCode size={11} style={{ color: '#60A5FA' }} /> Try asking:
           </span>
           {[
             'How is authentication handled?',
@@ -346,7 +345,7 @@ export function DashboardPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg font-semibold flex items-center gap-1" style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.2)' }}>
-                <Sparkles size={11} />
+                <Terminal size={11} />
                 REPOPILOT SPECIAL COMMAND
               </span>
               <span className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>

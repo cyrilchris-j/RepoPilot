@@ -2,18 +2,17 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  BookOpen,
+  FileCode2,
   Workflow,
   Code2,
   Users,
   Layers,
-  Sparkles,
   ArrowRight,
   CheckCircle2,
   FileCode,
-  Zap,
   Activity,
-  MessageCircle,
+  MessageSquareCode,
+  Terminal,
   Cpu,
 } from 'lucide-react';
 import { useRepo } from '../lib/RepoContext';
@@ -290,7 +289,7 @@ By decoupling the ingestion layers from core computational engines, **${repo.nam
             to="/app/ask"
             className="btn-primary text-xs flex items-center gap-1.5 py-2 px-3.5"
           >
-            <MessageCircle size={13} />
+            <MessageSquareCode size={13} />
             <span>Ask Codebase AI</span>
           </Link>
 
@@ -316,7 +315,7 @@ By decoupling the ingestion layers from core computational engines, **${repo.nam
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2 text-xs font-mono text-accent-cyan uppercase tracking-wider font-semibold">
-              <Sparkles size={14} className="text-accent-cyan" />
+              <Terminal size={14} className="text-accent-cyan" />
               CORE PROJECT MOTTO &amp; PHILOSOPHY
             </div>
             <h2 className="text-lg sm:text-xl font-bold text-text-primary leading-snug">
@@ -368,7 +367,7 @@ By decoupling the ingestion layers from core computational engines, **${repo.nam
         >
           <div className="flex items-center justify-between pb-3 border-b border-border/60">
             <div className="flex items-center gap-2">
-              <BookOpen size={16} className="text-accent-cyan" />
+              <FileCode2 size={16} className="text-accent-cyan" />
               <h3 className="text-sm font-semibold font-mono text-text-primary uppercase tracking-wider">
                 Comprehensive Project Summary
               </h3>
@@ -403,7 +402,7 @@ By decoupling the ingestion layers from core computational engines, **${repo.nam
           {/* Key Highlights Card */}
           <div className="card p-5 space-y-3 border-accent-cyan/20 bg-surface/90">
             <div className="flex items-center gap-2 text-xs font-mono font-semibold text-accent-cyan uppercase">
-              <Zap size={14} />
+              <Layers size={14} />
               <span>Standout Architectural Features</span>
             </div>
             <ul className="space-y-2.5 text-xs text-text-secondary">
@@ -424,7 +423,7 @@ By decoupling the ingestion layers from core computational engines, **${repo.nam
           {/* Quick Deep Dive Prompts Card */}
           <div className="card p-5 space-y-3 border-border/70 bg-elevated/40">
             <div className="text-xs font-mono text-text-primary uppercase font-semibold flex items-center gap-1.5">
-              <MessageCircle size={14} className="text-accent-cyan" />
+              <MessageSquareCode size={14} className="text-accent-cyan" />
               <span>Ask AI About This Project</span>
             </div>
             <p className="text-[11px] text-text-secondary">

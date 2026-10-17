@@ -4,12 +4,12 @@ import { useRepo } from '../lib/RepoContext';
 import { getApiUrl } from '../lib/api';
 import { motion } from 'framer-motion';
 import {
-  MessageCircle,
+  MessageSquareCode,
   Send,
   FileText,
   BarChart2,
   RotateCcw,
-  Sparkles,
+  Terminal,
   Download,
   ArrowRight,
   Workflow,
@@ -451,7 +451,7 @@ export function AskPage() {
           className="card p-4 space-y-2 border-accent-cyan/15 bg-surface/60"
         >
           <div className="text-[10px] font-mono text-text-secondary tracking-widest uppercase flex items-center gap-1.5">
-            <Sparkles size={11} className="text-accent-cyan" />
+            <Terminal size={11} className="text-accent-cyan" />
             RECOMMENDED EXPLORATION QUESTIONS
           </div>
           <div className="flex flex-wrap gap-2">
@@ -480,7 +480,7 @@ export function AskPage() {
             {/* Developer question bubble */}
             <div className="flex items-start gap-3">
               <div className="w-7 h-7 rounded bg-accent-cyan/15 border border-accent-cyan/30 flex items-center justify-center shrink-0 mt-0.5">
-                <MessageCircle size={13} className="text-accent-cyan" />
+                <MessageSquareCode size={13} className="text-accent-cyan" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 mb-1">

@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useRepo } from '../lib/RepoContext';
 import { getApiUrl } from '../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bug, Send, RotateCcw, Zap, FileCode, HelpCircle, CheckSquare, AlertOctagon } from 'lucide-react';
+import { Activity, Send, RotateCcw, Terminal, FileCode, HelpCircle, CheckSquare, AlertOctagon } from 'lucide-react';
 import { ClickableFilePath } from '../components/ui/CodeBlock';
 import { CodeBlock } from '../components/ui/CodeBlock';
 import { StatusBadge } from '../components/ui/StatusBadge';
@@ -137,7 +137,7 @@ export function DebugPage() {
           <form onSubmit={handleSubmit} className="card p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Bug size={14} className="text-text-secondary" />
+                <Activity size={14} className="text-text-secondary" />
                 <span className="text-sm font-medium">Error Input</span>
               </div>
               {(input || analysis) && (
@@ -170,7 +170,7 @@ export function DebugPage() {
                 </>
               ) : (
                 <>
-                  <Zap size={14} />
+                  <Terminal size={14} />
                   Analyze Error
                 </>
               )}
@@ -299,7 +299,7 @@ export function DebugPage() {
                 animate={{ opacity: 1 }}
                 className="card p-8 flex flex-col items-center justify-center text-center min-h-[300px]"
               >
-                <Bug size={28} className="text-text-secondary mb-3" />
+                <Activity size={28} className="text-text-secondary mb-3" />
                 <div className="text-sm font-medium text-text-secondary mb-1">No error analyzed yet</div>
                 <div className="text-xs text-text-secondary max-w-xs">
                   Paste an error or stack trace and the agent will analyze it in the context of your repository.

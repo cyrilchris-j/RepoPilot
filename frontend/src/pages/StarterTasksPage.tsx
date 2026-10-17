@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Compass,
+  ListFilter,
   Clock,
   ArrowRight,
   Tag,
-  Sparkles,
+  Code2,
   CheckSquare,
   Square,
   Copy,
@@ -174,7 +174,7 @@ function TaskCard({ task, expanded, onToggle }: {
                     </>
                   ) : (
                     <>
-                      <Sparkles size={13} className="text-accent-cyan" />
+                      <Code2 size={13} className="text-accent-cyan" />
                       <span>Generate Implementation Plan & PR Scaffold</span>
                     </>
                   )}
@@ -183,7 +183,7 @@ function TaskCard({ task, expanded, onToggle }: {
                 <div className="rounded-lg border border-accent-cyan/25 bg-surface/80 p-3.5 space-y-3">
                   <div className="flex items-center justify-between border-b border-border/60 pb-2">
                     <div className="flex items-center gap-2">
-                      <Sparkles size={13} className="text-accent-cyan" />
+                      <Code2 size={13} className="text-accent-cyan" />
                       <span className="text-xs font-mono font-semibold text-text-primary">Implementation Workspace</span>
                     </div>
                     <div className="flex items-center gap-1">
@@ -400,7 +400,7 @@ export function StarterTasksPage() {
         transition={{ delay: 0.15 }}
         className="flex items-center gap-2"
       >
-        <Compass size={14} className="text-text-secondary" />
+        <ListFilter size={14} className="text-text-secondary" />
         <div className="flex gap-1.5">
           {(['all', 'beginner', 'intermediate', 'advanced'] as const).map(f => (
             <button

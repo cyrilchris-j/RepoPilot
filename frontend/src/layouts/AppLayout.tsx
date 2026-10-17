@@ -5,7 +5,7 @@ import { MobileNav } from '../components/MobileNav';
 import { CommandPalette } from '../components/CommandPalette';
 import { OnboardingExportModal } from '../components/OnboardingExportButton';
 import { useRepo } from '../lib/RepoContext';
-import { Search, ExternalLink, BookOpen, MessageCircle } from 'lucide-react';
+import { Search, ExternalLink, FileCode2, MessageSquareCode } from 'lucide-react';
 
 export function AppLayout() {
   const { repoUrl, repoData } = useRepo();
@@ -125,7 +125,7 @@ export function AppLayout() {
                 (e.currentTarget as HTMLElement).style.background = 'rgba(59,130,246,0.1)';
               }}
             >
-              <MessageCircle size={12} />
+              <MessageSquareCode size={12} />
               <span className="hidden lg:inline">Ask AI</span>
             </Link>
 
@@ -148,7 +148,7 @@ export function AppLayout() {
                 (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.4)';
               }}
             >
-              <BookOpen size={12} className="text-blue-400" />
+              <FileCode2 size={12} className="text-blue-400" />
               <span className="hidden lg:inline font-mono text-[11px]">Export Handbook</span>
             </button>
 

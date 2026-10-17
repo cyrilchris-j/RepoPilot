@@ -11,7 +11,7 @@ import {
   FileCode,
   ChevronUp,
   ChevronDown,
-  Sparkles,
+  Terminal,
   MessageSquare,
   Lightbulb,
   Tag,
@@ -271,7 +271,7 @@ export function CodeViewerModal() {
                   }`}
                   title="Explain this file with IBM watsonx.ai"
                 >
-                  <Sparkles size={12} className={explaining ? 'animate-spin text-accent-cyan' : 'text-accent-cyan'} />
+                  <Terminal size={12} className={explaining ? 'animate-spin text-accent-cyan' : 'text-accent-cyan'} />
                   <span className="hidden sm:inline">{explaining ? 'Explaining...' : 'Explain'}</span>
                 </button>
 
@@ -368,7 +368,7 @@ export function CodeViewerModal() {
                     {/* Explanation Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-[#0d1117]/80 shrink-0">
                       <div className="flex items-center gap-2">
-                        <Sparkles size={14} className="text-accent-cyan" />
+                        <Terminal size={14} className="text-accent-cyan" />
                         <span className="text-xs font-mono font-semibold tracking-wider text-text-primary">AI CODE EXPLAINER</span>
                       </div>
                       <button

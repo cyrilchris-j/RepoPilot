@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard,
+  LayoutGrid,
   GitBranch,
-  Settings,
-  Package,
-  Bug,
-  MessageCircle,
-  Compass,
+  SlidersHorizontal,
+  Boxes,
+  Activity,
+  MessageSquareCode,
+  ListTodo,
   Menu,
   X,
   ChevronLeft,
-  Sparkles,
-  BookOpen,
+  GitPullRequest,
+  FileCode2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusBadge } from './ui/StatusBadge';
@@ -20,15 +20,15 @@ import { RepoSwitcher } from './RepoSwitcher';
 import { OnboardingExportButton } from './OnboardingExportButton';
 
 const navItems = [
-  { id: 'overview',      label: 'Overview',        icon: <LayoutDashboard size={18} />, path: '/app' },
-  { id: 'summary',       label: 'Project Summary', icon: <BookOpen size={18} />,        path: '/app/summary' },
-  { id: 'ask',           label: 'Ask Codebase',    icon: <MessageCircle size={18} />,   path: '/app/ask' },
-  { id: 'architecture',  label: 'Architecture',    icon: <GitBranch size={18} />,       path: '/app/architecture' },
-  { id: 'setup',         label: 'Setup',            icon: <Settings size={18} />,        path: '/app/setup' },
-  { id: 'dependencies',  label: 'Dependencies',    icon: <Package size={18} />,         path: '/app/dependencies' },
-  { id: 'debug',         label: 'Debug Agent',     icon: <Bug size={18} />,             path: '/app/debug' },
-  { id: 'tasks',         label: 'Starter Tasks',   icon: <Compass size={18} />,         path: '/app/tasks' },
-  { id: 'improvements',  label: 'Improvements',    icon: <Sparkles size={18} />,        path: '/app/improvements' },
+  { id: 'overview',      label: 'Overview',        icon: <LayoutGrid size={18} />,        path: '/app' },
+  { id: 'summary',       label: 'Project Summary', icon: <FileCode2 size={18} />,         path: '/app/summary' },
+  { id: 'ask',           label: 'Ask Codebase',    icon: <MessageSquareCode size={18} />, path: '/app/ask' },
+  { id: 'architecture',  label: 'Architecture',    icon: <GitBranch size={18} />,         path: '/app/architecture' },
+  { id: 'setup',         label: 'Setup',            icon: <SlidersHorizontal size={18} />, path: '/app/setup' },
+  { id: 'dependencies',  label: 'Dependencies',    icon: <Boxes size={18} />,             path: '/app/dependencies' },
+  { id: 'debug',         label: 'Debug Agent',     icon: <Activity size={18} />,          path: '/app/debug' },
+  { id: 'tasks',         label: 'Starter Tasks',   icon: <ListTodo size={18} />,          path: '/app/tasks' },
+  { id: 'improvements',  label: 'Improvements',    icon: <GitPullRequest size={18} />,    path: '/app/improvements' },
 ];
 
 
