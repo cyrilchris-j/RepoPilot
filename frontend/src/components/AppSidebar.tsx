@@ -51,6 +51,7 @@ interface AppSidebarProps {
   analysisStatus: 'analyzing' | 'complete' | 'error';
   repoUrl?: string;
   onOpenCommandPalette?: () => void;
+  onOpenExport?: () => void;
 }
 
 export function AppSidebar({
@@ -59,6 +60,7 @@ export function AppSidebar({
   analysisStatus,
   repoUrl = '',
   onOpenCommandPalette,
+  onOpenExport,
 }: AppSidebarProps) {
   const location = useLocation();
 
@@ -197,7 +199,7 @@ export function AppSidebar({
         {/* Export section */}
         <div className="mt-4 pt-3 border-t border-white/[0.04] px-0">
           <div className="text-[9px] font-mono text-white/20 tracking-widest uppercase px-2 mb-2">Export</div>
-          <OnboardingExportButton variant="sidebar" />
+          <OnboardingExportButton variant="sidebar" onClick={onOpenExport} />
         </div>
       </nav>
 

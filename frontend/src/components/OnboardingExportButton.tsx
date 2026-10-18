@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileDown, X, Eye, Download, Check, FileCode2, Terminal, FileCode } from 'lucide-react';
 import { useOnboardingExport } from '../lib/useOnboardingExport';
@@ -6,6 +7,7 @@ import { useOnboardingExport } from '../lib/useOnboardingExport';
 interface OnboardingExportButtonProps {
   /** 'sidebar' = compact icon+label, 'header' = full button */
   variant?: 'sidebar' | 'header';
+  onClick?: () => void;
 }
 
 export function OnboardingExportModal({
@@ -27,6 +29,18 @@ export function OnboardingExportModal({
     }
   }, [isOpen, activeTab, generate]);
 
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const handleDownload = () => {
     download(activeTab);
     setDownloaded(true);
@@ -44,27 +58,29 @@ export function OnboardingExportModal({
 
   const fileLabel = activeTab === 'markdown' ? 'ONBOARDING.md' : activeTab === 'script' ? 'setup.sh' : 'devcontainer.json';
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-10 pointer-events-none">
           <motion.div
             key="ob-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md pointer-events-auto"
             onClick={onClose}
           />
 
           <motion.div
             key="ob-modal"
-            initial={{ opacity: 0, y: 24, scale: 0.97 }}
+            initial={{ opacity: 0, y: 20, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-4 md:inset-12 lg:inset-16 z-50 flex flex-col rounded-xl border border-border bg-[#0d1117] shadow-2xl overflow-hidden"
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-5xl h-[88vh] flex flex-col rounded-xl border border-white/10 bg-[#0d1117] shadow-2xl overflow-hidden pointer-events-auto z-10"
           >
             {/* Header */}
             <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-border bg-[#161b22] shrink-0">
@@ -253,22 +269,31 @@ export function OnboardingExportModal({
               </button>
             </div>
           </motion.div>
-        </>
+        </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
-export function OnboardingExportButton({ variant = 'sidebar' }: OnboardingExportButtonProps) {
+export function OnboardingExportButton({ variant = 'sidebar', onClick }: OnboardingExportButtonProps) {
   const [modalOpen, setModalOpen] = useState(false);
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      setModalOpen(true);
+    }
+  };
 
   return (
     <>
       {variant === 'sidebar' ? (
         <button
           type="button"
-          onClick={() => setModalOpen(true)}
-          className="w-full flex items-center gap-2 px-2.5 py-2 rounded text-sm text-text-secondary hover:text-text-primary hover:bg-elevated transition-all group"
+          onClick={handleClick}
+          className="w-full flex items-center gap-2 px-2.5 py-2 rounded text-sm text-text-secondary hover:text-text-primary hover:bg-elevated transition-all group cursor-pointer"
           title="Export ONBOARDING.md"
         >
           <FileCode2 size={14} className="shrink-0 text-text-secondary group-hover:text-accent-cyan transition-colors" />
@@ -278,18 +303,20 @@ export function OnboardingExportButton({ variant = 'sidebar' }: OnboardingExport
       ) : (
         <button
           type="button"
-          onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded border border-accent-cyan/30 bg-accent-cyan/5 text-accent-cyan text-sm font-medium hover:bg-accent-cyan/10 transition-all"
+          onClick={handleClick}
+          className="flex items-center gap-2 px-4 py-2 rounded border border-accent-cyan/30 bg-accent-cyan/5 text-accent-cyan text-sm font-medium hover:bg-accent-cyan/10 transition-all cursor-pointer"
         >
           <FileDown size={15} />
           Export ONBOARDING.md
         </button>
       )}
 
-      <OnboardingExportModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-      />
+      {!onClick && (
+        <OnboardingExportModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </>
   );
 }

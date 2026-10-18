@@ -58,6 +58,7 @@ export function AppLayout() {
           analysisStatus="complete"
           repoUrl={repoUrl}
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          onOpenExport={() => setIsExportModalOpen(true)}
         />
       </div>
 
@@ -185,6 +186,7 @@ export function AppLayout() {
             repoName={displayName}
             repoUrl={repoUrl}
             analysisStatus="complete"
+            onOpenExport={() => setIsExportModalOpen(true)}
           />
         </div>
 

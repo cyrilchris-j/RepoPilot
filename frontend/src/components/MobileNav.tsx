@@ -36,9 +36,10 @@ interface MobileNavProps {
   repoName: string;
   repoUrl?: string;
   analysisStatus: 'analyzing' | 'complete' | 'error';
+  onOpenExport?: () => void;
 }
 
-export function MobileNav({ repoName, repoUrl = '', analysisStatus }: MobileNavProps) {
+export function MobileNav({ repoName, repoUrl = '', analysisStatus, onOpenExport }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
 
@@ -131,7 +132,13 @@ export function MobileNav({ repoName, repoUrl = '', analysisStatus }: MobileNavP
                 <div className="mt-4 pt-3 border-t border-border/50">
                   <div className="text-[10px] font-mono text-text-secondary tracking-widest uppercase px-3 mb-1.5">Export</div>
                   <div className="px-1">
-                    <OnboardingExportButton variant="sidebar" />
+                    <OnboardingExportButton
+                      variant="sidebar"
+                      onClick={() => {
+                        setOpen(false);
+                        onOpenExport?.();
+                      }}
+                    />
                   </div>
                 </div>
               </nav>
