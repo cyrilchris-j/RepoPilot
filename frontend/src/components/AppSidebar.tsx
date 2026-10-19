@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   LayoutGrid,
   GitBranch,
@@ -140,38 +140,29 @@ export function AppSidebar({
               location.pathname === item.path ||
               (item.path !== '/app' && location.pathname.startsWith(item.path));
             return (
-              <li key={item.id}>
+              <li key={item.id} className="relative">
                 <Link
                   to={item.path}
-                  className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm transition-all duration-150 group relative ${
-                    isActive ? 'text-white' : 'text-white/40 hover:text-white/75'
+                  className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm transition-colors duration-200 group relative z-10 ${
+                    isActive ? 'text-white font-medium' : 'text-white/40 hover:text-white/80 hover:bg-white/[0.03]'
                   }`}
-                  style={
-                    isActive
-                      ? {
-                          background: 'rgba(59,130,246,0.12)',
-                          border: '1px solid rgba(59,130,246,0.18)',
-                          boxShadow: '0 0 16px rgba(59,130,246,0.06)',
-                        }
-                      : { border: '1px solid transparent' }
-                  }
-                  onMouseEnter={e => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
-                      (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)';
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.background = '';
-                      (e.currentTarget as HTMLElement).style.borderColor = 'transparent';
-                    }
-                  }}
                 >
+                  {isActive && (
+                    <motion.div
+                      layoutId="sidebarActivePill"
+                      className="absolute inset-0 rounded-xl -z-10"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(59,130,246,0.18) 0%, rgba(37,99,235,0.1) 100%)',
+                        border: '1px solid rgba(59,130,246,0.28)',
+                        boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
+                      }}
+                      transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                    />
+                  )}
                   <span className={`shrink-0 transition-colors ${isActive ? 'text-blue-400' : 'text-white/30 group-hover:text-white/60'}`}>
                     {item.icon}
                   </span>
-                  <span className="flex-1 text-[13px] font-medium flex items-center justify-between">
+                  <span className="flex-1 text-[13px] flex items-center justify-between">
                     <span>{item.label}</span>
                     {item.badge && (
                       <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded-md uppercase font-semibold ${badgeStyles[item.badgeColor || 'blue']}`}>
@@ -179,17 +170,12 @@ export function AppSidebar({
                       </span>
                     )}
                   </span>
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
-                        className="w-1.5 h-1.5 rounded-full bg-blue-400"
-                        style={{ boxShadow: '0 0 6px rgba(59,130,246,0.8)' }}
-                      />
-                    )}
-                  </AnimatePresence>
+                  {isActive && (
+                    <span
+                      className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"
+                      style={{ boxShadow: '0 0 8px rgba(59,130,246,0.9)' }}
+                    />
+                  )}
                 </Link>
               </li>
             );
