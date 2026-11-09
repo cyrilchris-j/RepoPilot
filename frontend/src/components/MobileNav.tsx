@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   GitPullRequest,
   FileCode2,
+  Terminal,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusBadge } from './ui/StatusBadge';
@@ -46,21 +47,32 @@ export function MobileNav({ repoName, repoUrl = '', analysisStatus, onOpenExport
   return (
     <>
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-surface border-b border-border">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded border border-accent-cyan/30 bg-accent-cyan/5 flex items-center justify-center">
-            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-              <circle cx="7" cy="7" r="2" fill="#67E8F9" />
-              <path d="M7 2v3M7 9v3M2 7h3M9 7h3" stroke="#67E8F9" strokeWidth="1.2" strokeLinecap="round" />
-            </svg>
+      <div
+        className="flex items-center justify-between px-4 h-14 shrink-0"
+        style={{
+          background: 'rgba(6, 9, 14, 0.88)',
+          backdropFilter: 'blur(32px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
+        <Link to="/" className="flex items-center gap-2.5">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center relative overflow-hidden bg-white/[0.05] border border-white/10 text-blue-400"
+            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+          >
+            <Terminal size={14} />
           </div>
-          <span className="text-sm font-semibold">RepoPilot</span>
+          <div>
+            <span className="text-sm font-semibold text-white tracking-tight block leading-none">RepoPilot</span>
+            <span className="text-[9px] text-blue-400/70 font-mono mt-0.5 block">AI Workspace</span>
+          </div>
         </Link>
         <div className="flex items-center gap-2">
           <StatusBadge status={analysisStatus === 'complete' ? 'complete' : analysisStatus} size="sm" />
           <button
             onClick={() => setOpen(true)}
-            className="p-2 rounded text-text-secondary hover:text-text-primary hover:bg-elevated transition-colors"
+            className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.05] transition-colors"
             aria-label="Open navigation"
           >
             <Menu size={18} />

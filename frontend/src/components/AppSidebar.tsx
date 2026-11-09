@@ -79,19 +79,19 @@ export function AppSidebar({
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
 
       {/* Brand */}
-      <div className="px-4 py-5 border-b border-white/[0.05]">
-        <Link to="/" className="flex items-center gap-3 group">
+      <div className="h-14 flex items-center px-4 border-b border-white/[0.06] shrink-0">
+        <Link to="/" className="flex items-center gap-3 group min-w-0">
           <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden bg-white/[0.05] border border-white/10 text-blue-400 group-hover:border-blue-500/40 group-hover:text-blue-300 transition-colors"
+            className="w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden bg-white/[0.05] border border-white/10 text-blue-400 group-hover:border-blue-500/40 group-hover:text-blue-300 transition-colors shrink-0"
             style={{
               boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
             }}
           >
             <Terminal size={15} />
           </div>
-          <div>
-            <span className="text-sm font-semibold text-white tracking-tight block leading-none">RepoPilot</span>
-            <span className="text-[10px] text-blue-400/70 font-mono mt-0.5 block">AI Workspace</span>
+          <div className="min-w-0">
+            <span className="text-sm font-semibold text-white tracking-tight block leading-none truncate">RepoPilot</span>
+            <span className="text-[10px] text-blue-400/70 font-mono mt-0.5 block truncate">AI Workspace</span>
           </div>
         </Link>
       </div>
