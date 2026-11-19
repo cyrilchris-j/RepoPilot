@@ -484,7 +484,7 @@ By decoupling the ingestion layers from core computational engines, **${name}** 
           description: 'AI model scans relevant file snippets and structural metadata to understand component relationships and core workflows.',
           userAction: 'Asks questions or inspects architecture nodes',
           systemAction: 'Retrieves code snippets and synthesizes detailed NLP explanations with file references',
-          keyFiles: ['src/controllers/ai.controller.ts', 'src/services/watsonx.ts'],
+          keyFiles: ['src/controllers/ai.controller.ts'],
           outcome: 'Deep multi-section answers and implementation plans generated',
         },
         {
@@ -523,9 +523,9 @@ By decoupling the ingestion layers from core computational engines, **${name}** 
         },
         {
           tier: 'Repository & Intelligence Services',
-          description: 'Git CLI execution, recursive filesystem parsing, and IBM Watsonx foundation model NLP integration.',
-          technologies: ['Git', 'IBM watsonx.ai', 'Axios', 'Child Process'],
-          entryFiles: ['backend/src/services/repoManager.ts', 'backend/src/services/watsonx.ts'],
+          description: 'Git CLI execution, recursive filesystem parsing, and neural language model integration.',
+          technologies: ['Git', 'Neural AI', 'Axios', 'Child Process'],
+          entryFiles: ['backend/src/services/repoManager.ts'],
         },
       ],
       keyHighlights: [

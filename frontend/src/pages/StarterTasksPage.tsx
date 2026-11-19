@@ -170,7 +170,7 @@ function TaskCard({ task, expanded, onToggle }: {
                   {generating ? (
                     <>
                       <Loader2 size={13} className="animate-spin text-accent-cyan" />
-                      <span>Generating PR Plan with watsonx...</span>
+                      <span>Generating PR Plan with AI...</span>
                     </>
                   ) : (
                     <>

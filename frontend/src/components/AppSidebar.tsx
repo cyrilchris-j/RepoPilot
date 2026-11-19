@@ -194,14 +194,13 @@ export function AppSidebar({
         className="px-4 py-3 border-t border-white/[0.04]"
         style={{ background: 'rgba(0,0,0,0.2)' }}
       >
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between">
           <span className="text-[9px] font-mono text-white/20 tracking-widest uppercase">System</span>
           <span className="flex items-center gap-1.5 text-[9px] font-mono text-emerald-400">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" style={{ boxShadow: '0 0 4px rgba(16,185,129,0.8)' }} />
             ONLINE
           </span>
         </div>
-        <div className="text-[10px] font-mono text-white/20">Powered by IBM watsonx.ai</div>
       </div>
     </aside>
   );

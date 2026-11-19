@@ -269,7 +269,7 @@ export function CodeViewerModal() {
                       ? 'bg-accent-cyan/15 text-accent-cyan border-accent-cyan/40 shadow-sm'
                       : 'bg-elevated/70 text-text-secondary hover:text-text-primary hover:border-accent-cyan/40 border-border'
                   }`}
-                  title="Explain this file with IBM watsonx.ai"
+                  title="Explain this file with AI"
                 >
                   <Terminal size={12} className={explaining ? 'animate-spin text-accent-cyan' : 'text-accent-cyan'} />
                   <span className="hidden sm:inline">{explaining ? 'Explaining...' : 'Explain'}</span>

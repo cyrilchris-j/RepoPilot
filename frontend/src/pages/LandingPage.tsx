@@ -47,7 +47,7 @@ function BentoSection() {
             Engineered to Perfection.
           </h2>
           <p className="text-white/45 text-base md:text-lg leading-relaxed">
-            Every layer of RepoPilot is calibrated for instant developer comprehension, from static AST indexing to watsonx.ai neural reasoning.
+            Every layer of RepoPilot is calibrated for instant developer comprehension, from static AST indexing to deep neural reasoning.
           </p>
         </motion.div>
 
@@ -84,7 +84,7 @@ function BentoSection() {
               {[
                 { name: 'App Router', role: 'Frontend Core', tag: 'Next.js 15', color: '#22D3EE' },
                 { name: 'Edge Handlers', role: 'API Layer', tag: 'Vercel / Node', color: '#818CF8' },
-                { name: 'WatsonX Granite', role: 'Neural Reasoning', tag: 'IBM AI 20B', color: '#34D399' },
+                { name: 'Neural Reasoning', role: 'Context Inference', tag: 'AI Engine 70B', color: '#34D399' },
                 { name: 'PostgreSQL', role: 'Persistence', tag: 'Prisma ORM', color: '#FCD34D' },
               ].map((item, idx) => (
                 <div
@@ -102,7 +102,7 @@ function BentoSection() {
             </div>
           </SpotlightCard>
 
-          {/* Bento Card 2: WatsonX Granite Silicon Core (Span 1) */}
+          {/* Bento Card 2: Neural Reasoning Silicon Core (Span 1) */}
           <SpotlightCard
             className="p-8 flex flex-col justify-between min-h-[380px]"
             spotlightColor="rgba(99, 102, 241, 0.16)"
@@ -112,7 +112,7 @@ function BentoSection() {
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-blue-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-6 shadow-inner">
                 <Cpu size={24} />
               </div>
-              <h3 className="text-lg font-semibold text-white tracking-tight mb-2">WatsonX Granite Core</h3>
+              <h3 className="text-lg font-semibold text-white tracking-tight mb-2">Neural Reasoning Core</h3>
               <p className="text-xs text-white/50 leading-relaxed mb-6">
                 Enterprise-grade coding intelligence fine-tuned for syntax verification, zero hallucinations, and AST comprehension.
               </p>
@@ -152,7 +152,7 @@ function BentoSection() {
                 {activeChipTab === 'privacy' && (
                   <div className="text-indigo-300">
                     <span className="text-lg font-bold text-white block">Air-Gapped</span>
-                    Zero retention IBM guarantee
+                    Zero code retention guarantee
                   </div>
                 )}
               </div>
@@ -244,7 +244,7 @@ function SpecsSection() {
 
   const specs = [
     { number: '<0.4s', label: 'STATIC AST SCAN', desc: 'Sub-second AST topology extraction across thousands of modules' },
-    { number: '100%', label: 'ENTERPRISE SECURE', desc: 'Air-gapped IBM watsonx.ai infrastructure with zero code leakage' },
+    { number: '100%', label: 'ENTERPRISE SECURE', desc: 'Air-gapped AI infrastructure with zero code leakage' },
     { number: '0 Config', label: 'FRICTIONLESS ENTRY', desc: 'Simply enter any public or private GitHub repository URL to launch' },
     { number: '10x', label: 'ONBOARDING VELOCITY', desc: 'Accelerate from unfamiliar clone to your first committed pull request' },
   ];
@@ -393,7 +393,7 @@ function ComparisonSection() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-emerald-400 font-mono">✓</span>
-                  <span>WatsonX AI Assistant answers all codebase questions with line-level code citations.</span>
+                  <span>AI Assistant answers all codebase questions with line-level code citations.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-emerald-400 font-mono">✓</span>
@@ -481,7 +481,7 @@ export function LandingPage() {
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-emerald-400 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>WATSONX ONLINE</span>
+            <span>SYSTEM ONLINE</span>
           </div>
 
           <Link to="/app" className="btn-apple-primary text-xs py-1.5 px-4">
@@ -504,7 +504,7 @@ export function LandingPage() {
                 className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono mb-6 bg-gradient-to-r from-blue-500/15 via-cyan-500/10 to-indigo-500/15 border border-white/10 text-cyan-300"
               >
                 <Sparkles size={12} className="text-cyan-400" />
-                <span>TITANIUM INTELLIGENCE · WATSONX INTEGRATED</span>
+                <span>TITANIUM INTELLIGENCE · NEURAL AI INTEGRATED</span>
               </motion.div>
 
               {/* Apple Pro Headline */}
@@ -630,7 +630,7 @@ export function LandingPage() {
           <div className="flex items-center justify-between gap-6 overflow-x-auto no-scrollbar py-1 text-xs font-mono text-white/40">
             {[
               { icon: <Layers size={13} />, text: 'NEURAL TOPOLOGY' },
-              { icon: <Cpu size={13} />, text: 'WATSONX GRANITE' },
+              { icon: <Cpu size={13} />, text: 'NEURAL REASONING' },
               { icon: <Activity size={13} />, text: 'PROACTIVE DEBUG AGENT' },
               { icon: <Shield size={13} />, text: 'ZERO CVE RISK' },
               { icon: <SlidersHorizontal size={13} />, text: 'ZERO-CONFIG SETUP' },
@@ -686,11 +686,11 @@ export function LandingPage() {
             </div>
             <span className="font-semibold text-white/70">RepoPilot Pro</span>
             <span>·</span>
-            <span>Engineered for IBM Bob 2.0 Hackathon</span>
+            <span>Autonomous AI Workspace</span>
           </div>
           <div className="flex items-center gap-2 font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <span>Powered by IBM watsonx.ai</span>
+            <span>All Systems Operational</span>
           </div>
         </div>
       </footer>

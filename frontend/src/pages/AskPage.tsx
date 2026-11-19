@@ -506,7 +506,7 @@ export function AskPage() {
                       </span>
                     </div>
                     <span className="text-[10px] font-mono text-accent-cyan bg-accent-cyan/10 px-2.5 py-0.5 rounded border border-accent-cyan/20">
-                      IBM watsonx.ai
+                      Neural Engine
                     </span>
                   </div>
                   <MarkdownRenderer content={item.answer.explanation} />

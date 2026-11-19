@@ -183,7 +183,7 @@ export function IPhoneShowcase() {
                     </div>
                     <div>
                       <div className="text-white font-medium text-[10px] leading-none">RepoPilot AI Active</div>
-                      <div className="text-white/40 text-[9px] mt-0.5">3,842 files · watsonx</div>
+                      <div className="text-white/40 text-[9px] mt-0.5">3,842 files · AI indexed</div>
                     </div>
                   </div>
                   <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
@@ -298,7 +298,7 @@ export function IPhoneShowcase() {
                       <div className="w-full p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Cpu size={12} className="text-indigo-400" />
-                          <span className="text-[11px] font-medium text-indigo-300">WatsonX LLM Pipeline</span>
+                          <span className="text-[11px] font-medium text-indigo-300">Neural LLM Pipeline</span>
                         </div>
                         <span className="text-[9px] font-mono text-indigo-400/70">Edge Engine</span>
                       </div>
@@ -364,7 +364,7 @@ export function IPhoneShowcase() {
                     <div>
                       <div className="text-[9px] text-white/30 mb-1 flex items-center justify-between">
                         <span>SUGGESTED DIFF</span>
-                        <span className="text-emerald-400">WATSONX RESOLUTION</span>
+                        <span className="text-emerald-400">AI RESOLUTION</span>
                       </div>
                       <div className="text-rose-400/80 leading-relaxed">- app.use(express.json())</div>
                       <div className="text-emerald-400 leading-relaxed">{"+ app.use(cors({ origin: '*' }))"}</div>
