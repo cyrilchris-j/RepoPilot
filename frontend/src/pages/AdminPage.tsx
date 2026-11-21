@@ -248,7 +248,12 @@ export function AdminPage() {
   }, [feedbacks, feedbackStatusFilter, feedbackCategoryFilter, feedbackSearch]);
 
   // Overall metrics
-  const metrics = useMemo(() => getAdminMetrics(), [repos, feedbacks]);
+  const metrics = useMemo(() => {
+    if (repos.length >= 0 && feedbacks.length >= 0) {
+      return getAdminMetrics();
+    }
+    return getAdminMetrics();
+  }, [repos, feedbacks]);
 
   if (!isAuthenticated) {
     return (

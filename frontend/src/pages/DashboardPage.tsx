@@ -83,14 +83,14 @@ export function DashboardPage() {
     };
   })();
 
-  const metrics = repoData?.metrics || {
+  const metrics = useMemo(() => repoData?.metrics || {
     totalFiles: 0,
     linesOfCode: 0,
     dependencies: repoData?.dependenciesList?.length || 0,
     routes: 0,
     modules: 0,
     testCoverage: 0,
-  };
+  }, [repoData]);
 
   const setupSteps = repoData?.setupSteps || [];
   const starterTasks = repoData?.starterTasks || [];

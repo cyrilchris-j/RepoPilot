@@ -366,12 +366,15 @@ export function AskPage() {
     }
   };
 
+  const handleAskRef = useRef(handleAsk);
+  handleAskRef.current = handleAsk;
+
   // Auto-run query if passed via ?q= (e.g. from CodeViewerModal)
   useEffect(() => {
     const q = searchParams.get('q');
     if (q && !initialQueried.current) {
       initialQueried.current = true;
-      handleAsk(q);
+      handleAskRef.current(q);
     }
   }, [searchParams]);
 
